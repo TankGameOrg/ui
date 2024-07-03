@@ -53,6 +53,10 @@ export default class Board {
     }
 
     setEntity(entity) {
+        if(!this.isInBounds(entity.position)) {
+            throw new Error(`Can not set entity ${entity.type} to position ${entity.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
+        }
+
         if(entity.type == "empty") {
             delete this._entities[entity.position.humanReadable];
         }
@@ -67,6 +71,10 @@ export default class Board {
     }
 
     setFloorTile(tile) {
+        if(!this.isInBounds(tile.position)) {
+            throw new Error(`Can not set floor tile ${tile.type} to position ${tile.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
+        }
+
         if(tile.type == "empty") {
             delete this._floor[tile.position.humanReadable];
         }

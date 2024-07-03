@@ -1,13 +1,13 @@
 import "./builder.css";
 import { useEffect } from "preact/hooks";
 import { useMap } from "../../drivers/rest/fetcher.js";
-import { clearSelection, deleteSelected, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder.js";
+import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder.js";
 import { getGameVersion } from "../../versions/index.js";
 import { AppContent } from "../app-content.jsx";
 import { ErrorMessage } from "../error_message.jsx";
 import { GameBoard } from "../game_state/board.jsx";
 import { EditSpace } from "./edit-entity.jsx";
-import { DELETE, ESCAPE, useGlobalKeyHandler } from "../generic/global-keybinds.js";
+import { DELETE, ESCAPE, KEY_C, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
 
 function useMapBuilderKeyBinds(dispatch) {
     useGlobalKeyHandler((e) => {
@@ -16,6 +16,15 @@ function useMapBuilderKeyBinds(dispatch) {
         }
         else if(e.keyCode == DELETE) {
             deleteSelected(dispatch);
+        }
+        else if(e.ctrlKey && e.keyCode == KEY_X) {
+            dispatch(cut());
+        }
+        else if(e.ctrlKey && e.keyCode == KEY_C) {
+            dispatch(copy());
+        }
+        else if(e.ctrlKey && e.keyCode == KEY_V) {
+            dispatch(paste());
         }
     }, [dispatch]);
 }
@@ -82,6 +91,8 @@ export function MapBuilder({ mapName, debug, navigate }) {
             </div>
             <AppContent withSidebar debugMode={debug} toolbar={toolBar} buildInfo={map?.buildInfo}>
                 <div className="map-builder-map-wrapper">
+                    {mapBuilderState?.errorMessage ?
+                        <div className="message warning">{mapBuilderState?.errorMessage}</div> : undefined}
                     <div class="centered map-builder-resize-board-buttons">
                         <button onClick={() => dispatch(resizeBoard({ top: 1 }))} disabled={!mapBuilderState?.resizeBoard?.canGrowY}>Grow</button>
                         <button onClick={() => dispatch(resizeBoard({ top: -1 }))} disabled={!mapBuilderState?.resizeBoard?.canShrinkY}>Shrink</button>

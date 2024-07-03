@@ -8,6 +8,9 @@ export const LEFT = window.KeyEvent?.DOM_VK_LEFT || 37;
 export const RIGHT = window.KeyEvent?.DOM_VK_RIGHT || 39;
 export const ESCAPE = window.KeyEvent?.DOM_VK_ESCAPE || 27;
 export const DELETE = window.KeyEvent?.DOM_VK_DELETE || 46;
+export const KEY_X = window.KeyEvent?.DOM_VK_X || 67;
+export const KEY_C = window.KeyEvent?.DOM_VK_C || 67;
+export const KEY_V = window.KeyEvent?.DOM_VK_V || 86;
 
 
 export function useGlobalKeyHandler(globalKeyHandler, dependencies = []) {
