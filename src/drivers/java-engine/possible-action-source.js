@@ -66,7 +66,7 @@ export class JavaEngineSource {
                             throw new Error(`Got bad data expected a position but got ${position}`);
                         }
 
-                        const name = tank.name || tank.attributes.PLAYER.attributes.NAME;
+                        const name = tank.name || tank.attributes.PLAYER_REF.name;
 
                         return {
                             position,

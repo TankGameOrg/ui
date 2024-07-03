@@ -53,8 +53,7 @@ function mapClassToType(className) {
 
 
 export function gameStateFromRawState(rawGameState) {
-    let councilPlayers = [];
-    const playersByName = buildUserLists(rawGameState, councilPlayers);
+    const playersByName = buildUserLists(rawGameState);
 
     let board = convertBoard(undefined, rawGameState.attributes.BOARD.unit_board, (newBoard, rawEntity, position) => {
         newBoard.setEntity(entityFromBoard(rawEntity, position, playersByName));
@@ -71,7 +70,7 @@ export function gameStateFromRawState(rawGameState) {
         new Players(Object.values(playersByName)),
         board,
         {
-            council: convertCouncil(rawGameState.attributes.COUNCIL, councilPlayers),
+            council: convertCouncil(rawGameState.attributes.COUNCIL, playersByName),
         },
     );
 
@@ -102,12 +101,12 @@ function getAttributeName(name, type, rawAttributes) {
     return name;
 }
 
-function shouldKeepAttribute(attributeName, type, rawAttributes) {
-    if(["DEAD", "POSITION", "PLAYER"].includes(attributeName)) {
+function shouldKeepAttribute(attributeName, rawAttributes) {
+    if(["DEAD", "POSITION", "PLAYER_REF"].includes(attributeName)) {
         return false;
     }
 
-    if(type == "tank" && rawAttributes.DEAD) {
+    if(rawAttributes.DEAD) {
         return !deadTankAttributesToRemove.includes(attributeName);
     }
 
@@ -118,7 +117,7 @@ function decodeAttributes(type, rawAttributes) {
     let attributes = {};
 
     for(const attributeName of Object.keys(rawAttributes)) {
-        if(!shouldKeepAttribute(attributeName, type, rawAttributes)) continue;
+        if(!shouldKeepAttribute(attributeName, rawAttributes)) continue;
 
         const actualName = getAttributeName(attributeName, type, rawAttributes);
         attributes[actualName] = rawAttributes[attributeName];
@@ -127,15 +126,40 @@ function decodeAttributes(type, rawAttributes) {
     return attributes;
 }
 
-function convertPlayer(rawPlayer, playerType) {
+function convertPlayer(rawPlayer) {
     if(rawPlayer.class != "Player") throw new Error(`Expected player but got ${rawPlayer.class}`);
 
-    let attributes = decodeAttributes(playerType, rawPlayer.attributes);
-    attributes.type = playerType;
-    return new Player(attributes);
+    return new Player(decodeAttributes(undefined, rawPlayer.attributes));
 }
 
-function convertCouncil(rawCouncil, players) {
+function getCouncilPlayers(rawCouncil, playersByName) {
+    let councilPlayers = [];
+
+    // Ensure that players remain in the same order
+    rawCouncil.attributes.COUNCILLORS.elements.sort();
+    rawCouncil.attributes.SENATORS.elements.sort();
+
+    const councilGroups = [
+        [rawCouncil.attributes.COUNCILLORS.elements, "councilor"],
+        [rawCouncil.attributes.SENATORS.elements, "senator"]
+    ];
+
+    for(const [users, userType] of councilGroups) {
+        for(const playerRef of users) {
+            const {name} = playerRef;
+            if(playersByName[name]) {
+                // Being a councelor overrides the user's previous state
+                playersByName[name].attributes.type = userType;
+            }
+
+            councilPlayers.push(playersByName[name]);
+        }
+    }
+
+    return councilPlayers;
+}
+
+function convertCouncil(rawCouncil, playersByName) {
     let attributes = {
         coffer: rawCouncil.attributes.COFFER,
     };
@@ -147,6 +171,7 @@ function convertCouncil(rawCouncil, players) {
         };
     }
 
+    const players = getCouncilPlayers(rawCouncil, playersByName);
     return new Entity({ type: "council", attributes, players });
 }
 
@@ -160,9 +185,9 @@ function entityFromBoard(rawEntity, position, playersByName) {
         attributes,
     });
 
-    const {PLAYER} = rawEntity.attributes;
-    if(PLAYER) {
-        const player = playersByName[PLAYER.attributes.NAME];
+    const {PLAYER_REF} = rawEntity.attributes;
+    if(PLAYER_REF) {
+        const player = playersByName[PLAYER_REF.name];
         entity.addPlayer(player);
     }
 
@@ -196,53 +221,14 @@ function convertBoard(newBoard, board, boardSpaceFactory) {
     return newBoard;
 }
 
-function buildUserLists(rawGameState, councilPlayers) {
+function buildUserLists(rawGameState) {
     let playersByName = {};
-    processCouncil(rawGameState, playersByName, councilPlayers);
-    findUsersOnGameBoard(rawGameState, playersByName);
+
+    for(const rawPlayer of rawGameState.attributes.PLAYERS.elements) {
+        playersByName[rawPlayer.attributes.NAME] = convertPlayer(rawPlayer);
+    }
 
     return playersByName;
-}
-
-function processCouncil(rawGameState, playersByName, councilPlayers) {
-    // Ensure that players remain in the same order
-    rawGameState.attributes.COUNCIL.attributes.COUNCILLORS.elements.sort();
-    rawGameState.attributes.COUNCIL.attributes.SENATORS.elements.sort();
-
-    const councilGroups = [
-        [rawGameState.attributes.COUNCIL.attributes.COUNCILLORS.elements, "councilor"],
-        [rawGameState.attributes.COUNCIL.attributes.SENATORS.elements, "senator"]
-    ];
-
-    for(const [users, userType] of councilGroups) {
-        for(const userName of users) {
-            if(playersByName[userName]) {
-                // Being a councelor overrides the user's previous state
-                playersByName[userName].attributes.type = userType;
-            }
-            else {
-                playersByName[userName] = new Player({ name: userName, type: userType });
-            }
-
-            councilPlayers.push(playersByName[userName]);
-        }
-    }
-}
-
-function findUsersOnGameBoard(rawGameState, playersByName) {
-    for(const row of rawGameState.attributes.BOARD.unit_board) {
-        for(const rawEntity of row) {
-            let rawPlayer = rawEntity.attributes.PLAYER;
-            if(rawPlayer) {
-                let player = playersByName[rawPlayer.attributes.NAME];
-                if(!player) {
-                    const type = rawEntity.attributes.DEAD ? "council" : "tank";
-                    player = convertPlayer(rawPlayer, type);
-                    playersByName[player.name] = player;
-                }
-            }
-        }
-    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -268,6 +254,13 @@ function buildBoard(board, entityFn) {
     }
 
     return rawBoard;
+}
+
+function buildPlayerRef(player) {
+    return {
+        class: "PlayerRef",
+        name: player.name,
+    };
 }
 
 function buildPlayer(player) {
@@ -309,7 +302,7 @@ function buildUnit(position, board, gameVersion) {
     attributes.POSITION = buildPosition(entity.position);
 
     if(entity.players.length > 0) {
-        attributes.PLAYER = buildPlayer(entity.players[0]);
+        attributes.PLAYER_REF = buildPlayerRef(entity.players[0]);
     }
 
     return {
@@ -332,7 +325,7 @@ function buildFloor(position, board, gameVersion) {
 function makeCouncilList(council, playerType) {
     const players = council.players
         .filter(player => player.type == playerType)
-        .map(player => player.name);
+        .map(player => buildPlayerRef(player));
 
     return {
         "class": "AttributeList",

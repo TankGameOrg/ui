@@ -260,8 +260,8 @@ class TankGameEngine {
 
     async setGameVersion(version) {
         await this._sendRequestAndWait({
-            type: "ruleset",
-            ruleset: `version${version}`,
+            type: "version",
+            version: `default-v${version}`,
         });
     }
 
