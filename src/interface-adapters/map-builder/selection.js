@@ -1,7 +1,7 @@
 import { Position } from "../../game/state/board/position.js";
 import { updateEditorOnSelection } from "./editor.js";
 
-export function updateSelectionAndEditor(state, action) {
+export function updateSelectionAndEditorReducer(state, action) {
     if(action.type == "select-location") {
         const {board} = state.initialState;
 

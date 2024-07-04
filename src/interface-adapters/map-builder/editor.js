@@ -56,7 +56,7 @@ function areEntriesCompatible(locations, getEntityAt) {
 }
 
 
-export function editEntity(state, action) {
+export function editEntityReducer(state, action) {
     if(action.type == "set-selected-attribute" || action.type == "set-selected-entity-type") {
         if(state.locationSelector.locations?.length < 1) {
             throw new Error(`You must have a location selected to perform ${action.type}`);
