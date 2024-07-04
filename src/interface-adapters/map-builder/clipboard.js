@@ -66,7 +66,9 @@ export class Clipboard {
                     entity.position.y + insertPosition.y,
                 );
 
-                setFn.call(newBoard, entity);
+                if(newBoard.isInBounds(entity.position)) {
+                    setFn.call(newBoard, entity);
+                }
             }
         }
 
@@ -74,6 +76,8 @@ export class Clipboard {
     }
 
     canPasteAt(board, insertPosition) {
+        if(insertPosition === undefined) return false;
+
         return insertPosition.x + this.width <= board.width &&
             insertPosition.y + this.height <= board.height;
     }

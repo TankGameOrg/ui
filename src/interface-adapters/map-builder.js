@@ -48,6 +48,9 @@ export function mapBuilderReducer(state, action) {
         throw new Error("set-map must be called before any other action");
     }
 
+    // Clear previous error messages
+    state = { ...state, pasteErrorMessage: undefined };
+
     if(action.type == "select-location") {
         const {board} = state.initialState;
         const {locations, lastSelected} = updateLocation(state.locationSelector.locations, state.locationSelector.lastSelected, action);
@@ -58,16 +61,10 @@ export function mapBuilderReducer(state, action) {
         const entityEditable = areEntriesCompatible(locations, board.getEntityAt.bind(board));
         const floorTileEditable = areEntriesCompatible(locations, board.getFloorTileAt.bind(board));
 
-        let pasteErrorMessage = undefined;
-        if(state.clipBoard !== undefined && lastSelected !== undefined && !state.clipBoard.canPasteAt(state.initialState.board, new Position(lastSelected))) {
-            pasteErrorMessage = `Cannot paste here (${lastSelected}) because the copied data ${state.clipBoard.width}x${state.clipBoard.height} does not fit in the board`;
-        }
-
         const clipBoard = action.mode == "clear" ? undefined : state.clipBoard;
 
         return {
             ...state,
-            pasteErrorMessage,
             locationSelector: {
                 ...state.locationSelector,
                 locations,
@@ -88,6 +85,7 @@ export function mapBuilderReducer(state, action) {
                 },
             },
             clipBoard,
+            canPaste: lastSelected !== undefined ? state.clipBoard?.canPasteAt?.(board, new Position(lastSelected)): undefined,
         };
     }
 
@@ -206,11 +204,14 @@ export function mapBuilderReducer(state, action) {
 
     if(action.type == "copy" || action.type == "cut") {
         if(state.locationSelector.locations?.length > 0) {
+            const clipBoard = new Clipboard(state.initialState.board, state.locationSelector.locations, {
+                isCut: action.type == "cut",
+            });
+
             return {
                 ...state,
-                clipBoard: new Clipboard(state.initialState.board, state.locationSelector.locations, {
-                    isCut: action.type == "cut",
-                }),
+                canPaste: clipBoard.canPasteAt(state.initialState.board, new Position(state.locationSelector.lastSelected)),
+                clipBoard,
             };
         }
         else {
@@ -225,7 +226,10 @@ export function mapBuilderReducer(state, action) {
             return state;
         }
         else if(!state.clipBoard.canPasteAt(state.initialState.board, new Position(state.locationSelector.lastSelected))) {
-            return state;
+            return {
+                ...state,
+                pasteErrorMessage: `Cowardly refusing to paste outside of the board (clipboard contents are ${state.clipBoard.width} x ${state.clipBoard.height})`,
+            };
         }
         else {
             const newBoard = state.clipBoard.paste(state.initialState.board, new Position(state.locationSelector.lastSelected));

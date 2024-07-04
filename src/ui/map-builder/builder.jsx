@@ -46,7 +46,6 @@ export function MapBuilder({ mapName, debug, navigate }) {
 
     useMapBuilderKeyBinds(dispatch);
 
-    // TODO: Remove boiler plate
     const backToGamesButton = <button onClick={() => navigate("home")}>Back to games</button>;
 
     if(error?.code == "game-loading") {
@@ -62,7 +61,6 @@ export function MapBuilder({ mapName, debug, navigate }) {
             <ErrorMessage error={error}></ErrorMessage>
         </AppContent>;
     }
-    // END TODO: Remove boiler plate
 
     const hasSelection = mapBuilderState.locationSelector.locations?.length > 0;
     const hasClipBoard = mapBuilderState.clipBoard !== undefined;
@@ -76,7 +74,7 @@ export function MapBuilder({ mapName, debug, navigate }) {
             <button disabled={!hasSelection} onClick={() => dispatch(cut())}>Cut</button>
             <button disabled={!hasSelection} onClick={() => dispatch(copy())}>Copy</button>
             <button
-                disabled={!hasSelection || !hasClipBoard || mapBuilderState?.pasteErrorMessage != undefined}
+                disabled={!hasSelection || !hasClipBoard || !mapBuilderState?.canPaste}
                 onClick={() => dispatch(paste())}>
                     Paste
             </button>
