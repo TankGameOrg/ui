@@ -2,7 +2,7 @@ import { useReducer } from "preact/hooks";
 import { Position } from "../../game/state/board/position.js";
 import Entity from "../../game/state/board/entity.js";
 import { prettyifyName } from "../../utils.js";
-import { Clipboard } from "./clipboard.js";
+import { copyPasteReducer, updateClipboardOnModify } from "./clipboard.js";
 
 const TARGET_TYPES = ["entity", "floorTile"];
 
@@ -49,45 +49,10 @@ export function mapBuilderReducer(state, action) {
     }
 
     // Clear previous error messages
-    state = { ...state, pasteErrorMessage: undefined };
+    state = { ...state, errorMessage: undefined };
 
-    if(action.type == "select-location") {
-        const {board} = state.initialState;
-        const {locations, lastSelected} = updateLocation(state.locationSelector.locations, state.locationSelector.lastSelected, action);
-        const position = locations.length > 0 ? new Position(locations[0]) : undefined;
-        const entity = position ? board.getEntityAt(position) : undefined;
-        const floorTile = position ? board.getFloorTileAt(position) : undefined;
-
-        const entityEditable = areEntriesCompatible(locations, board.getEntityAt.bind(board));
-        const floorTileEditable = areEntriesCompatible(locations, board.getFloorTileAt.bind(board));
-
-        const clipBoard = action.mode == "clear" ? undefined : state.clipBoard;
-
-        return {
-            ...state,
-            locationSelector: {
-                ...state.locationSelector,
-                locations,
-                lastSelected,
-            },
-            editor: {
-                entity: {
-                    editable: entityEditable,
-                    type: entity?.type,
-                    attributes: Object.assign({}, entity?.attributes),
-                    attributeErrors: {},
-                },
-                floorTile: {
-                    editable: floorTileEditable,
-                    type: floorTile?.type,
-                    attributes: Object.assign({}, floorTile?.attributes),
-                    attributeErrors: {},
-                },
-            },
-            clipBoard,
-            canPaste: lastSelected !== undefined ? state.clipBoard?.canPasteAt?.(board, new Position(lastSelected)): undefined,
-        };
-    }
+    let newState = updateSelectionAndEditor(state, action);
+    if(newState) return newState;
 
     if(action.type == "set-selected-attribute" || action.type == "set-selected-entity-type") {
         if(state.locationSelector.locations?.length < 1) {
@@ -96,7 +61,6 @@ export function mapBuilderReducer(state, action) {
 
         let newBoard = state.initialState.board.clone();
         const positions = state.locationSelector.locations.map(location => new Position(location));
-        const isSelectionInvalidated = state.clipBoard !== undefined && !!positions.find(position => state.clipBoard.doesModifyInvalidateSelection(position));
 
         const {board} = state.initialState;
 
@@ -165,28 +129,32 @@ export function mapBuilderReducer(state, action) {
                 board: newBoard,
             },
             editor,
-            clipBoard: isSelectionInvalidated ? undefined : state.clipBoard,
+            clipboard: updateClipboardOnModify(state.clipboard, positions),
         };
     }
 
     if(action.type == "resize-board") {
         const newBoard = state.initialState.board.cloneAndResize(action.resizeParameters);
 
+        const remapPosition = position => remapPositionForResize(position, newBoard, action.resizeParameters);
+
         // Transfer selection so it is still in the same place on the new board or is removed if it was on the edge
         const locations = state.locationSelector.locations !== undefined ?
             state.locationSelector.locations
-                .map(position => remapPosition(position, newBoard, action.resizeParameters))
+                .map(position => remapPosition(position))
                 .filter(position => position !== undefined) :
             undefined;
 
         const lastSelected = state.locationSelector.lastSelected !== undefined ?
-            remapPosition(state.locationSelector.lastSelected, newBoard, action.resizeParameters) :
+            remapPosition(state.locationSelector.lastSelected) :
             undefined;
+
+        // Update the clipboard position to fit on the resized board
+        const clipboard = state?.clipboard?.remapPositions?.(newBoard, lastSelected !== undefined ? new Position(lastSelected): undefined, remapPosition);
 
         return {
             ...state,
-            // Currently we don't support transforming the clipboard after resize
-            clipBoard: undefined,
+            clipboard,
             initialState: {
                 ...state.initialState,
                 board: newBoard,
@@ -204,51 +172,51 @@ export function mapBuilderReducer(state, action) {
         };
     }
 
-    if(action.type == "copy" || action.type == "cut") {
-        if(state.locationSelector.locations?.length > 0) {
-            const clipBoard = new Clipboard(state.initialState.board, state.locationSelector.locations, {
-                isCut: action.type == "cut",
-            });
-
-            return {
-                ...state,
-                canPaste: clipBoard.canPasteAt(state.initialState.board, new Position(state.locationSelector.lastSelected)),
-                clipBoard,
-            };
-        }
-        else {
-            // No selection can't cut/copy
-            return state;
-        }
-    }
-
-    if(action.type == "paste") {
-        if(state.locationSelector.lastSelected === undefined || state.clipBoard === undefined) {
-            // Nothing to paste or no location to paste at
-            return state;
-        }
-        else if(!state.clipBoard.canPasteAt(state.initialState.board, new Position(state.locationSelector.lastSelected))) {
-            return {
-                ...state,
-                pasteErrorMessage: `Cowardly refusing to paste outside of the board (clipboard contents are ${state.clipBoard.width} x ${state.clipBoard.height})`,
-            };
-        }
-        else {
-            const newBoard = state.clipBoard.paste(state.initialState.board, new Position(state.locationSelector.lastSelected));
-
-            return {
-                ...state,
-                initialState: {
-                    ...state.initialState,
-                    board: newBoard,
-                },
-                // Only allow 1 paste after cutting
-                clipBoard: state.clipBoard.isCut ? undefined : state.clipBoard,
-            };
-        }
-    }
+    newState = copyPasteReducer(state, action);
+    if(newState != undefined) return newState;
 
     throw new Error(`Action type ${action.type} is not valid`);
+}
+
+function updateSelectionAndEditor(state, action) {
+    if(action.type == "select-location") {
+        const {board} = state.initialState;
+
+        const {locations, lastSelected} = updateSelectedLocations(state.locationSelector.locations, state.locationSelector.lastSelected, action);
+
+        const position = locations.length > 0 ? new Position(locations[0]) : undefined;
+        const entity = position ? board.getEntityAt(position) : undefined;
+        const floorTile = position ? board.getFloorTileAt(position) : undefined;
+
+        const entityEditable = areEntriesCompatible(locations, board.getEntityAt.bind(board));
+        const floorTileEditable = areEntriesCompatible(locations, board.getFloorTileAt.bind(board));
+
+        const clipboard = action.mode == "clear" ? undefined : state.clipboard;
+
+        return {
+            ...state,
+            locationSelector: {
+                ...state.locationSelector,
+                locations,
+                lastSelected,
+            },
+            editor: {
+                entity: {
+                    editable: entityEditable,
+                    type: entity?.type,
+                    attributes: Object.assign({}, entity?.attributes),
+                    attributeErrors: {},
+                },
+                floorTile: {
+                    editable: floorTileEditable,
+                    type: floorTile?.type,
+                    attributes: Object.assign({}, floorTile?.attributes),
+                    attributeErrors: {},
+                },
+            },
+            clipboard: clipboard?.updateCanPaste?.(board, lastSelected !== undefined ? new Position(lastSelected) : undefined),
+        };
+    }
 }
 
 function checkCanResize(board, builderConfig) {
@@ -260,7 +228,7 @@ function checkCanResize(board, builderConfig) {
     };
 }
 
-function remapPosition(position, board, { left = 0, top = 0 }) {
+function remapPositionForResize(position, board, { left = 0, top = 0 }) {
     try {
         position = new Position(position);
         position = new Position(position.x + left, position.y + top);
@@ -320,7 +288,7 @@ function areEntriesCompatible(locations, getEntityAt) {
     return true;
 }
 
-function updateLocation(locations, lastSelected, action) {
+function updateSelectedLocations(locations, lastSelected, action) {
     locations = (locations || []).slice(0);
     let updateLastSelected = true;
 

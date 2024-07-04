@@ -63,18 +63,18 @@ export function MapBuilder({ mapName, debug, navigate }) {
     }
 
     const hasSelection = mapBuilderState.locationSelector.locations?.length > 0;
-    const hasClipBoard = mapBuilderState.clipBoard !== undefined;
+    const hasClipboard = mapBuilderState.clipboard !== undefined;
 
     const toolBar = (
         <>
             {backToGamesButton}
-            <button disabled={!hasSelection && !hasClipBoard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
+            <button disabled={!hasSelection && !hasClipboard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
             <button disabled={!hasSelection} onClick={() => setSelectionMode(true)}>Select Rectangle</button>
             <button disabled={!hasSelection} onClick={() => deleteSelected(dispatch)}>Delete Selected</button>
             <button disabled={!hasSelection} onClick={() => dispatch(cut())}>Cut</button>
             <button disabled={!hasSelection} onClick={() => dispatch(copy())}>Copy</button>
             <button
-                disabled={!hasSelection || !hasClipBoard || !mapBuilderState?.canPaste}
+                disabled={!hasSelection || !hasClipboard || !mapBuilderState?.clipboard?.canPaste}
                 onClick={() => dispatch(paste())}>
                     Paste
             </button>
@@ -100,8 +100,8 @@ export function MapBuilder({ mapName, debug, navigate }) {
             </div>
             <AppContent withSidebar debugMode={debug} toolbar={toolBar} buildInfo={map?.buildInfo}>
                 <div className="map-builder-map-wrapper">
-                    {mapBuilderState?.pasteErrorMessage ?
-                        <div className="message warning">{mapBuilderState?.pasteErrorMessage}</div> : undefined}
+                    {mapBuilderState?.errorMessage ?
+                        <div className="message warning">{mapBuilderState?.errorMessage}</div> : undefined}
                     <div class="centered map-builder-resize-board-buttons">
                         <button onClick={() => dispatch(resizeBoard({ top: 1 }))} disabled={!mapBuilderState?.resizeBoard?.canGrowY}>Grow</button>
                         <button onClick={() => dispatch(resizeBoard({ top: -1 }))} disabled={!mapBuilderState?.resizeBoard?.canShrinkY}>Shrink</button>
@@ -117,7 +117,7 @@ export function MapBuilder({ mapName, debug, navigate }) {
                             canSubmitAction={false}
                             locationSelector={mapBuilderState.locationSelector}
                             selectLocation={selectLocationHandler}
-                            cutSelection={mapBuilderState?.clipBoard?.getCutLocations?.()}></GameBoard>
+                            cutSelection={mapBuilderState?.clipboard?.getCutLocations?.()}></GameBoard>
                         <div class="centered map-builder-side-resize map-builder-resize-board-buttons">
                             <button onClick={() => dispatch(resizeBoard({ right: 1 }))} disabled={!mapBuilderState?.resizeBoard?.canGrowX}>Grow</button>
                             <button onClick={() => dispatch(resizeBoard({ right: -1 }))} disabled={!mapBuilderState?.resizeBoard?.canShrinkX}>Shrink</button>
