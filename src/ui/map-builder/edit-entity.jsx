@@ -1,5 +1,5 @@
 import "./edit-entity.css";
-import { setSelectedAttibute, setSelectedEntityType } from "../../interface-adapters/map-builder.js";
+import { setSelectedAttibute, setSelectedEntityType } from "../../interface-adapters/map-builder/map-builder.js";
 import { prettyifyName } from "../../utils.js";
 
 export function EditSpace({ mapBuilderState, dispatch, builderConfig }) {

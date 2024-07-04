@@ -1,8 +1,8 @@
 import { useReducer } from "preact/hooks";
-import { Position } from "../game/state/board/position.js";
-import Entity from "../game/state/board/entity.js";
-import { prettyifyName } from "../utils.js";
-import { Clipboard } from "./map-builder/clipboard.js";
+import { Position } from "../../game/state/board/position.js";
+import Entity from "../../game/state/board/entity.js";
+import { prettyifyName } from "../../utils.js";
+import { Clipboard } from "./clipboard.js";
 
 const TARGET_TYPES = ["entity", "floorTile"];
 
@@ -172,11 +172,15 @@ export function mapBuilderReducer(state, action) {
     if(action.type == "resize-board") {
         const newBoard = state.initialState.board.cloneAndResize(action.resizeParameters);
 
-        // Transfor selection so it is still in the same place on the new board or is removed if it was on the edge
+        // Transfer selection so it is still in the same place on the new board or is removed if it was on the edge
         const locations = state.locationSelector.locations !== undefined ?
             state.locationSelector.locations
                 .map(position => remapPosition(position, newBoard, action.resizeParameters))
                 .filter(position => position !== undefined) :
+            undefined;
+
+        const lastSelected = state.locationSelector.lastSelected !== undefined ?
+            remapPosition(state.locationSelector.lastSelected, newBoard, action.resizeParameters) :
             undefined;
 
         return {
@@ -189,12 +193,10 @@ export function mapBuilderReducer(state, action) {
             },
             locationSelector: {
                 ...state.locationSelector,
-                // Make all of the locations on the new boar selectable
+                // Make all of the locations on the new board selectable
                 selectableLocations: generateAllLocations(newBoard),
                 locations,
-                lastSelected: state.locationSelector.lastSelected !== undefined ?
-                    remapPosition(state.locationSelector.lastSelected, newBoard, action.resizeParameters) :
-                    undefined,
+                lastSelected,
             },
             resizeBoard: checkCanResize(newBoard, state._builderConfig),
             // Reset the editor if the location we're editing is removed

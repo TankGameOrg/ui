@@ -1,7 +1,7 @@
 import "./builder.css";
 import { useEffect, useState } from "preact/hooks";
 import { useMap } from "../../drivers/rest/fetcher.js";
-import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder.js";
+import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder/map-builder.js";
 import { getGameVersion } from "../../versions/index.js";
 import { AppContent } from "../app-content.jsx";
 import { ErrorMessage } from "../error_message.jsx";
