@@ -58,14 +58,16 @@ export function mapBuilderReducer(state, action) {
         const entityEditable = areEntriesCompatible(locations, board.getEntityAt.bind(board));
         const floorTileEditable = areEntriesCompatible(locations, board.getFloorTileAt.bind(board));
 
-        let errorMessage = undefined;
+        let pasteErrorMessage = undefined;
         if(state.clipBoard !== undefined && lastSelected !== undefined && !state.clipBoard.canPasteAt(state.initialState.board, new Position(lastSelected))) {
-            errorMessage = `Cannot paste here (${lastSelected}) because the copied data ${state.clipBoard.width}x${state.clipBoard.height} does not fit in the board`;
+            pasteErrorMessage = `Cannot paste here (${lastSelected}) because the copied data ${state.clipBoard.width}x${state.clipBoard.height} does not fit in the board`;
         }
+
+        const clipBoard = action.mode == "clear" ? undefined : state.clipBoard;
 
         return {
             ...state,
-            errorMessage,
+            pasteErrorMessage,
             locationSelector: {
                 ...state.locationSelector,
                 locations,
@@ -85,7 +87,7 @@ export function mapBuilderReducer(state, action) {
                     attributeErrors: {},
                 },
             },
-            clipBoard: action.mode == "clear" ? undefined : state.clipBoard,
+            clipBoard,
         };
     }
 
@@ -96,6 +98,7 @@ export function mapBuilderReducer(state, action) {
 
         let newBoard = state.initialState.board.clone();
         const positions = state.locationSelector.locations.map(location => new Position(location));
+        const isSelectionInvalidated = state.clipBoard !== undefined && !!positions.find(position => state.clipBoard.doesModifyInvalidateSelection(position));
 
         const {board} = state.initialState;
 
@@ -164,6 +167,7 @@ export function mapBuilderReducer(state, action) {
                 board: newBoard,
             },
             editor,
+            clipBoard: isSelectionInvalidated ? undefined : state.clipBoard,
         };
     }
 
@@ -179,6 +183,8 @@ export function mapBuilderReducer(state, action) {
 
         return {
             ...state,
+            // Currently we don't support transforming the clipboard after resize
+            clipBoard: undefined,
             initialState: {
                 ...state.initialState,
                 board: newBoard,

@@ -14,6 +14,10 @@
     display: flex;
 }
 
+.board-space.board-space-cut {
+    border: 2px dashed;
+}
+
 .board-space {
     border: 2px solid;
     width: var(--tank-game-cell-size);

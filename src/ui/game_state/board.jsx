@@ -6,7 +6,7 @@ import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
 
 
-export function GameBoard({ board, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, emptyMessage = "No board data supplied" }) {
+export function GameBoard({ board, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, emptyMessage = "No board data supplied" }) {
     if(!board) return <p>{emptyMessage}</p>;
 
     try {
@@ -18,7 +18,8 @@ export function GameBoard({ board, config, setSelectedUser, canSubmitAction, loc
                 canSubmitAction={canSubmitAction}
                 setSelectedUser={setSelectedUser}
                 locationSelector={locationSelector}
-                selectLocation={selectLocation}></GameBoardView>
+                selectLocation={selectLocation}
+                cutSelection={cutSelection}></GameBoardView>
         );
     }
     catch(err) {
@@ -28,8 +29,12 @@ export function GameBoard({ board, config, setSelectedUser, canSubmitAction, loc
     }
 }
 
-export function GameBoardView({ board, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation }) {
+export function GameBoardView({ board, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection }) {
     const selectedTargets = (locationSelector.locations || []);
+
+    if(cutSelection === undefined) {
+        cutSelection = [];
+    }
 
     let letters = [<Tile key="empty-coord" className="board-space-coordinate"></Tile>];
     for(let x = 0; x < board.width; ++x) {
@@ -46,6 +51,7 @@ export function GameBoardView({ board, config, setSelectedUser, canSubmitAction,
             const position = new Position(x, y);
             const disabled = locationSelector.isSelecting &&
                 !locationSelector.selectableLocations.includes(position.humanReadable);
+            const isCut = cutSelection.includes(position.humanReadable);
 
             const onClick = locationSelector.isSelecting && !disabled ? (e) => {
                 selectLocation(position.humanReadable, {
@@ -63,7 +69,8 @@ export function GameBoardView({ board, config, setSelectedUser, canSubmitAction,
                     selected={selectedTargets.includes(position.humanReadable)}
                     config={config}
                     canSubmitAction={canSubmitAction}
-                    setSelectedUser={setSelectedUser}></Space>
+                    setSelectedUser={setSelectedUser}
+                    isCut={isCut}></Space>
             );
         }
 
@@ -75,7 +82,7 @@ export function GameBoardView({ board, config, setSelectedUser, canSubmitAction,
     )
 }
 
-function Space({ entity, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction }) {
+function Space({ entity, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut }) {
     let tile = null;
 
     // Try to place an entity in this space
@@ -89,18 +96,22 @@ function Space({ entity, floorTile, disabled, onClick, selected, config, setSele
     }
 
     return (
-        <Tile floorTile={floorTile} disabled={disabled} onClick={onClick} selected={selected} config={config}>
+        <Tile floorTile={floorTile} disabled={disabled} onClick={onClick} selected={selected} config={config} isCut={isCut}>
             {tile}
         </Tile>
     );
 }
 
-function Tile({ className = "", children, floorTile, disabled, onClick, selected, config } = {}) {
+function Tile({ className = "", children, floorTile, disabled, onClick, selected, config, isCut } = {}) {
     const [popupOpen, setPopupOpen] = useState(false);
     const anchorRef = useRef();
 
     if(onClick) {
         className += " board-space-selectable";
+    }
+
+    if(isCut) {
+        className += " board-space-cut";
     }
 
     let style = {};

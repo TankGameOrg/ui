@@ -38,6 +38,14 @@ export class Clipboard {
         this.height = maxY - minY + 1;
     }
 
+    getCutLocations() {
+        if(this.isCut) {
+            return this._originalPositions.map(position => position.humanReadable);
+        }
+
+        return [];
+    }
+
     _removeOriginal(board) {
         for(const position of this._originalPositions) {
             board.setEntity(new Entity({ type: "empty", position }));
@@ -68,5 +76,14 @@ export class Clipboard {
     canPasteAt(board, insertPosition) {
         return insertPosition.x + this.width <= board.width &&
             insertPosition.y + this.height <= board.height;
+    }
+
+    doesModifyInvalidateSelection(modifyPosition) {
+        // Only cut selections can be invalidated by modifying the source
+        if(!this.isCut) {
+            return this._originalPositions.find(position => position.humanReadable == modifyPosition.humanReadable);
+        }
+
+        return true;
     }
 }
