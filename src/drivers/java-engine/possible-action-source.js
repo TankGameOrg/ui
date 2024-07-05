@@ -57,7 +57,7 @@ export class JavaEngineSource {
                 return new LogFieldSpec({
                     type: "select-position",
                     options: field.range.map(tank => {
-                        const position = (tank.entities?.[0]?.position || new Position(tank.attributes.POSITION)).humanReadable;
+                        const position = (tank.entities?.[0]?.position || new Position(tank.$POSITION)).humanReadable;
                         if(typeof position !== "string") {
                             logger.error({
                                 msg: "Expected a object with position or player",
@@ -66,7 +66,7 @@ export class JavaEngineSource {
                             throw new Error(`Got bad data expected a position but got ${position}`);
                         }
 
-                        const name = tank.name || tank.attributes.PLAYER_REF.name;
+                        const name = tank.name || tank.$PLAYER_REF.name;
 
                         return {
                             position,

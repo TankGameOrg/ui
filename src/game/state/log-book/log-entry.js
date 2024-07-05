@@ -1,3 +1,4 @@
+import { logger } from "#platform/logging.js";
 import { Dice } from "../../possible-actions/die.js";
 
 export class LogEntry {
