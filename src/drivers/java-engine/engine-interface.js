@@ -273,8 +273,7 @@ class TankGameEngine {
         const actions = await this.getPossibleActions(player);
         const shootAction = actions.find(action => action.rule == "shoot");
         if(!shootAction) {
-            // throw new Error("Failed to find shoot action");
-            return [];
+            throw new Error("Failed to find shoot action");
         }
 
         const targets = shootAction.fields.find(field => field.name == "target");
