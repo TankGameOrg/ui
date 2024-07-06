@@ -3,7 +3,7 @@ import { updateEditorOnSelection } from "./editor.js";
 
 export function updateSelectionAndEditorReducer(state, action) {
     if(action.type == "select-location") {
-        const {board} = state.initialGameState;
+        const {board} = state.map.initialGameState;
 
         const {locations, lastSelected} = updateSelectedLocations(state.locationSelector.locations, state.locationSelector.lastSelected, action);
         const editor = updateEditorOnSelection(board, locations);

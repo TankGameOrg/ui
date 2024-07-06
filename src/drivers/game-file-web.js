@@ -38,7 +38,7 @@ class WebGameFile {
     }
 
     setData(fileData) {
-        this._fileData = Promise.resolve(fileData);
+        this._fileData = fileData;
     }
 
     async save() {

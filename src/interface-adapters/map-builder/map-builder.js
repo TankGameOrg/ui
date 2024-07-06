@@ -18,9 +18,8 @@ function makeInitalState() {
 
 export function mapBuilderReducer(state, action) {
     if(action.type == "set-map") {
-        console.log(action.map);
         return {
-            ...action.map,
+            map: action.map,
             _builderConfig: action.builderConfig,
             entityTypes: Object.keys(action.builderConfig.entity),
             floorTileTypes: Object.keys(action.builderConfig.floorTile),
@@ -30,10 +29,11 @@ export function mapBuilderReducer(state, action) {
             },
             editor: {},
             resizeBoard: checkCanResize(action.map.initialGameState.board, action.builderConfig),
+            onChange: action.onChange,
         };
     }
 
-    if(state?.gameSettings === undefined && state?.initialGameState === undefined) {
+    if(state?.gameSettings === undefined && state?.map?.initialGameState === undefined) {
         throw new Error("set-map must be called before any other action");
     }
 
@@ -59,7 +59,7 @@ export function useMapBuilder() {
     return useReducer(mapBuilderReducer, makeInitalState());
 }
 
-export const setMap = (map, builderConfig) => ({ type: "set-map", map, builderConfig });
+export const setMap = (map, builderConfig, onChange) => ({ type: "set-map", map, builderConfig, onChange });
 export const selectLocation = (location, mode) => ({ type: "select-location", location, mode });
 export const clearSelection = () => selectLocation(undefined, "clear");
 export const setSelectedAttibute = (targetType, name, value) => ({ type: "set-selected-attribute", targetType, name, value });

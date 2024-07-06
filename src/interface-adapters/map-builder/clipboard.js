@@ -197,7 +197,7 @@ export class Clipboard {
  * @returns Modified map builder state or undefined if the action type is unknown
  */
 export function copyPasteReducer(state, action) {
-    const {board} = state.initialGameState;
+    const {board} = state.map.initialGameState;
     const lastSelected = new Position(state.locationSelector.lastSelected);
 
     if(action.type == "copy" || action.type == "cut") {
@@ -231,15 +231,21 @@ export function copyPasteReducer(state, action) {
         else {
             const newBoard = state.clipboard.paste(board, lastSelected);
 
-            return {
+            state = {
                 ...state,
-                initialGameState: {
-                    ...state.initialGameState,
-                    board: newBoard,
+                map: {
+                    ...state.map,
+                    initialGameState: state.map.initialGameState.modify({
+                        board: newBoard,
+                    }),
                 },
                 // Only allow 1 paste after cutting
                 clipboard: state.clipboard.isCut ? undefined : state.clipboard,
             };
+
+            state.onChange(state.map);
+
+            return state;
         }
     }
 }

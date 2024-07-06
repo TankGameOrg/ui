@@ -38,4 +38,11 @@ export class GameState {
 
         return raw;
     }
+
+    modify({ players, board, metaEntities } = {}) {
+        return new GameState(
+            players || this.players,
+            board || this.board,
+            metaEntities || this.metaEntities);
+    }
 }

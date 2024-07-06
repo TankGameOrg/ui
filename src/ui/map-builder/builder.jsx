@@ -1,3 +1,4 @@
+/* global alert, confirm */
 import "./builder.css";
 import { useEffect, useState } from "preact/hooks";
 import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder/map-builder.js";
@@ -29,7 +30,15 @@ function useMapBuilderKeyBinds(dispatch) {
     }, [dispatch]);
 }
 
-async function loadGameFile(setGameFile, setError) {
+async function loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError) {
+    if(isUnsaved && !confirm("You have unsaved changes.  Are you sure you want to lose them?")) {
+        return;
+    }
+
+    setIsUnsaved(false);
+    setError(undefined);
+    setGameFile(undefined);
+
     try {
         setGameFile(await openFile())
     }
@@ -38,7 +47,18 @@ async function loadGameFile(setGameFile, setError) {
     }
 }
 
+async function saveGameFile(gameFile, setIsUnsaved) {
+    try {
+        await gameFile.save();
+        setIsUnsaved(false);
+    }
+    catch(err) {
+        alert(`Failed to save: ${err.message}`);
+    }
+}
+
 export function MapBuilder({ debug, navigate }) {
+    const [isUnsaved, setIsUnsaved] = useState(false);
     const [error, setError] = useState();
     const [gameFile, setGameFile] = useState();
     const [mapBuilderState, dispatch] = useMapBuilder();
@@ -49,7 +69,12 @@ export function MapBuilder({ debug, navigate }) {
     const builderConfig = versionConfig?.getBuilderConfig?.();
 
     useEffect(() => {
-        if(gameFile && builderConfig) dispatch(setMap(gameFile.getData(), builderConfig));
+        if(gameFile && builderConfig) {
+            dispatch(setMap(gameFile.getData(), builderConfig, map => {
+                setIsUnsaved(true);
+                gameFile.setData(map);
+            }));
+        }
     }, [gameFile, dispatch, builderConfig]);
 
     const [selectionMode, setSelectionMode] = useState(false);
@@ -57,18 +82,21 @@ export function MapBuilder({ debug, navigate }) {
     useMapBuilderKeyBinds(dispatch);
 
     const backToGamesButton = <button onClick={() => navigate("home")}>Back to games</button>;
+    const openFileButton = <button onClick={() => loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError)}>Open Map</button>;
 
     if(error !== undefined) {
         return <AppContent>
             {backToGamesButton}
+            {openFileButton}
             <ErrorMessage error={error}></ErrorMessage>
         </AppContent>;
     }
 
-    if(mapBuilderState === undefined) {
+    if(gameFile === undefined) {
         return <AppContent>
             {backToGamesButton}
-            <p>Loading Game...</p>
+            {openFileButton}
+            <p>Open a game file to get started</p>
         </AppContent>;
     }
 
@@ -78,8 +106,8 @@ export function MapBuilder({ debug, navigate }) {
     const toolBar = (
         <>
             {backToGamesButton}
-            <button onClick={() => loadGameFile(setGameFile, setError)}>Open Map</button>
-            <button disabled={!gameFile} onClick={async () => gameFile.save()}>Save Map</button>
+            {openFileButton}
+            <button disabled={!isUnsaved} onClick={() => saveGameFile(gameFile, setIsUnsaved)}>Save Map</button>
             <button disabled={!hasSelection && !hasClipboard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
             <button disabled={!hasSelection} onClick={() => setSelectionMode(true)}>Select Rectangle</button>
             <button disabled={!hasSelection} onClick={() => deleteSelected(dispatch)}>Delete Selected</button>
@@ -124,7 +152,7 @@ export function MapBuilder({ debug, navigate }) {
                             <button onClick={() => dispatch(resizeBoard({ left: -1 }))} disabled={!mapBuilderState?.resizeBoard?.canShrinkX}>Shrink</button>
                         </div>
                         <GameBoard
-                            board={mapBuilderState?.initialGameState?.board}
+                            board={mapBuilderState?.map?.initialGameState?.board}
                             config={versionConfig}
                             canSubmitAction={false}
                             locationSelector={mapBuilderState.locationSelector}

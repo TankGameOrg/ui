@@ -2,7 +2,7 @@ import { Position } from "../../game/state/board/position.js";
 
 export function resizeBoardReducer(state, action) {
     if(action.type == "resize-board") {
-        const newBoard = state.initialGameState.board.cloneAndResize(action.resizeParameters);
+        const newBoard = state.map.initialGameState.board.cloneAndResize(action.resizeParameters);
 
         const remapPosition = position => remapPositionForResize(position, newBoard, action.resizeParameters);
 
@@ -20,12 +20,14 @@ export function resizeBoardReducer(state, action) {
         // Update the clipboard position to fit on the resized board
         const clipboard = state?.clipboard?.remapPositions?.(newBoard, lastSelected !== undefined ? new Position(lastSelected): undefined, remapPosition);
 
-        return {
+        state = {
             ...state,
             clipboard,
-            initialGameState: {
-                ...state.initialGameState,
-                board: newBoard,
+            map: {
+                ...state.map,
+                initialGameState: state.map.initialGameState.modify({
+                    board: newBoard,
+                }),
             },
             locationSelector: {
                 ...state.locationSelector,
@@ -38,6 +40,10 @@ export function resizeBoardReducer(state, action) {
             // Reset the editor if the location we're editing is removed
             editor: locations?.length > 0 ? state.editor : {},
         };
+
+        state.onChange(state.map);
+
+        return state;
     }
 }
 

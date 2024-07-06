@@ -62,10 +62,9 @@ export function editEntityReducer(state, action) {
             throw new Error(`You must have a location selected to perform ${action.type}`);
         }
 
-        let newBoard = state.initialGameState.board.clone();
+        const {board} = state.map.initialGameState;
+        let newBoard = board.clone();
         const positions = state.locationSelector.locations.map(location => new Position(location));
-
-        const {board} = state.initialGameState;
 
         let getTarget = action.targetType == "entity" ?
                 board.getEntityAt.bind(board) :
@@ -125,15 +124,21 @@ export function editEntityReducer(state, action) {
             };
         }
 
-        return {
+        state = {
             ...state,
-            initialGameState: {
-                ...state.initialGameState,
-                board: newBoard,
+            map: {
+                ...state.map,
+                initialGameState: state.map.initialGameState.modify({
+                    board: newBoard,
+                }),
             },
             editor,
             clipboard: updateClipboardOnModify(state.clipboard, positions),
         };
+
+        state.onChange(state.map);
+
+        return state;
     }
 }
 
