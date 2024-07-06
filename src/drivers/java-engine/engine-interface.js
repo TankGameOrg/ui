@@ -259,9 +259,12 @@ class TankGameEngine {
     }
 
     async setGameVersion(version) {
+        // TODO: Update version names
+        if(!isNaN(version)) version = `default-v${version}`;
+
         await this._sendRequestAndWait({
             type: "version",
-            version: `default-v${version}`,
+            version,
         });
     }
 
