@@ -140,10 +140,6 @@ function convertPlayer(rawPlayer) {
 function getCouncilPlayers(rawCouncil, playersByName) {
     let councilPlayers = [];
 
-    // Ensure that players remain in the same order
-    rawCouncil.$COUNCILLORS.elements.sort();
-    rawCouncil.$SENATORS.elements.sort();
-
     const councilGroups = [
         [rawCouncil.$COUNCILLORS.elements, "councilor"],
         [rawCouncil.$SENATORS.elements, "senator"]
