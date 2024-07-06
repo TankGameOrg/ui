@@ -11,39 +11,7 @@ import { gameStateFromRawState } from "./java-engine/board-state.js";
 import { GameState } from "../game/state/game-state.js";
 
 export const FILE_FORMAT_VERSION = 6;
-export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
-
-
-function migrateToV6(content) {
-    // Move game version to the top level
-    content.gameVersion = content.logBook.gameVersion;
-
-    // v5 log entries used strings for all types (due to a bug) coerce them to the correct types and convert the log book to an array
-    content.logBook = content.logBook.rawEntries?.map?.(rawEntry => {
-        delete rawEntry.type;
-
-        if(rawEntry.action === undefined && rawEntry.day != undefined) {
-            rawEntry.action = "start_of_day";
-        }
-
-        for(const intValue of ["donation", "gold", "bounty"]) {
-            if(rawEntry[intValue] !== undefined) {
-                rawEntry[intValue] = +rawEntry[intValue];
-            }
-        }
-
-        if(rawEntry.hi !== undefined) {
-            rawEntry.hit = typeof rawEntry.hit == "boolean" ?
-                rawEntry.hit :
-                rawEntry.hit == "true";
-        }
-
-        return rawEntry;
-    });
-
-    // Convert initial state to the ui state format
-    content.initialGameState = gameStateFromRawState(content.initialGameState).gameState.serialize();
-}
+export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 6;
 
 
 export async function load(filePath, { saveBack = false, makeTimeStamp } = {}) {
@@ -62,10 +30,6 @@ export async function load(filePath, { saveBack = false, makeTimeStamp } = {}) {
     }
 
     const saveUpdatedFile = saveBack && (content.fileFormatVersion < FILE_FORMAT_VERSION);
-
-    if(content.fileFormatVersion == 5) {
-        migrateToV6(content);
-    }
 
     // Make sure we have the config required to load this game.  This
     // does not check if the engine supports this game version.
