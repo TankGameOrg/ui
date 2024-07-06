@@ -20,8 +20,8 @@ function mapTypeToClass(type, boardType, gameVersion) {
 
     if(type == "tank") {
         switch(gameVersion) {
-            case "3": return "TankV3";
-            case "4": return "TankV3";
+            case "3": return "GenericTank";
+            case "4": return "GenericTank";
         }
     }
 
@@ -39,7 +39,7 @@ function mapClassToType(className) {
     const type = {
         Wall: "wall",
         GoldMine: "gold_mine",
-        TankV3: "tank",
+        GenericTank: "tank",
         EmptyUnit: "empty",
         WalkableFloor: "empty",
         GlobalCooldownTank: "tank",
