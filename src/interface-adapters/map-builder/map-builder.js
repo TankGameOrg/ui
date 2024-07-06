@@ -18,6 +18,7 @@ function makeInitalState() {
 
 export function mapBuilderReducer(state, action) {
     if(action.type == "set-map") {
+        console.log(action.map);
         return {
             ...action.map,
             _builderConfig: action.builderConfig,
@@ -25,14 +26,14 @@ export function mapBuilderReducer(state, action) {
             floorTileTypes: Object.keys(action.builderConfig.floorTile),
             locationSelector: {
                 isSelecting: true,
-                selectableLocations: generateAllLocations(action.map.initialState.board),
+                selectableLocations: generateAllLocations(action.map.initialGameState.board),
             },
             editor: {},
-            resizeBoard: checkCanResize(action.map.initialState.board, action.builderConfig),
+            resizeBoard: checkCanResize(action.map.initialGameState.board, action.builderConfig),
         };
     }
 
-    if(state?.gameSettings === undefined && state?.initialState === undefined) {
+    if(state?.gameSettings === undefined && state?.initialGameState === undefined) {
         throw new Error("set-map must be called before any other action");
     }
 

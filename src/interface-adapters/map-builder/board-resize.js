@@ -2,7 +2,7 @@ import { Position } from "../../game/state/board/position.js";
 
 export function resizeBoardReducer(state, action) {
     if(action.type == "resize-board") {
-        const newBoard = state.initialState.board.cloneAndResize(action.resizeParameters);
+        const newBoard = state.initialGameState.board.cloneAndResize(action.resizeParameters);
 
         const remapPosition = position => remapPositionForResize(position, newBoard, action.resizeParameters);
 
@@ -23,8 +23,8 @@ export function resizeBoardReducer(state, action) {
         return {
             ...state,
             clipboard,
-            initialState: {
-                ...state.initialState,
+            initialGameState: {
+                ...state.initialGameState,
                 board: newBoard,
             },
             locationSelector: {

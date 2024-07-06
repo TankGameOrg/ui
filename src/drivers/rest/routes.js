@@ -94,18 +94,6 @@ export function defineRoutes(app, buildInfo) {
         res.json(factories.serialize());
     });
 
-    app.get("/api/map/:mapName/", (req, res) => {
-        const {valid, game} = req.games.getGameIfAvailable(req.params.mapName);
-        if(!valid) return;
-
-        res.json({
-            buildInfo,
-            game: game.getBasicGameInfo(),
-            gameSettings: game.getSettings(),
-            initialState: game.getInitialState().serialize(),
-        });
-    });
-
     app.use(function(req, res) {
         res.sendFile(path.resolve(path.join(STATIC_DIR, "index.html")));
     });

@@ -219,10 +219,6 @@ export class Game {
         return this._victoryInfo;
     }
 
-    getInitialState() {
-        return this._gameData.initialGameState;
-    }
-
     getBasicGameInfo() {
         return {
             gameVersion: this.getGameVersion(),

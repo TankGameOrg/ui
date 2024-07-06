@@ -1,13 +1,13 @@
 import "./builder.css";
 import { useEffect, useState } from "preact/hooks";
-import { useMap } from "../../drivers/rest/fetcher.js";
 import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder/map-builder.js";
 import { getGameVersion } from "../../versions/index.js";
 import { AppContent } from "../app-content.jsx";
-import { ErrorMessage } from "../error_message.jsx";
 import { GameBoard } from "../game_state/board.jsx";
 import { EditSpace } from "./edit-entity.jsx";
 import { DELETE, ESCAPE, KEY_C, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
+import { openFile } from "../../drivers/game-file-web.js";
+import { ErrorMessage } from "../error_message.jsx";
 
 function useMapBuilderKeyBinds(dispatch) {
     useGlobalKeyHandler((e) => {
@@ -29,18 +29,28 @@ function useMapBuilderKeyBinds(dispatch) {
     }, [dispatch]);
 }
 
-export function MapBuilder({ mapName, debug, navigate }) {
-    const [mapBuilderState, dispatch] = useMapBuilder();
-    const [map, error] = useMap(mapName);
+async function loadGameFile(setGameFile, setError) {
+    try {
+        setGameFile(await openFile())
+    }
+    catch(err) {
+        setError(err);
+    }
+}
 
-    const versionConfig = map?.game?.gameVersion !== undefined ?
-        getGameVersion(map.game.gameVersion) : undefined;
+export function MapBuilder({ debug, navigate }) {
+    const [error, setError] = useState();
+    const [gameFile, setGameFile] = useState();
+    const [mapBuilderState, dispatch] = useMapBuilder();
+
+    const versionConfig = gameFile?.getData?.()?.gameVersion !== undefined ?
+        getGameVersion(gameFile?.getData?.().gameVersion) : undefined;
 
     const builderConfig = versionConfig?.getBuilderConfig?.();
 
     useEffect(() => {
-        if(map) dispatch(setMap(map, builderConfig));
-    }, [map, dispatch, builderConfig]);
+        if(gameFile && builderConfig) dispatch(setMap(gameFile.getData(), builderConfig));
+    }, [gameFile, dispatch, builderConfig]);
 
     const [selectionMode, setSelectionMode] = useState(false);
 
@@ -48,17 +58,17 @@ export function MapBuilder({ mapName, debug, navigate }) {
 
     const backToGamesButton = <button onClick={() => navigate("home")}>Back to games</button>;
 
-    if(error?.code == "game-loading") {
-        return <AppContent>
-            {backToGamesButton}
-            <p>Loading Game...</p>
-        </AppContent>;
-    }
-
-    if(error) {
+    if(error !== undefined) {
         return <AppContent>
             {backToGamesButton}
             <ErrorMessage error={error}></ErrorMessage>
+        </AppContent>;
+    }
+
+    if(mapBuilderState === undefined) {
+        return <AppContent>
+            {backToGamesButton}
+            <p>Loading Game...</p>
         </AppContent>;
     }
 
@@ -68,6 +78,8 @@ export function MapBuilder({ mapName, debug, navigate }) {
     const toolBar = (
         <>
             {backToGamesButton}
+            <button onClick={() => loadGameFile(setGameFile, setError)}>Open Map</button>
+            <button disabled={!gameFile} onClick={async () => gameFile.save()}>Save Map</button>
             <button disabled={!hasSelection && !hasClipboard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
             <button disabled={!hasSelection} onClick={() => setSelectionMode(true)}>Select Rectangle</button>
             <button disabled={!hasSelection} onClick={() => deleteSelected(dispatch)}>Delete Selected</button>
@@ -98,7 +110,7 @@ export function MapBuilder({ mapName, debug, navigate }) {
                     <EditSpace mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></EditSpace>
                 </div>
             </div>
-            <AppContent withSidebar debugMode={debug} toolbar={toolBar} buildInfo={map?.buildInfo}>
+            <AppContent withSidebar debugMode={debug} toolbar={toolBar}>
                 <div className="map-builder-map-wrapper">
                     {mapBuilderState?.errorMessage ?
                         <div className="message warning">{mapBuilderState?.errorMessage}</div> : undefined}
@@ -112,7 +124,7 @@ export function MapBuilder({ mapName, debug, navigate }) {
                             <button onClick={() => dispatch(resizeBoard({ left: -1 }))} disabled={!mapBuilderState?.resizeBoard?.canShrinkX}>Shrink</button>
                         </div>
                         <GameBoard
-                            board={mapBuilderState?.initialState?.board}
+                            board={mapBuilderState?.initialGameState?.board}
                             config={versionConfig}
                             canSubmitAction={false}
                             locationSelector={mapBuilderState.locationSelector}

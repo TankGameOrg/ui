@@ -10,7 +10,7 @@ import { MapBuilder } from "./map-builder/builder.jsx";
 const ROUTES = [
     { name: "home", matcher: /^\/$/g, matchNames: [], makeUrl: () => "/" },
     { name: "play-game", matcher: /^\/game\/([^/]+)$/g, matchNames: ["gameName"], makeUrl: ({gameName}) => `/game/${gameName}` },
-    { name: "map-builder", matcher: /^\/map\/edit\/([^/]+)$/, matchNames: ["mapName"], makeUrl: ({mapName}) => `/map/edit/${mapName}` }
+    { name: "map-builder", matcher: /^\/map-builder\/$/, matchNames: [], makeUrl: () => "/map-builder/" }
 ];
 
 function App() {
@@ -24,7 +24,7 @@ function App() {
         return <GameSelector navigate={navigate} debug={debug}></GameSelector>;
     }
     else if(currentPage?.name == "map-builder") {
-        return <MapBuilder mapName={currentPage.params.mapName} navigate={navigate} debug={debug}></MapBuilder>;
+        return <MapBuilder navigate={navigate} debug={debug}></MapBuilder>;
     }
     else {
         return <p>404 page not found. <a href="/">Go Home</a></p>;

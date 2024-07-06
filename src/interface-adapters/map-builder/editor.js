@@ -62,10 +62,10 @@ export function editEntityReducer(state, action) {
             throw new Error(`You must have a location selected to perform ${action.type}`);
         }
 
-        let newBoard = state.initialState.board.clone();
+        let newBoard = state.initialGameState.board.clone();
         const positions = state.locationSelector.locations.map(location => new Position(location));
 
-        const {board} = state.initialState;
+        const {board} = state.initialGameState;
 
         let getTarget = action.targetType == "entity" ?
                 board.getEntityAt.bind(board) :
@@ -127,8 +127,8 @@ export function editEntityReducer(state, action) {
 
         return {
             ...state,
-            initialState: {
-                ...state.initialState,
+            initialGameState: {
+                ...state.initialGameState,
                 board: newBoard,
             },
             editor,

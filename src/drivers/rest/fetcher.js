@@ -114,17 +114,6 @@ export const usePossibleActionFactories = makeReactDataFetchHelper({
     parse: rawActionFactories => NamedFactorySet.deserialize(rawActionFactories),
 });
 
-export const useMap = makeReactDataFetchHelper({
-    shouldSendRequest: mapName => mapName !== undefined,
-    url: mapName => `/api/map/${mapName}/`,
-    parse: data => {
-        return {
-            ...data,
-            initialState: GameState.deserialize(data.initialState),
-        };
-    },
-});
-
 export async function submitTurn(game, logbookEntry) {
     const res = await fetch(`/api/game/${game}/turn`, {
         method: "POST",
