@@ -27,7 +27,11 @@ export async function openFile() {
     );
 }
 
-class WebGameFile {
+export class WebGameFile {
+    static create(fileData) {
+        return new WebGameFile(undefined, fileData);
+    }
+
     constructor(fileHandle, fileData) {
         this._fileHandle = fileHandle;
         this._fileData = fileData;
@@ -43,6 +47,13 @@ class WebGameFile {
 
     async save() {
         const contents = JSON.stringify(dumpToRaw(this._fileData), null, 4);
+
+        if(!this._fileHandle) {
+            this._fileHandle = await window.showSaveFilePicker({
+                types: FILE_PICKER_TYPES,
+            });
+        }
+
         const writableStream = await this._fileHandle.createWritable();
 
         try {

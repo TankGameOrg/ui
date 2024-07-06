@@ -3,6 +3,8 @@ import { OpenHours } from "../game/open-hours/index.js";
 import { getGameVersion } from "../versions/index.js";
 import { gameStateFromRawState } from "./java-engine/board-state.js";
 import { GameState } from "../game/state/game-state.js";
+import Players from "../game/state/players/players.js";
+import Board from "../game/state/board/board.js";
 
 export const FILE_FORMAT_VERSION = 6;
 export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
@@ -88,5 +90,19 @@ export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, ga
         openHours: openHours.serialize(),
         logBook: logBook.withoutStateInfo().serialize(),
         initialGameState: initialGameState.serialize(),
+    };
+}
+
+export function createEmptyFileData({gameVersion, width, height}) {
+    return {
+        gameVersion,
+        openHours: new OpenHours([]),
+        logBook: new LogBook([], () => Date.now()),
+        gameSettings: {},
+        initialGameState: new GameState(
+            new Players([]),
+            new Board(width, height),
+            {},
+        ),
     };
 }

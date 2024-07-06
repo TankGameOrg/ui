@@ -9,6 +9,7 @@ import { EditSpace } from "./edit-entity.jsx";
 import { DELETE, ESCAPE, KEY_C, KEY_S, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
 import { openFile } from "../../drivers/game-file-web.js";
 import { ErrorMessage } from "../error_message.jsx";
+import { CreateGameDialog } from "./create-map-dialog.jsx";
 
 function useMapBuilderKeyBinds(dispatch, saveChanges) {
     useGlobalKeyHandler((e) => {
@@ -74,6 +75,7 @@ async function saveGameFile(gameFile, setIsUnsaved) {
 }
 
 export function MapBuilder({ debug, navigate }) {
+    const [createGameDialogOpen, setCreateGameDialogOpen] = useState(false);
     const [isUnsaved, setIsUnsaved] = useState(false);
     const [error, setError] = useState();
     const [gameFile, setGameFile] = useState();
@@ -93,46 +95,79 @@ export function MapBuilder({ debug, navigate }) {
         }
     }, [gameFile, dispatch, builderConfig]);
 
-    const [selectionMode, setSelectionMode] = useState(false);
-
     const saveChanges = useCallback(() => saveGameFile(gameFile, setIsUnsaved), [gameFile, setIsUnsaved]);
-
-    useMapBuilderKeyBinds(dispatch, saveChanges);
 
     useBeforeNavigate(() => {
         return isUnsaved ? "You have unsaved changes save them before closing the window" : "";
     }, [isUnsaved]);
 
-    const backToGamesButton = <button onClick={() => navigate("home")}>Back to games</button>;
-    const openFileButton = <button onClick={() => loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError)}>Open Map</button>;
+    const toolBarButtons = (
+        <>
+            <button onClick={() => navigate("home")}>Back to games</button>
+            <button onClick={() => loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError)}>Open Map</button>
+            <button onClick={() => setCreateGameDialogOpen(true)}>New Map</button>
+        </>
+    );
+
+    const createGameDialog = <CreateGameDialog
+        open={createGameDialogOpen}
+        setOpen={setCreateGameDialogOpen}
+        setGameFile={setGameFile}
+        setIsUnsaved={setIsUnsaved}
+        isUnsaved={isUnsaved}></CreateGameDialog>;
 
     if(error !== undefined) {
         return <AppContent>
             <div className="map-builder-toolbar">
-                {backToGamesButton}
-                {openFileButton}
+                {toolBarButtons}
             </div>
             <ErrorMessage error={error}></ErrorMessage>
+            {createGameDialog}
         </AppContent>;
     }
 
     if(gameFile === undefined) {
         return <AppContent>
             <div className="map-builder-toolbar">
-                {backToGamesButton}
-                {openFileButton}
+                {toolBarButtons}
             </div>
-            <p>Open a game file to get started</p>
+            <p>Open or create a game file to get started</p>
+            {createGameDialog}
         </AppContent>;
     }
+
+    return <MapBuilderEditor
+        mapBuilderState={mapBuilderState}
+        dispatch={dispatch}
+        toolBarButtons={toolBarButtons}
+        isUnsaved={isUnsaved}
+        createGameDialog={createGameDialog}
+        saveChanges={saveChanges}
+        versionConfig={versionConfig}
+        debug={debug}></MapBuilderEditor>
+}
+
+function MapBuilderEditor({ mapBuilderState, toolBarButtons, isUnsaved, createGameDialog, dispatch, saveChanges, versionConfig, debug, builderConfig }) {
+    const [selectionMode, setSelectionMode] = useState(false);
+
+    useMapBuilderKeyBinds(dispatch, saveChanges);
 
     const hasSelection = mapBuilderState.locationSelector.locations?.length > 0;
     const hasClipboard = mapBuilderState.clipboard !== undefined;
 
+    const selectLocationHandler = (location, keys) => {
+        let mode = "select-space";
+        if(keys.ctrlKey) mode = "toggle-space";
+        if(keys.shiftKey || selectionMode ) mode = "select-area";
+        if(keys.ctrlKey && keys.shiftKey) mode = "select-addtional-area"
+
+        setSelectionMode(false);
+        dispatch(selectLocation(location, mode));
+    };
+
     const toolBar = (
         <div className="map-builder-toolbar">
-            {backToGamesButton}
-            {openFileButton}
+            {toolBarButtons}
             <button disabled={!isUnsaved} onClick={saveChanges}>Save Map</button>
             <button disabled={!hasSelection && !hasClipboard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
             <button disabled={!hasSelection} onClick={() => setSelectionMode(true)}>Select Rectangle</button>
@@ -147,16 +182,6 @@ export function MapBuilder({ debug, navigate }) {
         </div>
     );
 
-    const selectLocationHandler = (location, keys) => {
-        let mode = "select-space";
-        if(keys.ctrlKey) mode = "toggle-space";
-        if(keys.shiftKey || selectionMode ) mode = "select-area";
-        if(keys.ctrlKey && keys.shiftKey) mode = "select-addtional-area"
-
-        setSelectionMode(false);
-        dispatch(selectLocation(location, mode));
-    };
-
     return (
         <>
             <div className="app-sidebar">
@@ -165,6 +190,7 @@ export function MapBuilder({ debug, navigate }) {
                 </div>
             </div>
             <AppContent withSidebar debugMode={debug} toolbar={toolBar}>
+                {createGameDialog}
                 <div className="map-builder-map-wrapper">
                     {mapBuilderState?.errorMessage ?
                         <div className="message warning">{mapBuilderState?.errorMessage}</div> : undefined}
