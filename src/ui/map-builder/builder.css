@@ -17,3 +17,7 @@
 .map-builder-resize-board-buttons {
     padding: 7px;
 }
+
+.map-builder-toolbar > button {
+    margin: 3px 5px;
+}

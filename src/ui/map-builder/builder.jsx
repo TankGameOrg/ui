@@ -1,4 +1,4 @@
-/* global alert, confirm */
+/* global alert, confirm, window */
 import "./builder.css";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder/map-builder.js";
@@ -32,6 +32,15 @@ function useMapBuilderKeyBinds(dispatch, saveChanges) {
             saveChanges();
         }
     }, [dispatch, saveChanges]);
+}
+
+function useBeforeNavigate(callback, deps = []) {
+    callback = useCallback(callback, [callback].concat(deps));  // eslint-disable-line
+
+    useEffect(() => {
+        window.addEventListener("beforeunload", callback);
+        return () => window.removeEventListener("beforeunload", callback);
+    }, [callback]);
 }
 
 async function loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError) {
@@ -90,21 +99,29 @@ export function MapBuilder({ debug, navigate }) {
 
     useMapBuilderKeyBinds(dispatch, saveChanges);
 
+    useBeforeNavigate(() => {
+        return isUnsaved ? "You have unsaved changes save them before closing the window" : "";
+    }, [isUnsaved]);
+
     const backToGamesButton = <button onClick={() => navigate("home")}>Back to games</button>;
     const openFileButton = <button onClick={() => loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError)}>Open Map</button>;
 
     if(error !== undefined) {
         return <AppContent>
-            {backToGamesButton}
-            {openFileButton}
+            <div className="map-builder-toolbar">
+                {backToGamesButton}
+                {openFileButton}
+            </div>
             <ErrorMessage error={error}></ErrorMessage>
         </AppContent>;
     }
 
     if(gameFile === undefined) {
         return <AppContent>
-            {backToGamesButton}
-            {openFileButton}
+            <div className="map-builder-toolbar">
+                {backToGamesButton}
+                {openFileButton}
+            </div>
             <p>Open a game file to get started</p>
         </AppContent>;
     }
@@ -113,7 +130,7 @@ export function MapBuilder({ debug, navigate }) {
     const hasClipboard = mapBuilderState.clipboard !== undefined;
 
     const toolBar = (
-        <>
+        <div className="map-builder-toolbar">
             {backToGamesButton}
             {openFileButton}
             <button disabled={!isUnsaved} onClick={saveChanges}>Save Map</button>
@@ -127,7 +144,7 @@ export function MapBuilder({ debug, navigate }) {
                 onClick={() => dispatch(paste())}>
                     Paste
             </button>
-        </>
+        </div>
     );
 
     const selectLocationHandler = (location, keys) => {
