@@ -1,16 +1,16 @@
 /* global alert, confirm */
 import "./builder.css";
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder/map-builder.js";
 import { getGameVersion } from "../../versions/index.js";
 import { AppContent } from "../app-content.jsx";
 import { GameBoard } from "../game_state/board.jsx";
 import { EditSpace } from "./edit-entity.jsx";
-import { DELETE, ESCAPE, KEY_C, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
+import { DELETE, ESCAPE, KEY_C, KEY_S, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
 import { openFile } from "../../drivers/game-file-web.js";
 import { ErrorMessage } from "../error_message.jsx";
 
-function useMapBuilderKeyBinds(dispatch) {
+function useMapBuilderKeyBinds(dispatch, saveChanges) {
     useGlobalKeyHandler((e) => {
         if(e.keyCode == ESCAPE) {
             dispatch(clearSelection());
@@ -27,7 +27,11 @@ function useMapBuilderKeyBinds(dispatch) {
         else if(e.ctrlKey && e.keyCode == KEY_V) {
             dispatch(paste());
         }
-    }, [dispatch]);
+        else if(e.ctrlKey && e.keyCode == KEY_S) {
+            e.preventDefault();
+            saveChanges();
+        }
+    }, [dispatch, saveChanges]);
 }
 
 async function loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError) {
@@ -48,6 +52,9 @@ async function loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError) {
 }
 
 async function saveGameFile(gameFile, setIsUnsaved) {
+    // Nothing to save
+    if(gameFile === undefined) return;
+
     try {
         await gameFile.save();
         setIsUnsaved(false);
@@ -79,7 +86,9 @@ export function MapBuilder({ debug, navigate }) {
 
     const [selectionMode, setSelectionMode] = useState(false);
 
-    useMapBuilderKeyBinds(dispatch);
+    const saveChanges = useCallback(() => saveGameFile(gameFile, setIsUnsaved), [gameFile, setIsUnsaved]);
+
+    useMapBuilderKeyBinds(dispatch, saveChanges);
 
     const backToGamesButton = <button onClick={() => navigate("home")}>Back to games</button>;
     const openFileButton = <button onClick={() => loadGameFile(isUnsaved, setIsUnsaved, setGameFile, setError)}>Open Map</button>;
@@ -107,7 +116,7 @@ export function MapBuilder({ debug, navigate }) {
         <>
             {backToGamesButton}
             {openFileButton}
-            <button disabled={!isUnsaved} onClick={() => saveGameFile(gameFile, setIsUnsaved)}>Save Map</button>
+            <button disabled={!isUnsaved} onClick={saveChanges}>Save Map</button>
             <button disabled={!hasSelection && !hasClipboard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
             <button disabled={!hasSelection} onClick={() => setSelectionMode(true)}>Select Rectangle</button>
             <button disabled={!hasSelection} onClick={() => deleteSelected(dispatch)}>Delete Selected</button>

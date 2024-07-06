@@ -1,6 +1,12 @@
 import "./edit-entity.css";
 import { setSelectedAttibute, setSelectedEntityType } from "../../interface-adapters/map-builder/map-builder.js";
 import { prettyifyName } from "../../utils.js";
+import { KEY_C, KEY_V, KEY_X } from "../generic/global-keybinds.js";
+
+// Stop propagation of ctrl+x,c,v key presses inside editor
+function filterKeyBinds(e) {
+    if(e.ctrlKey && [KEY_X, KEY_C, KEY_V].includes(e.keyCode)) e.stopPropagation();
+}
 
 export function EditSpace({ mapBuilderState, dispatch, builderConfig }) {
     return (
@@ -27,9 +33,8 @@ function EditEntity({ dispatch, targetType, mapBuilderState, builderConfig }) {
 
     const entityBuilderConfig = builderConfig?.[targetType]?.[type];
 
-    // Stop propagation to keep key presses inside the editor from reaching the global key bindings
     return (
-        <div onKeyDown={e => e.stopPropagation()}>
+        <div onKeyDown={filterKeyBinds}>
             <select value={type} onChange={selectEntityType}>
                 <option key="empty" value="empty">Empty</option>
                 {mapBuilderState[`${targetType}Types`].map(type => {
