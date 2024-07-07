@@ -16,11 +16,11 @@ export default class Entity {
         return this.players.map(player => player.name);
     }
 
-    clone() {
+    clone({ removePlayers = false } = {}) {
         return new Entity({
             type: this.type,
             position: this.position,
-            players: this.players.slice(0),
+            players: removePlayers ? [] : this.players.slice(0),
             attributes: Object.assign({}, this.attributes),
         });
     }

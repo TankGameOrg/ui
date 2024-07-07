@@ -34,8 +34,9 @@ export class Clipboard {
                 originalPositions.push(position);
             }
 
-            entities.push(board.getEntityAt(position).clone());
-            floor.push(board.getFloorTileAt(position).clone());
+            // Currently a player can only control one entity on the board so copying an entity removes it's player
+            entities.push(board.getEntityAt(position).clone({ removePlayers: !isCut }));
+            floor.push(board.getFloorTileAt(position).clone({ removePlayers: !isCut }));
             minX = Math.min(minX, position.x);
             minY = Math.min(minY, position.y);
             maxX = Math.max(maxX, position.x);
