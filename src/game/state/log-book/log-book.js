@@ -42,6 +42,8 @@ export class LogBook {
     }
 
     static deserialize(rawEntries, makeTimeStamp) {
+        if(!makeTimeStamp) makeTimeStamp = () => Date.now();
+
         // 0 length log books are not supported start day 1 if we have no entries
         if(rawEntries === undefined || rawEntries.length === 0) {
             rawEntries = [
