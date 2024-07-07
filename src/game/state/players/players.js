@@ -8,11 +8,13 @@ export default class Players {
         for(const player of players) {
             this._playersByName[player.name] = player;
 
-            if(!this._playersByType[player.type]) {
-                this._playersByType[player.type] = [];
-            }
+            if(player.type !== undefined) {
+                if(!this._playersByType[player.type]) {
+                    this._playersByType[player.type] = [];
+                }
 
-            this._playersByType[player.type].push(player);
+                this._playersByType[player.type].push(player);
+            }
         }
     }
 
