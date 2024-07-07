@@ -1,3 +1,4 @@
+import { logger } from "#platform/logging.js";
 import Board from "./board/board.js";
 import Entity from "./board/entity.js";
 import Players from "./players/players.js";
@@ -44,5 +45,16 @@ export class GameState {
             players || this.players,
             board || this.board,
             metaEntities || this.metaEntities);
+    }
+
+    _getAllEntities() {
+        let allEntities = Object.values(this.metaEntities);
+        allEntities = allEntities.concat(this.board.getAllEntities());
+        return allEntities;
+    }
+
+    getEntitiesByPlayer(player) {
+        return this._getAllEntities()
+            .filter(entity => entity.getPlayers().includes(player.name));
     }
 }

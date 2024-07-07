@@ -4,15 +4,16 @@ export default class Entity {
     constructor({ type, position, attributes = {}, players = [] }) {
         this.type = type;
         this.position = position;
-        this.players = [];
+        this.players = players;
         this.attributes = attributes;
-
-        for(let player of players) this.addPlayer(player);
     }
 
     addPlayer(player) {
-        player.entities.push(this);
         this.players.push(player);
+    }
+
+    getPlayers() {
+        return this.players.map(player => player.name);
     }
 
     clone() {

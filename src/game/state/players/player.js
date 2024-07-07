@@ -1,6 +1,5 @@
 export default class Player {
     constructor(attributes = {}) {
-        this.entities = [];
         this.attributes = attributes;
     }
 

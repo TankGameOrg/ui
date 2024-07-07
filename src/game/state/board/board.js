@@ -47,6 +47,10 @@ export default class Board {
         }
     }
 
+    getAllEntities() {
+        return Object.values(this._entities);
+    }
+
     getEntityAt(position) {
         this._verifyPositon(position, this._entities, "Entity");
         return this._entities[position.humanReadable] || (new Entity({ type: "empty", position }));
