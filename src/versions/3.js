@@ -69,6 +69,13 @@ function actionFactory(engine) {
 }
 
 const builderConfig = {
+    metaEntities: {
+        council: {
+            attributes: {
+                coffer: { type: "number", min: 0 },
+            },
+        },
+    },
     entity: {
         tank: {
             defaultAttributes: {
@@ -84,6 +91,7 @@ const builderConfig = {
                 actions: { type: "number", min: 0, max: 5, description: "Tank will start game with actions + 1" },
                 gold: { type: "number", min: 0 },
                 bounty: { type: "number", min: 0 },
+                durability: { type: "number", min: 0, max: 3 },
             },
         },
         wall: {

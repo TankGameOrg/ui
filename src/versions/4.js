@@ -22,6 +22,16 @@ export const version4 = new GameVersion({
     manualPath: "/manuals/Tank_Game_Rules_v4.pdf",
     builderConfig: {
         ...rawV3Config.builderConfig,
+        metaEntities: {
+            ...rawV3Config.builderConfig.metaEntities,
+            council: {
+                ...rawV3Config.builderConfig.metaEntities.council,
+                attributes: {
+                    ...rawV3Config.builderConfig.metaEntities.council.attributes,
+                    armistice: { type: "number", min: 0 },
+                },
+            },
+        },
         entity: {
             ...rawV3Config.builderConfig.entity,
             wall: {

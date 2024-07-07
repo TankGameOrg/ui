@@ -1,9 +1,9 @@
 import Entity from "../../game/state/board/entity.js";
 import { Position } from "../../game/state/board/position.js";
-import { prettyifyName } from "../../utils.js";
+import { deepClone, prettyifyName } from "../../utils.js";
 import { updateClipboardOnModify } from "./clipboard.js";
 
-export function updateEditorOnSelection(board, locations) {
+export function updateEditorOnSelection({board, metaEntities}, locations) {
     const position = locations.length > 0 ? new Position(locations[0]) : undefined;
     const entity = position ? board.getEntityAt(position) : undefined;
     const floorTile = position ? board.getFloorTileAt(position) : undefined;
@@ -11,19 +11,31 @@ export function updateEditorOnSelection(board, locations) {
     const entityEditable = areEntriesCompatible(locations, board.getEntityAt.bind(board));
     const floorTileEditable = areEntriesCompatible(locations, board.getFloorTileAt.bind(board));
 
+    let editorMetaEntities = {};
+
+    for(const entityKey of Object.keys(metaEntities)) {
+        editorMetaEntities[entityKey] = {
+            name: entityKey,
+            type: metaEntities[entityKey].type,
+            attributes: deepClone(metaEntities[entityKey].attributes),
+            attributeErrors: {},
+        };
+    }
+
     return {
         entity: {
             editable: entityEditable,
             type: entity?.type,
-            attributes: Object.assign({}, entity?.attributes),
+            attributes: deepClone(entity?.attributes),
             attributeErrors: {},
         },
         floorTile: {
             editable: floorTileEditable,
             type: floorTile?.type,
-            attributes: Object.assign({}, floorTile?.attributes),
+            attributes: deepClone(floorTile?.attributes),
             attributeErrors: {},
-        }
+        },
+        metaEntities: editorMetaEntities,
     };
 }
 
@@ -58,8 +70,8 @@ function areEntriesCompatible(locations, getEntityAt) {
 
 export function editEntityReducer(state, action) {
     if(action.type == "set-selected-attribute" || action.type == "set-selected-entity-type") {
-        if(state.locationSelector.locations?.length < 1) {
-            throw new Error(`You must have a location selected to perform ${action.type}`);
+        if(state.locationSelector.locations === undefined || state.locationSelector.locations.length < 1) {
+            return state;
         }
 
         const {board} = state.map.initialGameState;
@@ -79,7 +91,7 @@ export function editEntityReducer(state, action) {
         const targetConfig = state._builderConfig[action.targetType][action.entityType || state.editor[action.targetType].type];
 
         if(action.type == "set-selected-attribute") {
-            const [entityValue, errorMessage] = makeAttibuteValue(targetConfig, action.name, action.value)
+            const [entityValue, errorMessage] = makeAttibuteValue(targetConfig, action.name, action.value);
 
             if(entityValue !== undefined) {
                 for(const position of positions) {
@@ -109,7 +121,7 @@ export function editEntityReducer(state, action) {
                 setTarget(new Entity({
                     type: action.entityType,
                     position,
-                    attributes: Object.assign({}, targetConfig?.defaultAttributes),
+                    attributes: deepClone(targetConfig?.defaultAttributes),
                 }));
             }
 
@@ -118,7 +130,7 @@ export function editEntityReducer(state, action) {
                 [action.targetType]: {
                     editable: true,
                     type: action.entityType,
-                    attributes: Object.assign({}, targetConfig?.defaultAttributes),
+                    attributes: deepClone(targetConfig?.defaultAttributes),
                     attributeErrors: {},
                 }
             };
@@ -140,12 +152,80 @@ export function editEntityReducer(state, action) {
 
         return state;
     }
+    else if(action.type == "set-meta-entity-attribute") {
+        const editorMetaEntity = state.editor.metaEntities[action.entityName];
+        const targetConfig = state._builderConfig.metaEntities[editorMetaEntity.type];
+        const [entityValue, errorMessage] = makeAttibuteValue(targetConfig, action.name, action.value);
+
+        if(entityValue !== undefined) {
+            let metaEntity = state.map.initialGameState.metaEntities[action.entityName].clone();
+            metaEntity.attributes[action.name] = entityValue;
+
+            state = {
+                ...state,
+                map: {
+                    ...state.map,
+                    initialGameState: state.map.initialGameState.modify({
+                        metaEntities: {
+                            ...state.map.initialGameState.metaEntities,
+                            [action.entityName]: metaEntity,
+                        },
+                    }),
+                },
+            };
+        }
+
+        state = {
+            ...state,
+            editor: {
+                ...state.editor,
+                metaEntities: {
+                    ...state.editor.metaEntities,
+                    [action.entityName]: {
+                        ...editorMetaEntity,
+                        attributes: {
+                            ...state.editor.metaEntities[action.entityName].attributes,
+                            [action.name]: action.value,
+                        },
+                        attributeErrors: {
+                            ...state.editor.metaEntities[action.entityName].attributeErrors,
+                            [action.name]: errorMessage,
+                        },
+                    },
+                },
+            }
+        };
+
+        state.onChange(state.map);
+
+        return state;
+    }
 }
 
 
 function makeAttibuteValue(targetConfig, name, value) {
     const attributeConfig = targetConfig.attributes[name];
+    if(!attributeConfig) {
+        return [undefined, `Attribute ${name} is not supported`];
+    }
+
     if(attributeConfig.type == "number") {
+        let max = attributeConfig.max;
+
+        // This value has a user configured max separate the value and max
+        const hasMax = value?.value !== undefined && value?.max !== undefined;
+        if(hasMax) {
+            max = +value.max;
+            if(isNaN(max)) return [undefined, "Expected a number for max"];
+
+            // If we have a limit make sure that the user's max respects that
+            if(attributeConfig.max !== undefined && max > attributeConfig.max) {
+                return [undefined, `${prettyifyName(name)}'s max cannot be more than ${attributeConfig.max}`];
+            }
+
+            value = value.value;
+        }
+
         value = +value;
         if(isNaN(value)) return [undefined, "Expected a number"];
 
@@ -153,8 +233,12 @@ function makeAttibuteValue(targetConfig, name, value) {
             return [undefined, `${prettyifyName(name)} cannot be less than ${attributeConfig.min}`];
         }
 
-        if(attributeConfig.max !== undefined && value > attributeConfig.max) {
-            return [undefined, `${prettyifyName(name)} cannot be more than ${attributeConfig.max}`];
+        if(max !== undefined && value > max) {
+            return [undefined, `${prettyifyName(name)} cannot be more than ${max}`];
+        }
+
+        if(hasMax) {
+            value = {value, max};
         }
 
         return [value, undefined];

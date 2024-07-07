@@ -53,3 +53,23 @@ export function buildDeserializer(Types) {
         return MatchingType.deserialize(raw);
     };
 }
+
+export function deepClone(object) {
+    if(typeof object != "object") return object
+
+    if(Array.isArray(object)) {
+        return object.map(value => deepClone(value));
+    }
+
+    let newObject = {};
+    for(const key of Object.keys(object)) {
+        if(typeof object == "object") {
+            newObject[key] = deepClone(object[key]);
+        }
+        else {
+            newObject[key] = object[key];
+        }
+    }
+
+    return newObject;
+}

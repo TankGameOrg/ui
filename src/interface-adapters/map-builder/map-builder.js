@@ -1,7 +1,7 @@
 import { useReducer } from "preact/hooks";
 import { copyPasteReducer } from "./clipboard.js";
 import { updateSelectionAndEditorReducer } from "./selection.js";
-import { editEntityReducer } from "./editor.js";
+import { editEntityReducer, updateEditorOnSelection } from "./editor.js";
 import { checkCanResize, generateAllLocations, resizeBoardReducer } from "./board-resize.js";
 
 const TARGET_TYPES = ["entity", "floorTile"];
@@ -27,7 +27,7 @@ export function mapBuilderReducer(state, action) {
                 isSelecting: true,
                 selectableLocations: generateAllLocations(action.map.initialGameState.board),
             },
-            editor: {},
+            editor: updateEditorOnSelection(action.map.initialGameState, []),
             resizeBoard: checkCanResize(action.map.initialGameState.board, action.builderConfig),
             onChange: action.onChange,
         };
@@ -62,6 +62,7 @@ export function useMapBuilder() {
 export const setMap = (map, builderConfig, onChange) => ({ type: "set-map", map, builderConfig, onChange });
 export const selectLocation = (location, mode) => ({ type: "select-location", location, mode });
 export const clearSelection = () => selectLocation(undefined, "clear");
+export const setMetaEntityAttibute = (entityName, name, value) => ({ type: "set-meta-entity-attribute", entityName, name, value });
 export const setSelectedAttibute = (targetType, name, value) => ({ type: "set-selected-attribute", targetType, name, value });
 export const setSelectedEntityType = (targetType, entityType) => ({ type: "set-selected-entity-type", targetType, entityType });
 export const resizeBoard = (resizeParameters) => ({ type: "resize-board", resizeParameters });

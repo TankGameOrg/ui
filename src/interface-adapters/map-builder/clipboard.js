@@ -202,7 +202,7 @@ export function copyPasteReducer(state, action) {
     const lastSelected = new Position(state.locationSelector.lastSelected);
 
     if(action.type == "copy" || action.type == "cut") {
-        if(state.locationSelector.locations?.length > 0) {
+        if(state.locationSelector.locations !== undefined && state.locationSelector.locations.length > 0) {
             const clipboard = Clipboard.fromSelection(board, state.locationSelector.locations, lastSelected, {
                 isCut: action.type == "cut",
             });

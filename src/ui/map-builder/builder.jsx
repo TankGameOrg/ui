@@ -5,11 +5,12 @@ import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLo
 import { getGameVersion } from "../../versions/index.js";
 import { AppContent } from "../app-content.jsx";
 import { GameBoard } from "../game_state/board.jsx";
-import { EditSpace } from "./edit-entity.jsx";
+import { EditSpace, MetaEntityEditor } from "./edit-entity.jsx";
 import { DELETE, ESCAPE, KEY_C, KEY_S, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
 import { openFile } from "../../drivers/game-file-web.js";
 import { ErrorMessage } from "../error_message.jsx";
 import { CreateGameDialog } from "./create-map-dialog.jsx";
+import { Tab, TabContent, Tabs } from "../generic/tabs.jsx";
 
 function useMapBuilderKeyBinds(dispatch, saveChanges) {
     useGlobalKeyHandler((e) => {
@@ -186,7 +187,18 @@ function MapBuilderEditor({ mapBuilderState, toolBarButtons, isUnsaved, createGa
         <>
             <div className="app-sidebar">
                 <div className="map-builder-edit-pane">
-                    <EditSpace mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></EditSpace>
+                    <Tabs defaultTab="entity-floor">
+                        <div>
+                            <Tab name="entity-floor">Entity/Floor</Tab>
+                            <Tab name="meta-entities">Meta Entities</Tab>
+                        </div>
+                        <TabContent name="entity-floor">
+                            <EditSpace mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></EditSpace>
+                        </TabContent>
+                        <TabContent name="meta-entities">
+                            <MetaEntityEditor mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></MetaEntityEditor>
+                        </TabContent>
+                    </Tabs>
                 </div>
             </div>
             <AppContent withSidebar debugMode={debug} toolbar={toolBar}>

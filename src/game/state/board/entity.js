@@ -1,3 +1,4 @@
+import { deepClone } from "../../../utils.js";
 import { Position } from "./position.js";
 
 export default class Entity {
@@ -21,12 +22,12 @@ export default class Entity {
             type: this.type,
             position: this.position,
             players: removePlayers ? [] : this.players.slice(0),
-            attributes: Object.assign({}, this.attributes),
+            attributes: deepClone(this.attributes),
         });
     }
 
     static deserialize(rawEntity, players) {
-        let attributes = Object.assign({}, rawEntity);
+        let attributes = deepClone(rawEntity);
         delete attributes.type;
         delete attributes.players;
 
