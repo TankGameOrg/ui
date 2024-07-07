@@ -93,7 +93,7 @@ export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, ga
     };
 }
 
-export function createEmptyFileData({gameVersion, width, height}) {
+export function createEmptyFileData({gameVersion, width, height, metaEntities = {}}) {
     return {
         gameVersion,
         openHours: new OpenHours([]),
@@ -102,7 +102,7 @@ export function createEmptyFileData({gameVersion, width, height}) {
         initialGameState: new GameState(
             new Players([]),
             new Board(width, height),
-            {},
+            metaEntities,
         ),
     };
 }

@@ -26,6 +26,10 @@ export const version4 = new GameVersion({
             ...rawV3Config.builderConfig.metaEntities,
             council: {
                 ...rawV3Config.builderConfig.metaEntities.council,
+                defaultAttributes: {
+                    ...rawV3Config.builderConfig.metaEntities.council.defaultAttributes,
+                    armistice: { value: 0, max: 50 },
+                },
                 attributes: {
                     ...rawV3Config.builderConfig.metaEntities.council.attributes,
                     armistice: { type: "number", min: 0 },

@@ -71,6 +71,10 @@ function actionFactory(engine) {
 const builderConfig = {
     metaEntities: {
         council: {
+            type: "council",
+            defaultAttributes: {
+                coffer: 0,
+            },
             attributes: {
                 coffer: { type: "number", min: 0 },
             },
