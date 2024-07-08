@@ -7,7 +7,7 @@ import { AppContent } from "../app-content.jsx";
 import { GameBoard } from "../game_state/board.jsx";
 import { EditSpace, MetaEntityEditor } from "./edit-entity.jsx";
 import { DELETE, ESCAPE, KEY_C, KEY_S, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
-import { openFile } from "../../drivers/game-file-web.js";
+import { openFile, SAVE_BUTTON_TEXT, SAVE_ON_CTRL_S } from "../../drivers/game-file-web.js";
 import { ErrorMessage } from "../error_message.jsx";
 import { CreateGameDialog } from "./create-map-dialog.jsx";
 import { Tab, TabContent, Tabs } from "../generic/tabs.jsx";
@@ -31,7 +31,9 @@ function useMapBuilderKeyBinds(dispatch, saveChanges) {
         }
         else if(e.ctrlKey && e.keyCode == KEY_S) {
             e.preventDefault();
-            saveChanges();
+            if(SAVE_ON_CTRL_S) {
+                saveChanges();
+            }
         }
     }, [dispatch, saveChanges]);
 }
@@ -169,7 +171,7 @@ function MapBuilderEditor({ mapBuilderState, toolBarButtons, isUnsaved, createGa
     const toolBar = (
         <div className="map-builder-toolbar">
             {toolBarButtons}
-            <button disabled={!isUnsaved} onClick={saveChanges}>Save Map</button>
+            <button disabled={!isUnsaved} onClick={saveChanges} className="map-builder-save-btn">{SAVE_BUTTON_TEXT}</button>
             <button disabled={!hasSelection && !hasClipboard} onClick={() => dispatch(clearSelection())}>Clear Selection/clipboard</button>
             <button disabled={!hasSelection} onClick={() => setSelectionMode(true)}>Select Rectangle</button>
             <button disabled={!hasSelection} onClick={() => deleteSelected(dispatch)}>Delete Selected</button>
