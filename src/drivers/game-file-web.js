@@ -1,4 +1,5 @@
 /* globals window, document, FileReader, URL, Blob, localStorage */
+import { logger } from "#platform/logging.js";
 import { dumpToRaw, loadFromRaw } from "./game-file-data.js";
 
 const ACCEPT = ".json";
@@ -182,7 +183,7 @@ export class WebGameFile {
     _saveSession(unsaved) {
         localStorage.setItem("previousSession", JSON.stringify({
             fileData: dumpToRaw(this._fileData),
-            fileHandle: this._fileHandle,
+            fileHandle: SUPPORTS_FS_API ? undefined : this._fileHandle,
             unsaved,
         }));
     }
@@ -204,6 +205,9 @@ export function restorePreviousSession() {
         };
     }
     catch(err) {
-        console.log("Failed to restore previous session", err);
+        logger.error({
+            msg: "Failed to restore previous session",
+            err,
+        });
     }
 }
