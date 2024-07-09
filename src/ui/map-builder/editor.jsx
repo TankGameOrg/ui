@@ -5,6 +5,7 @@ import { Tab, TabContent, Tabs } from "../generic/tabs.jsx";
 import { EditSpace, MetaEntityEditor } from "./edit-entity.jsx";
 import { AppContent } from "../app-content.jsx";
 import { GameBoard } from "../game_state/board.jsx";
+import { PlayerEditor } from "./player-editor.jsx";
 
 
 export function MapBuilderEditor({ mapBuilderState, toolBarButtons, isUnsaved, createGameDialog, dispatch, saveChanges, versionConfig, debug, builderConfig }) {
@@ -48,12 +49,16 @@ export function MapBuilderEditor({ mapBuilderState, toolBarButtons, isUnsaved, c
                         <div>
                             <Tab name="entity-floor">Entity/Floor</Tab>
                             <Tab name="meta-entities">Meta Entities</Tab>
+                            <Tab name="players">Players</Tab>
                         </div>
                         <TabContent name="entity-floor">
                             <EditSpace mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></EditSpace>
                         </TabContent>
                         <TabContent name="meta-entities">
                             <MetaEntityEditor mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></MetaEntityEditor>
+                        </TabContent>
+                        <TabContent name="players">
+                            <PlayerEditor mapBuilderState={mapBuilderState} dispatch={dispatch} builderConfig={builderConfig}></PlayerEditor>
                         </TabContent>
                     </Tabs>
                 </div>
