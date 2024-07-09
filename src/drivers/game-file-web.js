@@ -1,4 +1,4 @@
-/* globals window, document, FileReader, URL, Blob */
+/* globals window, document, FileReader, URL, Blob, localStorage */
 import { dumpToRaw, loadFromRaw } from "./game-file-data.js";
 
 const ACCEPT = ".json";
@@ -160,6 +160,7 @@ export class WebGameFile {
 
     setData(fileData) {
         this._fileData = fileData;
+        this._saveSession(true);
     }
 
     /**
@@ -174,5 +175,35 @@ export class WebGameFile {
         else {
             downloadFile(this._fileHandle, contents);
         }
+
+        this._saveSession(false);
+    }
+
+    _saveSession(unsaved) {
+        localStorage.setItem("previousSession", JSON.stringify({
+            fileData: dumpToRaw(this._fileData),
+            fileHandle: this._fileHandle,
+            unsaved,
+        }));
+    }
+}
+
+/**
+ * Return the WebGameFile from a previous session or undefined if one wasn't stored
+ */
+export function restorePreviousSession() {
+    try {
+        const rawSession = localStorage.getItem("previousSession");
+        if(rawSession === null || rawSession === undefined) return;
+
+        const {fileData, fileHandle, unsaved} = JSON.parse(rawSession);
+
+        return {
+            gameFile: new WebGameFile(fileHandle, loadFromRaw(fileData)),
+            unsaved,
+        };
+    }
+    catch(err) {
+        console.log("Failed to restore previous session", err);
     }
 }

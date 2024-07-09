@@ -1,13 +1,13 @@
 /* global alert, confirm, window */
 import "./builder.css";
-import { useCallback, useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { clearSelection, copy, cut, deleteSelected, paste, resizeBoard, selectLocation, setMap, useMapBuilder } from "../../interface-adapters/map-builder/map-builder.js";
 import { getGameVersion } from "../../versions/index.js";
 import { AppContent } from "../app-content.jsx";
 import { GameBoard } from "../game_state/board.jsx";
 import { EditSpace, MetaEntityEditor } from "./edit-entity.jsx";
 import { DELETE, ESCAPE, KEY_C, KEY_S, KEY_V, KEY_X, useGlobalKeyHandler } from "../generic/global-keybinds.js";
-import { openFile, SAVE_BUTTON_TEXT, SAVE_ON_CTRL_S } from "../../drivers/game-file-web.js";
+import { openFile, restorePreviousSession, SAVE_BUTTON_TEXT, SAVE_ON_CTRL_S } from "../../drivers/game-file-web.js";
 import { ErrorMessage } from "../error_message.jsx";
 import { CreateGameDialog } from "./create-map-dialog.jsx";
 import { Tab, TabContent, Tabs } from "../generic/tabs.jsx";
@@ -135,6 +135,7 @@ export function MapBuilder({ debug, navigate }) {
                 {toolBarButtons}
             </div>
             <p>Open or create a game file to get started</p>
+            <RestoreUnsavedGame setGameFile={setGameFile} setError={setError} setIsUnsaved={setIsUnsaved}></RestoreUnsavedGame>
             {createGameDialog}
         </AppContent>;
     }
@@ -236,5 +237,28 @@ function MapBuilderEditor({ mapBuilderState, toolBarButtons, isUnsaved, createGa
                 </div>
             </AppContent>
         </>
+    );
+}
+
+function RestoreUnsavedGame({ setGameFile, setError, setIsUnsaved }) {
+    const [previousSession, setPreviousSession] = useState();
+
+    useEffect(() => {
+        setPreviousSession(restorePreviousSession());
+    }, [setPreviousSession]);
+
+    // Nothing to restore
+    if(!previousSession) return;
+
+    const restoreSession = () => {
+        setGameFile(previousSession.gameFile);
+        setError(undefined);
+        setIsUnsaved(previousSession.unsaved);
+    };
+
+    const unsavedMsg = previousSession.unsaved ? " (unsaved)" : "";
+
+    return (
+        <button onClick={restoreSession}>Restore previous session{unsavedMsg}</button>
     );
 }
