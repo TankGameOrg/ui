@@ -101,6 +101,8 @@ function entityFromBoard(rawEntity, position, playersByName) {
         }
     }
 
+    attributes.last_action_time = rawEntity.last_action_time;
+
     const player = playersByName[rawEntity.name];
     let entity = new Entity({ type: rawEntity.type, position, attributes });
 

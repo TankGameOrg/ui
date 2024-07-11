@@ -12,6 +12,7 @@ import { GameManual } from "./game-manual.jsx";
 import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface-adapters/current-turn-manager.js";
 import { getGameVersion } from "../versions/index.js";
 import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
+import { CooldownList } from "./game_state/cooldown-list.jsx";
 
 
 export function Game({ game, setGame, debug }) {
@@ -106,6 +107,7 @@ export function Game({ game, setGame, debug }) {
                             setSelectedUser={setSelectedUser}
                             canSubmitAction={canSubmitAction}></Council>
                         <OpenHours openHours={gameInfo?.openHours} debug={debug}></OpenHours>
+                        <CooldownList gameState={gameState} versionConfig={versionConfig}></CooldownList>
                         <GameManual manualPath={versionConfig?.getManual?.()}></GameManual>
                     </div>
                 </div>
