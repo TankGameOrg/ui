@@ -88,7 +88,7 @@ export function Game({ game, setGame, debug }) {
                     currentEntryId={currentTurnMgrState.entryId}
                     changeEntryId={entryId => distachLogEntryMgr(goToEntryId(entryId))}></LogBook>
             </div>
-            <AppContent withSidebar debugMode={debug} toolbar={toolBar} buildInfo={gameInfo?.buildInfo}>
+            <AppContent withSidebar debugMode={debug} toolbar={toolBar} buildInfo={gameInfo?.buildInfo} engineInfo={gameInfo?.engineInfo}>
                 <div className="app-side-by-side centered">
                     <div className="app-side-by-side-main">
                         {gameMessage !== undefined ? <div>{gameMessage}</div> : undefined}

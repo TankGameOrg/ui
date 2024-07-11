@@ -218,4 +218,8 @@ export class Game {
     getVictoryInfo() {
         return this._victoryInfo;
     }
+
+    getEngineVersionInfo() {
+        return this._factories.createEngine().getVersionInfo();
+    }
 }
