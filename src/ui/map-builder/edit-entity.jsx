@@ -8,30 +8,28 @@ function filterKeyBinds(e) {
     if(!e.ctrlKey || e.keyCode != KEY_S) e.stopPropagation();
 }
 
-export function EditSpace({ mapBuilderState, dispatch, builderConfig }) {
+export function EditSpace({ mapBuilderState, dispatch }) {
     return (
         <>
             <h2>Entity</h2>
-            <EditEntity dispatch={dispatch} targetType="entity" mapBuilderState={mapBuilderState} builderConfig={builderConfig}></EditEntity>
+            <EditEntity dispatch={dispatch} targetType="entity" mapBuilderState={mapBuilderState}></EditEntity>
             <h2>Floor</h2>
-            <EditEntity dispatch={dispatch} targetType="floorTile" mapBuilderState={mapBuilderState} builderConfig={builderConfig}></EditEntity>
+            <EditEntity dispatch={dispatch} targetType="floorTile" mapBuilderState={mapBuilderState}></EditEntity>
         </>
     );
 }
 
-function EditEntity({ dispatch, targetType, mapBuilderState, builderConfig }) {
+function EditEntity({ dispatch, targetType, mapBuilderState }) {
     const selectEntityType = e => {
         dispatch(setSelectedEntityType(targetType, e.target.value));
     };
 
-    const {editable, type, attributes, attributeErrors} = mapBuilderState?.editor?.[targetType] || {};
+    const {editable, type, attributeEditor} = mapBuilderState?.editor?.[targetType] || {};
     if(!editable) {
         return (
             <p>Select one or more {prettyifyName(targetType, { capitalize: false, plural: true })} that have the same type and attributes to edit</p>
         );
     }
-
-    const entityBuilderConfig = builderConfig?.[targetType]?.[type];
 
     const updateAttribute = (attributeName, value) => {
         dispatch(setSelectedAttibute(targetType, attributeName, value));
@@ -48,21 +46,19 @@ function EditEntity({ dispatch, targetType, mapBuilderState, builderConfig }) {
                 })}
             </select>
             <EditAttributes
-                attributes={attributes}
-                updateAttribute={updateAttribute}
-                attributeErrors={attributeErrors}
-                attributeBuilderConfig={entityBuilderConfig?.attributes}></EditAttributes>
+                attributeEditor={attributeEditor}
+                updateAttribute={updateAttribute}></EditAttributes>
         </div>
     );
 }
 
-function EditAttributes({ attributes, updateAttribute, attributeErrors, attributeBuilderConfig }) {
+function EditAttributes({ attributeEditor, updateAttribute }) {
     return (
         <>
-            {Object.keys(attributes).map(attributeName => {
-                const description = attributeBuilderConfig?.[attributeName]?.description;
-                const errorMessage = attributeErrors[attributeName];
-                const value = attributes[attributeName];
+            {Object.keys(attributeEditor.attributes).map(attributeName => {
+                const description = attributeEditor.entityBuilderConfig?.description;
+                const errorMessage = attributeEditor.attributeErrors[attributeName];
+                const value = attributeEditor.attributes[attributeName];
                 const hasMax = value?.value !== undefined && value?.max !== undefined;
 
                 const onInput = hasMax ?
@@ -93,14 +89,13 @@ function EditAttributes({ attributes, updateAttribute, attributeErrors, attribut
     );
 }
 
-export function MetaEntityEditor({ mapBuilderState, dispatch, builderConfig }) {
+export function MetaEntityEditor({ mapBuilderState, dispatch }) {
     const {metaEntities} = mapBuilderState.editor;
 
     return (
         <>
             {Object.keys(metaEntities).map((metaEntityName) => {
-                const {name, type, attributes, attributeErrors} = metaEntities[metaEntityName];
-                const entityBuilderConfig = builderConfig?.metaEntities?.[type];
+                const {name, attributeEditor} = metaEntities[metaEntityName];
 
                 const updateAttribute = (attributeName, value) => {
                     dispatch(setMetaEntityAttibute(name, attributeName, value));
@@ -110,9 +105,7 @@ export function MetaEntityEditor({ mapBuilderState, dispatch, builderConfig }) {
                     <div key={name}>
                         <h2>{prettyifyName(name)}</h2>
                         <EditAttributes
-                            attributes={attributes}
-                            attributeBuilderConfig={entityBuilderConfig?.attributes}
-                            attributeErrors={attributeErrors}
+                            attributeEditor={attributeEditor}
                             updateAttribute={updateAttribute}></EditAttributes>
                     </div>
                 );

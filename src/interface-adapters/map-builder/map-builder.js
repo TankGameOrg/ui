@@ -27,7 +27,7 @@ export function mapBuilderReducer(state, action) {
                 isSelecting: true,
                 selectableLocations: generateAllLocations(action.map.initialGameState.board),
             },
-            editor: updateEditorOnSelection(action.map.initialGameState, []),
+            editor: updateEditorOnSelection(action.map.initialGameState, [], action.builderConfig),
             resizeBoard: checkCanResize(action.map.initialGameState.board, action.builderConfig),
             onChange: action.onChange,
         };

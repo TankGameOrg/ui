@@ -3,51 +3,149 @@ import { Position } from "../../game/state/board/position.js";
 import { deepClone, prettyifyName } from "../../utils.js";
 import { updateClipboardOnModify } from "./clipboard.js";
 
-export function updateEditorOnSelection({board, metaEntities}, locations) {
-    const position = locations.length > 0 ? new Position(locations[0]) : undefined;
-    const entity = position ? board.getEntityAt(position) : undefined;
-    const floorTile = position ? board.getFloorTileAt(position) : undefined;
+class AttributeEditor {
+    constructor({ entities, builderEntitiyConfig, cloneState, modifyEntity }) {
+        this._entities = entities;
+        this._modifyEntity = modifyEntity;
+        this._cloneState = cloneState;
+        this.builderEntitiyConfig = builderEntitiyConfig;
+        this.attributes = entities.length > 0 ? deepClone(entities[0].attributes) : undefined;
+        this.attributeErrors = {};
+    }
 
-    const entityEditable = areEntriesCompatible(locations, board.getEntityAt.bind(board));
-    const floorTileEditable = areEntriesCompatible(locations, board.getFloorTileAt.bind(board));
+    changeType(state, newType, builderEntitiyConfig) {
+        if(this._cloneState) {
+            state = this._cloneState(state);
+        }
+
+        const entities = this._entities.map(entity => {
+            const newEntity = new Entity({
+                type: newType,
+                position: entity.position,
+                attributes: deepClone(builderEntitiyConfig.defaultAttributes),
+            });
+
+            state = this._modifyEntity(state, newEntity);
+
+            return newEntity;
+        });
+
+        const newEditor = new AttributeEditor({
+            entities,
+            builderEntitiyConfig,
+            cloneState: this._cloneState,
+            modifyEntity: this._modifyEntity,
+        });
+
+        return [state, newEditor];
+    }
+
+    editAttribute(state, attributeName, attributeValue) {
+        const [entityValue, errorMessage] = makeAttibuteValue(this.builderEntitiyConfig, attributeName, attributeValue);
+
+        let newEntities = this._entities;
+        if(entityValue !== undefined) {
+            if(this._cloneState) {
+                state = this._cloneState(state);
+            }
+
+            newEntities = this._entities.map(entity => {
+                entity = entity.clone();
+                entity.attributes[attributeName] = entityValue;
+                state = this._modifyEntity(state, entity);
+                return entity;
+            });
+        }
+
+        let newAttributeEditor = new AttributeEditor({
+            entities: newEntities,
+            builderEntitiyConfig: this.builderEntitiyConfig,
+            cloneState: this._cloneState,
+            modifyEntity: this._modifyEntity,
+        });
+
+        newAttributeEditor.attributes[attributeName] = attributeValue;
+        newAttributeEditor.attributeErrors[attributeName] = errorMessage;
+        return [state, newAttributeEditor];
+    }
+}
+
+export function updateEditorOnSelection({board, metaEntities}, locations, builderConfig) {
+    const positions = locations.map(location => new Position(location));
+    const entity = positions.length > 0 ? board.getEntityAt(positions[0]) : undefined;
+    const floorTile = positions.length > 0 ? board.getFloorTileAt(positions[0]) : undefined;
+
+    const entityEditable = areEntriesCompatible(positions, board.getEntityAt.bind(board));
+    const floorTileEditable = areEntriesCompatible(positions, board.getFloorTileAt.bind(board));
 
     let editorMetaEntities = {};
 
     for(const entityKey of Object.keys(metaEntities)) {
         editorMetaEntities[entityKey] = {
             name: entityKey,
-            type: metaEntities[entityKey].type,
-            attributes: deepClone(metaEntities[entityKey].attributes),
-            attributeErrors: {},
+            attributeEditor: new AttributeEditor({
+                entities: [metaEntities[entityKey]],
+                builderEntitiyConfig: builderConfig.metaEntities[metaEntities[entityKey].type],
+                modifyEntity: (map, entity) => ({
+                    ...map,
+                    initialGameState: map.initialGameState.modify({
+                        metaEntities: {
+                            ...map.initialGameState.metaEntities,
+                            [entityKey]: entity,
+                        },
+                    }),
+                }),
+            }),
         };
     }
+
+    const cloneBoard = (map) => ({
+        ...map,
+        initialGameState: map.initialGameState.modify({
+            board: map.initialGameState.board.clone(),
+        }),
+    });
 
     return {
         entity: {
             editable: entityEditable,
             type: entity?.type,
-            attributes: deepClone(entity?.attributes),
-            attributeErrors: {},
+            attributeEditor: new AttributeEditor({
+                entities: positions.map(position => board.getEntityAt(position)),
+                builderEntitiyConfig: builderConfig.entity[entity?.type],
+                cloneState: cloneBoard,
+                modifyEntity: (map, entity) => {
+                    map.initialGameState.board.setEntity(entity);
+                    return map;
+                },
+            }),
         },
         floorTile: {
             editable: floorTileEditable,
             type: floorTile?.type,
-            attributes: deepClone(floorTile?.attributes),
-            attributeErrors: {},
+            attributeEditor: new AttributeEditor({
+                entities: positions.map(position => board.getFloorTileAt(position)),
+                builderEntitiyConfig: builderConfig.floorTile[floorTile?.type],
+                cloneState: cloneBoard,
+                modifyEntity: (map, entity) => {
+                    map.initialGameState.board.setFloorTile(entity);
+                    return map;
+                },
+            }),
         },
         metaEntities: editorMetaEntities,
     };
 }
 
-function areEntriesCompatible(locations, getEntityAt) {
-    if(locations.length === 0) return false;
+function areEntriesCompatible(positions, getEntityAt) {
+    if(positions.length === 0) return false;
 
-    const firstEntity = getEntityAt(new Position(locations[0]));
+    const firstEntity = getEntityAt(positions[0]);
     let firstAttributeKeys = Object.keys(firstEntity.attributes);
     firstAttributeKeys.sort();
 
-    for(let i = 1; i < locations.length; ++i) {
-        const entity = getEntityAt(new Position(locations[i]));
+    for(let i = 1; i < positions.length; ++i) {
+        const entity = getEntityAt(positions[i]);
 
         if(firstEntity.type != entity.type) return false;
 
@@ -74,64 +172,36 @@ export function editEntityReducer(state, action) {
             return state;
         }
 
-        const {board} = state.map.initialGameState;
-        let newBoard = board.clone();
+        let newBoard;
+
         const positions = state.locationSelector.locations.map(location => new Position(location));
-
-        let getTarget = action.targetType == "entity" ?
-                board.getEntityAt.bind(board) :
-                board.getFloorTileAt.bind(board);
-
-        let setTarget = action.targetType == "entity" ?
-            newBoard.setEntity.bind(newBoard) :
-            newBoard.setFloorTile.bind(newBoard);
 
         let editor = state.editor;
 
-        const targetConfig = state._builderConfig[action.targetType][action.entityType || state.editor[action.targetType].type];
-
         if(action.type == "set-selected-attribute") {
-            const [entityValue, errorMessage] = makeAttibuteValue(targetConfig, action.name, action.value);
-
-            if(entityValue !== undefined) {
-                for(const position of positions) {
-                    let newEnity = getTarget(position).clone();
-                    newEnity.attributes[action.name] = entityValue;
-                    setTarget(newEnity);
-                }
-            }
+            const [map, attributeEditor] = editor[action.targetType].attributeEditor.editAttribute(state.map, action.name, action.value);
+            newBoard = map.initialGameState.board;
 
             editor = {
                 ...editor,
                 [action.targetType]: {
                     ...editor[action.targetType],
-                    attributes: {
-                        ...editor[action.targetType].attributes,
-                        [action.name]: action.value,
-                    },
-                    attributeErrors: {
-                        ...editor[action.targetType].attributeErrors,
-                        [action.name]: errorMessage,
-                    },
+                    attributeEditor,
                 },
             };
         }
         else if(action.type == "set-selected-entity-type") {
-            for(const position of positions) {
-                setTarget(new Entity({
-                    type: action.entityType,
-                    position,
-                    attributes: deepClone(targetConfig?.defaultAttributes),
-                }));
-            }
+            const newBuilderConfig = state._builderConfig[action.targetType][action.entityType];
+            const [map, attributeEditor] = editor[action.targetType].attributeEditor.changeType(state.map, action.entityType, newBuilderConfig);
+
+            newBoard = map.initialGameState.board;
 
             editor = {
                 ...editor,
                 [action.targetType]: {
                     editable: true,
                     type: action.entityType,
-                    attributes: deepClone(targetConfig?.defaultAttributes),
-                    attributeErrors: {},
+                    attributeEditor,
                 }
             };
         }
@@ -154,43 +224,18 @@ export function editEntityReducer(state, action) {
     }
     else if(action.type == "set-meta-entity-attribute") {
         const editorMetaEntity = state.editor.metaEntities[action.entityName];
-        const targetConfig = state._builderConfig.metaEntities[editorMetaEntity.type];
-        const [entityValue, errorMessage] = makeAttibuteValue(targetConfig, action.name, action.value);
-
-        if(entityValue !== undefined) {
-            let metaEntity = state.map.initialGameState.metaEntities[action.entityName].clone();
-            metaEntity.attributes[action.name] = entityValue;
-
-            state = {
-                ...state,
-                map: {
-                    ...state.map,
-                    initialGameState: state.map.initialGameState.modify({
-                        metaEntities: {
-                            ...state.map.initialGameState.metaEntities,
-                            [action.entityName]: metaEntity,
-                        },
-                    }),
-                },
-            };
-        }
+        const [map, attributeEditor] = editorMetaEntity.attributeEditor.editAttribute(state.map, action.name, action.value);
 
         state = {
             ...state,
+            map: map,
             editor: {
                 ...state.editor,
                 metaEntities: {
                     ...state.editor.metaEntities,
                     [action.entityName]: {
                         ...editorMetaEntity,
-                        attributes: {
-                            ...state.editor.metaEntities[action.entityName].attributes,
-                            [action.name]: action.value,
-                        },
-                        attributeErrors: {
-                            ...state.editor.metaEntities[action.entityName].attributeErrors,
-                            [action.name]: errorMessage,
-                        },
+                        attributeEditor,
                     },
                 },
             }

@@ -6,7 +6,7 @@ export function updateSelectionAndEditorReducer(state, action) {
         const {board} = state.map.initialGameState;
 
         const {locations, lastSelected} = updateSelectedLocations(state.locationSelector.locations, state.locationSelector.lastSelected, action);
-        const editor = updateEditorOnSelection(state.map.initialGameState, locations);
+        const editor = updateEditorOnSelection(state.map.initialGameState, locations, state._builderConfig);
         const clipboard = action.mode == "clear" ? undefined : state.clipboard;
 
         return {
