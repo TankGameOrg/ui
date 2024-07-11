@@ -1,6 +1,5 @@
 /* globals process */
 import pino from "pino";
-import pinoHttp from "pino-http";
 import pinoPretty from "pino-pretty";
 import fs from "node:fs";
 import path from "node:path";
@@ -48,22 +47,6 @@ export function configureLogging({ logFile, logLevel, overwrite } = {}) {
     );
 }
 
-export function makeHttpLogger() {
-    return pinoHttp({
-        logger,
-        serializers: {
-            req: (req) => ({
-                id: req.id,
-                method: req.method,
-                url: req.url,
-            }),
-
-            res: (res) => ({
-                statusCode: res.statusCode,
-            }),
-        },
-    });
-}
 
 process.on('uncaughtException', function (err) {
     logger.error({
