@@ -2,7 +2,7 @@ import { PossibleActionSourceSet } from "../../game/possible-actions/index.js";
 import { AttributeDescriptor, EntityDescriptor, FloorTileDescriptor } from "./descriptors.js";
 
 export class GameVersion {
-    constructor({ logFormatter, entryDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, actionFactory, attributeDescriptors, builderConfig }) {
+    constructor({ logFormatter, entryDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, actionFactory, attributeDescriptors }) {
         this._logFormatter = logFormatter;
         this._entryDescriptors = entryDescriptors;
         this._floorTileDescriptors = floorTileDescriptors;
@@ -10,7 +10,6 @@ export class GameVersion {
         this._manualPath = manualPath;
         this._actionFactory = actionFactory;
         this._attributeDescriptors = attributeDescriptors;
-        this._builderConfig = builderConfig;
     }
 
     formatLogEntry(logEntry, gameState) {
@@ -42,9 +41,5 @@ export class GameVersion {
     getAttributeDescriptor(name, attribute) {
         const Descriptor = this._attributeDescriptors[name] || AttributeDescriptor;
         return new Descriptor(name, attribute);
-    }
-
-    getBuilderConfig() {
-        return this._builderConfig;
     }
 }
