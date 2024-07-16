@@ -1,3 +1,4 @@
+import { Difference, diffKeys, NamedSource } from "../diff-utils.js";
 import Player from "./player.js";
 
 export default class Players {
@@ -41,5 +42,34 @@ export default class Players {
 
     getPlayersByType(userType) {
         return this._playersByType[userType] || [];
+    }
+
+    /**
+     * Find the differences between two sets of players
+     *
+     * Attibutes and other objects that exist in this player set but not other player set are considered remove and the reverse are considered added.
+     * @param {*} otherPlayers the set of players to compare to
+     */
+    difference(otherPlayers) {
+        return diffKeys({
+            fromKeys: Object.keys(this._playersByName),
+            toKeys: Object.keys(otherPlayers._playersByName),
+            onAdd: name => {
+                return [new Difference({
+                    source: new NamedSource("players"),
+                    key: name,
+                    changeType: "added",
+                    payload: this._playersByName[name],
+                })];
+            },
+            onRemove: name => {
+                return [new Difference({
+                    source: new NamedSource("players"),
+                    key: name,
+                    changeType: "removed",
+                })];
+            },
+            onElse: name => this._playersByName[name].difference(otherPlayers._playersByName[name]),
+        });
     }
 }
