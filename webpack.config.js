@@ -37,7 +37,7 @@ export function webpackConfig({ appName, configFileUrl, jsxExclude, title }) {
                 "APP_VERSION": `"${version}"`,
                 "BUILD_INFO": `"${buildInfo}"`,
             }),
-            new HtmlWebpackPlugin({ title, publicPath: "/" }),
+            new HtmlWebpackPlugin({ title, publicPath: process.env.PUBLIC_PATH || "/" }),
             new CopyWebpackPlugin({
                 patterns: [
                     { from: staticDir },
