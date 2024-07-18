@@ -5,26 +5,29 @@ import webpack from "webpack";
 const { DefinePlugin } = webpack;
 
 const { pathname } = new URL(import.meta.url);
-const dirname = path.dirname(pathname);
+const uiDirname = path.dirname(pathname);
 
 // Collect version info
 function getBuildInfo() {
-    return childProcess.spawnSync("\"$(git rev-parse --show-toplevel)/scripts/get-version\" webpack", { shell: true })
+    return childProcess.spawnSync(`"${uiDirname}/scripts/get-version" webpack`, { shell: true })
         .stdout.toString("utf-8")
         .replace(/(\r|\n)/g, "");
 }
 
 const buildInfo = process.env.BUILD_INFO || getBuildInfo();
-const version = `TankGameUI ${buildInfo}`;
 
 
-export default function webpackConfig() {
+export function webpackConfig({ appName, configFileUrl, jsxExclude }) {
+    const version = `${appName} ${buildInfo}`;
+
+    const { pathname } = new URL(configFileUrl);
+
     return {
         mode: process.env.NODE_ENV ?? "development",
         devtool: "source-map",
         entry: "./src/ui/index.jsx",
         output: {
-            path: path.resolve(dirname, "dist"),
+            path: path.resolve(path.dirname(pathname), "dist"),
             filename: "tank-game.js",
         },
         plugins: [
@@ -36,7 +39,7 @@ export default function webpackConfig() {
         ],
         devServer: {
             static: {
-                directory: path.join(dirname, "public"),
+                directory: path.join(uiDirname, "public"),
             },
             port: process.env["port"] ?? 3000,
             proxy: [
@@ -53,7 +56,7 @@ export default function webpackConfig() {
             rules: [
                 {
                     test: /\.jsx?$/,
-                    exclude: /node_modules/,
+                    exclude: jsxExclude,
                     use: {
                         loader: "babel-loader",
                         options: {
@@ -81,8 +84,17 @@ export default function webpackConfig() {
                 "react-dom/test-utils": "preact/test-utils",
                 "react-dom": "preact/compat",
                 "react/jsx-runtime": "preact/jsx-runtime",
-                "#platform": path.resolve(dirname, "src/drivers/platforms/web"),
+                "#platform": path.resolve(uiDirname, "src/drivers/platforms/web"),
             },
         }
     };
+}
+
+
+export default function uiWebpackConfig() {
+    return webpackConfig({
+        appName: "TankGameUI",
+        configFileUrl: import.meta.url,
+        jsxExclude: /node_modules/,
+    });
 }

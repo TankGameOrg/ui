@@ -1,5 +1,5 @@
 {
-    "name": "tank_game_ui_backend",
+    "name": "tank_game_ui",
     "version": "0.0.0",
     "description": "A basic web UI for playing tank game",
     "main": "index.js",
@@ -43,5 +43,10 @@
     },
     "imports": {
         "#platform/*": "./src/drivers/platforms/node/*"
+    },
+    "exports": {
+        "./webpack.config.js": "./webpack.config.js",
+        "./eslint.config.js": "./eslint.config.js",
+        "./*": "./src/*"
     }
 }
