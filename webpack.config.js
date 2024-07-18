@@ -1,6 +1,7 @@
 import path from "node:path";
 import childProcess from "node:child_process";
 import HtmlWebpackPlugin from "html-webpack-plugin";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 import webpack from "webpack";
 const { DefinePlugin } = webpack;
 
@@ -17,10 +18,11 @@ function getBuildInfo() {
 const buildInfo = process.env.BUILD_INFO || getBuildInfo();
 
 
-export function webpackConfig({ appName, configFileUrl, jsxExclude }) {
+export function webpackConfig({ appName, configFileUrl, jsxExclude, title }) {
     const version = `${appName} ${buildInfo}`;
 
     const { pathname } = new URL(configFileUrl);
+    const staticDir = path.join(uiDirname, "public");
 
     return {
         mode: process.env.NODE_ENV ?? "development",
@@ -35,11 +37,16 @@ export function webpackConfig({ appName, configFileUrl, jsxExclude }) {
                 "APP_VERSION": `"${version}"`,
                 "BUILD_INFO": `"${buildInfo}"`,
             }),
-            new HtmlWebpackPlugin({ title: "Tank Game", publicPath: "/" }),
+            new HtmlWebpackPlugin({ title, publicPath: "/" }),
+            new CopyWebpackPlugin({
+                patterns: [
+                    { from: staticDir },
+                ]
+            }),
         ],
         devServer: {
             static: {
-                directory: path.join(uiDirname, "public"),
+                directory: staticDir,
             },
             port: process.env["port"] ?? 3000,
             proxy: [
@@ -94,6 +101,7 @@ export function webpackConfig({ appName, configFileUrl, jsxExclude }) {
 export default function uiWebpackConfig() {
     return webpackConfig({
         appName: "TankGameUI",
+        title: "Tank Game",
         configFileUrl: import.meta.url,
         jsxExclude: /node_modules/,
     });
