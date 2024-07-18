@@ -2,7 +2,7 @@
 import { prettyifyName } from "../../utils.js";
 
 export function imageBackground(url) {
-    return url?.length > 0 ? `url("${location.pathname}/assets/${url}.png")` : undefined;
+    return url?.length > 0 ? `url("${location.pathname}assets/${url}.png")` : undefined;
 }
 
 export class EntityDescriptor {
