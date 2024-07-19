@@ -38,9 +38,6 @@ export function GameSelector({ navigate, debug }) {
                         </div>
                     );
                 })}
-                <div style={{ padding: "15px" }}>
-                    Don't like what you see? <a href="/map-builder/">Make your own map</a>.
-                </div>
             </div>
         </AppContent>
     );

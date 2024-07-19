@@ -23,6 +23,7 @@ export function webpackConfig({ appName, configFileUrl, jsxExclude, title }) {
 
     const { pathname } = new URL(configFileUrl);
     const staticDir = path.join(uiDirname, "public");
+    const publicPath = process.env.PUBLIC_PATH || "/";
 
     return {
         mode: process.env.NODE_ENV ?? "development",
@@ -36,8 +37,9 @@ export function webpackConfig({ appName, configFileUrl, jsxExclude, title }) {
             new DefinePlugin({
                 "APP_VERSION": `"${version}"`,
                 "BUILD_INFO": `"${buildInfo}"`,
+                "SITE_PUBLIC_PATH": `"${publicPath}"`,
             }),
-            new HtmlWebpackPlugin({ title, publicPath: process.env.PUBLIC_PATH || "/" }),
+            new HtmlWebpackPlugin({ title, publicPath }),
             new CopyWebpackPlugin({
                 patterns: [
                     { from: staticDir },

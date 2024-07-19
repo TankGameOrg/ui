@@ -18,7 +18,7 @@ export class TankDescriptor extends EntityDescriptor {
 
         let icon = isDead ? "DeadTank" : "Tank"
 
-        const team = this.entity.attributes.team?.toLowerCase?.();
+        const team = this.entity.players[0]?.attributes?.team?.toLowerCase?.();
         if(TANK_TEAMS_WITH_ICONS.has(team)) {
             icon = `Tank-${team}${isDead ? "-dead" : ""}`;
         }
