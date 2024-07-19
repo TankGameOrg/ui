@@ -1,7 +1,7 @@
 import "./board.css";
 import { Position } from "../../game/state/board/position.js";
 import { EntityTile } from "./entity-tile.jsx";
-import { useRef, useState } from "preact/hooks";
+import { useMemo, useRef, useState } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
 
@@ -134,18 +134,16 @@ function Tile({ className = "", children, floorTile, disabled, onClick, selected
         className += " board-space-disabled";
     }
 
-    if(selected) {
-        className += " board-space-selected";
-    }
-
     return (
         <>
             <div
-                className={`board-space board-space-centered ${className}`}
+                className={`board-space ${className}`}
                 onClick={onClick}
                 style={style}
                 ref={anchorRef}>
-                    {children}
+                    <div className={`board-space-selected-overlay board-space-centered ${selected ? "board-space-overlay-selected" : ""}`}>
+                        {children}
+                    </div>
             </div>
             <Popup opened={popupOpen} anchorRef={anchorRef} onClose={() => setPopupOpen(false)}>
                 <h2>{prettyifyName(floorTile?.type)}</h2>
