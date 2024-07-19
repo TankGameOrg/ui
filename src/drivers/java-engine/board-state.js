@@ -9,9 +9,10 @@ import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import Players from "../../game/state/players/players.js";
 import { Position } from "../../game/state/board/position.js";
+import { logger } from "#platform/logging.js";
 
 
-const deadTankAttributesToRemove = ["ACTIONS", "RANGE", "BOUNTY"];
+const deadTankAttributesToRemove = ["$ACTIONS", "$RANGE", "$BOUNTY"];
 
 function mapTypeToClass(type, boardType, gameVersion) {
     if(type == "empty") {
@@ -289,8 +290,8 @@ function buildUnit(position, board, gameVersion) {
         attributes.$DEAD = entity.attributes.durability !== undefined;
 
         for(const removedAttibute of deadTankAttributesToRemove) {
-            if(attributes["$" + removedAttibute] === undefined) {
-                attributes["$" + removedAttibute] = 0;
+            if(attributes[removedAttibute] === undefined) {
+                attributes[removedAttibute] = 0;
             }
         }
 
