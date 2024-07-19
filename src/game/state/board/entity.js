@@ -1,3 +1,4 @@
+import { diffAttributes, Difference, NamedSource } from "../diff-utils.js";
 import { Position } from "./position.js";
 
 export default class Entity {
@@ -41,5 +42,54 @@ export default class Entity {
                 undefined : // Don't include a players field if it's empty
                 this.players.map(player => player.name),
         };
+    }
+
+    /**
+     * Find the differences between two entities
+     *
+     * Attibutes and other objects that exist in this entity set but not other entity set are considered remove and the reverse are considered added.
+     * @param {*} otherEntity the entity to compare to
+     * @param {*} source the source to attach to the differences generated
+     */
+    difference(otherEntity, source) {
+        let differences = diffAttributes(source, this.attributes, otherEntity.attributes);
+
+        const thisPlayers = new Set(this.players.map(player => player.name));
+        const otherPlayers = new Set(otherEntity.players.map(player => player.name));
+
+        for(const playerName of thisPlayers) {
+            if(otherPlayers.has(playerName)) {
+                // No difference.  Remove player so that the only players left in otherPlayers are the ones not in thisPlayers.
+                otherPlayers.delete(playerName);
+            }
+            else {
+                differences.push(new Difference({
+                    source,
+                    key: "player",
+                    changeType: "removed",
+                    payload: playerName,
+                }));
+            }
+        }
+
+        for(const playerName of otherPlayers) {
+            differences.push(new Difference({
+                source,
+                key: "player",
+                changeType: "added",
+                payload: playerName,
+            }));
+        }
+
+        return differences;
+    }
+
+    /**
+     * Get a string that uniquely identifies this entity or undefined if a unique id is unavailable
+     */
+    getUniqueId() {
+        if(this.players.length === 0) return;
+
+        return this.players.map(player => player.name).join("-");
     }
 }
