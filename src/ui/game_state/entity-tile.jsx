@@ -57,8 +57,7 @@ function getBadgesForEntity(descriptor) {
         </div>
     ): undefined;
 
-    return leftBadge || rightBadge ?
-        <div className="board-space-entity-badges">{leftBadge}<div className="separator"></div>{rightBadge}</div> : undefined;
+    return <div className="board-space-entity-badges">{leftBadge}<div className="separator"></div>{rightBadge}</div>;
 }
 
 
@@ -74,17 +73,19 @@ export function EntityTile({ entity, showPopupOnClick, config, setSelectedUser, 
     const tileStyles = descriptor.getTileStyle().style;
     const badges = getBadgesForEntity(descriptor);
 
-    const label = descriptor.getName() && (
+    const label = descriptor.getName() !== undefined ? (
         <div className="board-space-entity-title board-space-centered">
             <div className="board-space-entity-title-inner">{prettyifyName(descriptor.getName())}</div>
         </div>
+    ) : (
+        <div className="board-space-entity-title-placeholder"></div>
     );
 
     return (
         <div className="board-space-entity-wrapper">
             <div className="board-space-entity" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
                 {label}
-                <div className={`board-space-centered board-space-attribute-featured ${label ? "" : "board-space-no-label"}`}>
+                <div className="board-space-centered board-space-attribute-featured">
                     {descriptor.getFeaturedAttribute()}
                 </div>
                 {badges}
