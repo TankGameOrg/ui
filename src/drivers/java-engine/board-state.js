@@ -166,10 +166,10 @@ function convertCouncil(rawCouncil, playersByName) {
         coffer: rawCouncil.$COFFER,
     };
 
-    if(rawCouncil.armistice_vote_cap !== undefined) {
+    if(rawCouncil.$ARMISTICE_MAX !== undefined) {
         attributes.armistice = {
-            value: rawCouncil.$ARMISTICE_VOTE_COUNT,
-            max: rawCouncil.$ARMISTICE_VOTE_CAP,
+            value: rawCouncil.$ARMISTICE_COUNT,
+            max: rawCouncil.$ARMISTICE_MAX,
         };
     }
 
