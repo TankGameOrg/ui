@@ -5,7 +5,7 @@ import { prettyifyName } from "../../utils.js";
 import { AttributeList } from "./attribute-list.jsx";
 
 
-function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, closePopup, versionConfig }) {
+function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, closePopup, versionConfig, gameState }) {
     const title = prettyifyName(descriptor.getName() || entity.type);
     const subTitle = prettyifyName(entity.type);
 
@@ -14,8 +14,10 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
         closePopup();
     };
 
-    const takeActionButtons = canSubmitAction ? entity.players.map(player => {
-        const buttonMessage = entity.players.length === 1 ?
+    const takeActionButtons = canSubmitAction ? entity.getPlayerRefs().map(playerRef => {
+        const player = playerRef.getPlayer(gameState);
+
+        const buttonMessage = entity.getPlayerRefs().length === 1 ?
             "Take Action" :
             `Take Action as ${player.name}`;
 
@@ -61,13 +63,13 @@ function getBadgesForEntity(descriptor) {
 }
 
 
-export function EntityTile({ entity, showPopupOnClick, config, setSelectedUser, canSubmitAction }) {
+export function EntityTile({ entity, showPopupOnClick, config, setSelectedUser, canSubmitAction, gameState }) {
     const cardRef = useRef();
     const [opened, setOpened] = useState(false);
 
     const close = useCallback(() => setOpened(false), [setOpened]);
 
-    const descriptor = config && config.getEntityDescriptor(entity);
+    const descriptor = config && config.getEntityDescriptor(entity, gameState);
     if(!descriptor) return;
 
     const tileStyles = descriptor.getTileStyle().style;
@@ -97,7 +99,8 @@ export function EntityTile({ entity, showPopupOnClick, config, setSelectedUser, 
                     entity={entity}
                     canSubmitAction={canSubmitAction}
                     setSelectedUser={setSelectedUser}
-                    closePopup={() => setOpened(false)}></EntityDetails>
+                    closePopup={() => setOpened(false)}
+                    gameState={gameState}></EntityDetails>
             </Popup>
         </div>
     );

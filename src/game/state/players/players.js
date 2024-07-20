@@ -2,10 +2,12 @@ import Player from "./player.js";
 
 export default class Players {
     constructor(players) {
+        this._playersById = {};
         this._playersByName = {};
         this._playersByType = {};
 
         for(const player of players) {
+            this._playersById[player.uniqueId] = player;
             this._playersByName[player.name] = player;
 
             if(player.type !== undefined) {
@@ -35,6 +37,10 @@ export default class Players {
 
     getAllPlayerTypes() {
         return Object.keys(this._playersByType);
+    }
+
+    getPlayerById(uniqueId) {
+        return this._playersById[uniqueId];
     }
 
     getPlayerByName(name) {

@@ -1,19 +1,18 @@
 import "./board.css";
 import { Position } from "../../game/state/board/position.js";
 import { EntityTile } from "./entity-tile.jsx";
-import { useMemo, useRef, useState } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
 
 
-export function GameBoard({ board, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, emptyMessage = "No board data supplied" }) {
-    if(!board) return <p>{emptyMessage}</p>;
+export function GameBoard({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, emptyMessage = "No board data supplied" }) {
+    if(!gameState?.board) return <p>{emptyMessage}</p>;
 
     try {
         return (
             <GameBoardView
-                width={board.width}
-                board={board}
+                gameState={gameState}
                 config={config}
                 canSubmitAction={canSubmitAction}
                 setSelectedUser={setSelectedUser}
@@ -29,8 +28,9 @@ export function GameBoard({ board, config, setSelectedUser, canSubmitAction, loc
     }
 }
 
-export function GameBoardView({ board, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection }) {
+export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection }) {
     const selectedTargets = (locationSelector.locations || []);
+    const {board} = gameState;
 
     if(cutSelection === undefined) {
         cutSelection = [];
@@ -70,7 +70,8 @@ export function GameBoardView({ board, config, setSelectedUser, canSubmitAction,
                     config={config}
                     canSubmitAction={canSubmitAction}
                     setSelectedUser={setSelectedUser}
-                    isCut={isCut}></Space>
+                    isCut={isCut}
+                    gameState={gameState}></Space>
             );
         }
 
@@ -82,7 +83,7 @@ export function GameBoardView({ board, config, setSelectedUser, canSubmitAction,
     )
 }
 
-function Space({ entity, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut }) {
+function Space({ entity, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState }) {
     let tile = null;
 
     // Try to place an entity in this space
@@ -92,7 +93,8 @@ function Space({ entity, floorTile, disabled, onClick, selected, config, setSele
             showPopupOnClick={!(onClick || disabled)}
             config={config}
             canSubmitAction={canSubmitAction}
-            setSelectedUser={setSelectedUser}></EntityTile>;
+            setSelectedUser={setSelectedUser}
+            gameState={gameState}></EntityTile>;
     }
 
     return (

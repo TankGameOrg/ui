@@ -80,7 +80,7 @@ export function gameStateFromRawState(rawGameState) {
         victoryInfo = {
             type: rawGameState.$WINNER == "Council" ? "armistice_vote" : "last_tank_standing",
             winners: rawGameState.$WINNER == "Council" ?
-                gameState.metaEntities.council.players :
+                gameState.metaEntities.council.getPlayerRefs().map(ref => ref.getPlayer(gameState)) :
                 [gameState.players.getPlayerByName(rawGameState.$WINNER)],
         };
     }
@@ -278,7 +278,7 @@ function buildPlayer(player) {
     };
 }
 
-function buildUnit(position, board, gameVersion) {
+function buildUnit(position, board, gameVersion, gameState) {
     const entity = board.getEntityAt(position);
 
     let attributes = {};
@@ -303,8 +303,8 @@ function buildUnit(position, board, gameVersion) {
 
     attributes.$POSITION = buildPosition(entity.position);
 
-    if(entity.players.length > 0) {
-        attributes.$PLAYER_REF = buildPlayerRef(entity.players[0]);
+    if(entity.getPlayerRefs().length > 0) {
+        attributes.$PLAYER_REF = buildPlayerRef(entity.getPlayerRefs()[0].getPlayer(gameState));
     }
 
     return {
@@ -322,8 +322,9 @@ function buildFloor(position, board, gameVersion) {
     };
 }
 
-function makeCouncilList(council, playerType) {
-    const players = council.players
+function makeCouncilList(council, playerType, gameState) {
+    const players = council.getPlayerRefs()
+        .map(playerRef => playerRef.getPlayer(gameState))
         .filter(player => player.type == playerType)
         .map(player => buildPlayerRef(player));
 
@@ -333,7 +334,7 @@ function makeCouncilList(council, playerType) {
     }
 }
 
-function makeCouncil(councilEntity) {
+function makeCouncil(councilEntity, gameState) {
     let additionalAttributes = {};
 
     if(councilEntity.attributes.armistice !== undefined) {
@@ -348,8 +349,8 @@ function makeCouncil(councilEntity) {
         class: "Council",
         $COFFER: councilEntity.attributes.coffer,
         ...additionalAttributes,
-        $COUNCILLORS: makeCouncilList(councilEntity, "councilor"),
-        $SENATORS: makeCouncilList(councilEntity, "senator"),
+        $COUNCILLORS: makeCouncilList(councilEntity, "councilor", gameState),
+        $SENATORS: makeCouncilList(councilEntity, "senator", gameState),
     };
 }
 
@@ -361,10 +362,10 @@ export function gameStateToRawState(gameState, gameVersion) {
         $TICK: 0,
         $BOARD: {
             class: "Board",
-            unit_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, gameVersion)),
+            unit_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, gameVersion, gameState)),
             floor_board: buildBoard(gameState.board, (position, board) => buildFloor(position, board, gameVersion)),
         },
-        $COUNCIL: makeCouncil(gameState.metaEntities.council),
+        $COUNCIL: makeCouncil(gameState.metaEntities.council, gameState),
         $PLAYERS: {
             class: "AttributeList",
             elements: gameState.players.getAllPlayers().map(player => buildPlayer(player)),

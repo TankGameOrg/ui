@@ -91,7 +91,7 @@ export function Game({ game, navigate, debug }) {
                     <div className="app-side-by-side-main">
                         {gameMessage !== undefined ? <div>{gameMessage}</div> : undefined}
                         <GameBoard
-                            board={gameState?.board}
+                            gameState={gameState}
                             config={versionConfig}
                             canSubmitAction={canSubmitAction}
                             setSelectedUser={setSelectedUser}

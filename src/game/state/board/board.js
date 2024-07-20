@@ -23,12 +23,12 @@ export default class Board {
         return board;
     }
 
-    serialize() {
+    serialize(gameState) {
         return {
             width: this.width,
             height: this.height,
-            entities: Object.values(this._entities).map(entity => entity.serialize()),
-            floor: Object.values(this._floor).map(tile => tile.serialize()),
+            entities: Object.values(this._entities).map(entity => entity.serialize(gameState)),
+            floor: Object.values(this._floor).map(tile => tile.serialize(gameState)),
         };
     }
 

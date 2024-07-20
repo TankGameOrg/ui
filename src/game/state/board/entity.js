@@ -5,23 +5,26 @@ export default class Entity {
     constructor({ type, position, attributes = {}, players = [] }) {
         this.type = type;
         this.position = position;
-        this.players = players;
+        this._playerRefs = [];
         this.attributes = attributes;
+        for(const player of players) {
+            this.addPlayer(player);
+        }
     }
 
     addPlayer(player) {
-        this.players.push(player);
+        this._playerRefs.push(player.asRef !== undefined ? player.asRef() : undefined);
     }
 
-    getPlayers() {
-        return this.players.map(player => player.name);
+    getPlayerRefs() {
+        return this._playerRefs;
     }
 
     clone({ removePlayers = false } = {}) {
         return new Entity({
             type: this.type,
             position: this.position,
-            players: removePlayers ? [] : this.players.slice(0),
+            players: removePlayers ? [] : this._playerRefs.slice(0),
             attributes: deepClone(this.attributes),
         });
     }
@@ -43,14 +46,14 @@ export default class Entity {
         return new Entity({ type: rawEntity.type, attributes, players: myPlayers, position });
     }
 
-    serialize() {
+    serialize(gameState) {
         return {
             ...this.attributes,
             type: this.type,
             position: this.position?.humanReadable,
-            players: this.players.length === 0 ?
+            players: this._playerRefs.length === 0 ?
                 undefined : // Don't include a players field if it's empty
-                this.players.map(player => player.name),
+                this._playerRefs.map(player => player.getPlayer(gameState).name),
         };
     }
 }

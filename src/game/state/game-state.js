@@ -1,4 +1,3 @@
-import { logger } from "#platform/logging.js";
 import Board from "./board/board.js";
 import Entity from "./board/entity.js";
 import Players from "./players/players.js";
@@ -28,12 +27,12 @@ export class GameState {
     serialize() {
         let metaEntities = {};
         for(const entityName of Object.keys(this.metaEntities)) {
-            metaEntities[entityName] = this.metaEntities[entityName].serialize();
+            metaEntities[entityName] = this.metaEntities[entityName].serialize(this);
         }
 
         let raw = {
             players: this.players.serialize(),
-            board: this.board.serialize(),
+            board: this.board.serialize(this),
             metaEntities,
         };
 
@@ -55,6 +54,8 @@ export class GameState {
 
     getEntitiesByPlayer(player) {
         return this._getAllEntities()
-            .filter(entity => entity.getPlayers().includes(player.name));
+            .filter(entity => {
+                return entity.getPlayerRefs().find(playerRef => playerRef.isFor(player));
+            });
     }
 }

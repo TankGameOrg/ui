@@ -6,8 +6,9 @@ export function imageBackground(url) {
 }
 
 export class EntityDescriptor {
-    constructor(entity) {
+    constructor(entity, gameState) {
         this.entity = entity;
+        this.gameState = gameState;
     }
 
     // Get the badge to display in the bottom right corner of the tile
