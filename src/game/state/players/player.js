@@ -1,3 +1,5 @@
+import { deepClone } from "../../../utils.js";
+
 export default class Player {
     constructor(attributes = {}) {
         this.attributes = attributes;
@@ -12,5 +14,9 @@ export default class Player {
 
     serialize() {
         return this.attributes;
+    }
+
+    clone() {
+        return new Player(deepClone(this.attributes));
     }
 }
