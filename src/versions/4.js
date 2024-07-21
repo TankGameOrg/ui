@@ -21,5 +21,5 @@ export const version4 = new GameVersion({
         wall: V4WallDescriptor,
     },
     manualPath: "/manuals/Tank_Game_Rules_v4.pdf",
-    findCooldowns: findGlobalCooldowns.bind(null, 60 /* 1 minute in seconds */),
+    findCooldowns: findGlobalCooldowns,
 });
