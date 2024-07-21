@@ -8,18 +8,20 @@ import Players from "../../../../src/game/state/players/players.js";
 
 describe("GameState", () => {
     it("can find all entities owned by a player", () => {
+        const players = new Players([
+            new Player({ name: "Ted" }),
+            new Player({ name: "Bella" }),
+        ]);
+
         let board = new Board(2, 2);
-        board.setEntity(new Entity({ type: "tank", position: new Position("A1"), players: [new Player({ name: "Ted" })] }));
-        board.setEntity(new Entity({ type: "tank", position: new Position("A2"), players: [new Player({ name: "Bella" })] }));
+        board.setEntity(new Entity({ type: "tank", position: new Position("A1"), players: [players.getPlayerByName("Ted")] }));
+        board.setEntity(new Entity({ type: "tank", position: new Position("A2"), players: [players.getPlayerByName("Bella")] }));
 
         const gameState = new GameState(
-            new Players([
-                new Player({ name: "Ted" }),
-                new Player({ name: "Bella" }),
-            ]),
+            players,
             board,
             {
-                council: new Entity({ type: "council", players: [new Player({ name: "Ted" })], }),
+                council: new Entity({ type: "council", players: [players.getPlayerByName("Ted")], }),
             },
         );
 

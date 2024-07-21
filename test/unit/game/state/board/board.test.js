@@ -46,7 +46,7 @@ describe("Board", () => {
 
     it("can be serialize and deserialized", () => {
         let players = new Players([josh]);
-        const reSerializedBoard = Board.deserialize(board.serialize(), players);
+        const reSerializedBoard = Board.deserialize(board.serialize({players}), players);
         assert.deepEqual(reSerializedBoard, board);
     });
 

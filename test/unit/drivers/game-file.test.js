@@ -6,6 +6,7 @@ import { hashFile } from "../../../src/drivers/file-utils.js";
 import { MockEngine } from "../game/execution/mock-engine.js";
 
 import util from "node:util";
+import { stripPlayerIds } from "../helpers.js";
 
 const TEST_FILES = "test/unit/drivers/test-files";
 const sampleFileBaseName = `tank_game_v3_format_v${FILE_FORMAT_VERSION}`;
@@ -55,6 +56,9 @@ describe("GameFile", () => {
 
             delete oldFile.logBook._makeTimeStamp;
             delete newFile.logBook._makeTimeStamp;
+
+            stripPlayerIds(oldFile);
+            stripPlayerIds(newFile);
 
             assert.deepEqual(oldFile, newFile);
         });
