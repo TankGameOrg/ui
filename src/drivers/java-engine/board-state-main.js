@@ -237,7 +237,7 @@ function buildUserLists(rawGameState) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-function buildPosition(position) {
+export function buildPosition(position) {
     return {
         class: "Position",
         x: position.x,

@@ -6,6 +6,7 @@ import * as boardStateMain from "./board-state-main.js";
 import * as boardStateStable from "./board-state-stable.js";
 import { JavaEngineSource } from "./possible-action-source.js";
 import { JsonCommunicationChannel } from "../json-communication-channel.js";
+import { convertLogEntry } from "./log-translator.js";
 
 const TANK_GAME_TIMEOUT = 3; // seconds
 const ENGINE_NAME_EXPR = /TankGame-(.+?).jar$/;
@@ -42,19 +43,6 @@ function determineEngineVersion(command) {
     return fileName[0][1];
 }
 
-
-const COUNCIL_ACTIONS = ["bounty", "grant_life", "stimulus"];
-
-function convertLogEntry(logEntry) {
-    let subject = COUNCIL_ACTIONS.includes(logEntry.type) ? "Council" : logEntry.rawLogEntry.subject;
-
-    return {
-        ...logEntry.rawLogEntry,
-        subject,
-    };
-}
-
-
 // Put ids on the engines so we can differentiate them in logs
 let uniqueIdCounter = 0;
 
@@ -81,7 +69,6 @@ class TankGameEngine {
         return this._comm.sendRequestAndWait(data);
     }
 
-    // Helper functions
     async shutdown() {
         try {
             await this._comm.sendRequestAndWait({
@@ -136,7 +123,7 @@ class TankGameEngine {
     async processAction(action) {
         await this._comm.sendRequestAndWait({
             type: "action",
-            ...convertLogEntry(action),
+            ...convertLogEntry(action, this._isMainBranch),
         });
 
         return this.getBoardState();
