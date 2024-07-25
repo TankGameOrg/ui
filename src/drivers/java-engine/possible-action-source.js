@@ -40,6 +40,10 @@ export class JavaEngineSource {
         .filter(possibleAction => possibleAction !== undefined);
     }
 
+    _getPositionFromJava(tank) {
+        return new Position(tank.$POSITION !== undefined ? tank.$POSITION : tank.position);
+    }
+
     _buildFieldSpecs(fields, gameState) {
         let unSubmitableAction = false;
         const specs = fields.map(field => {
@@ -59,7 +63,7 @@ export class JavaEngineSource {
                     type: "select-position",
                     options: field.range.map(tank => {
                         const entities = tank instanceof Player && gameState.getEntitiesByPlayer(tank);
-                        const position = (entities?.[0]?.position || new Position(tank.$POSITION)).humanReadable;
+                        const position = (entities?.[0]?.position || this._getPositionFromJava(tank)).humanReadable;
                         if(typeof position !== "string") {
                             logger.error({
                                 msg: "Expected a object with position or player",

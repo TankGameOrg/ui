@@ -3,6 +3,7 @@ import fs from "node:fs";
 import { logger } from "#platform/logging.js";
 import path from "node:path";
 import * as boardStateMain from "./board-state-main.js";
+import * as boardStateStable from "./board-state-stable.js";
 import { JavaEngineSource } from "./possible-action-source.js";
 import { JsonCommunicationChannel } from "../json-communication-channel.js";
 
@@ -101,7 +102,7 @@ class TankGameEngine {
             return boardStateMain.gameStateFromRawState(state);
         }
         else {
-            throw new Error("Unsupported version");
+            return boardStateStable.gameStateFromRawState(state);
         }
     }
 
@@ -110,7 +111,7 @@ class TankGameEngine {
             return boardStateMain.gameStateToRawState(state, gameVersion);
         }
         else {
-            throw new Error("Unsupported version");
+            return boardStateStable.gameStateToRawState(state);
         }
     }
 
@@ -143,7 +144,7 @@ class TankGameEngine {
 
     async setGameVersion(version) {
         // TODO: Update version names
-        if(!isNaN(version)) version = `default-v${version}`;
+        if(!isNaN(version) && this._isMainBranch) version = `default-v${version}`;
 
         await this._comm.sendRequestAndWait({
             type: "version",
