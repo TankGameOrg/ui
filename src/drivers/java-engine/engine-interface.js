@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import { logger } from "#platform/logging.js";
 import path from "node:path";
-import { gameStateFromRawState, gameStateToRawState } from "./board-state.js";
+import * as boardStateMain from "./board-state-main.js";
 import { JavaEngineSource } from "./possible-action-source.js";
 import { JsonCommunicationChannel } from "../json-communication-channel.js";
 
@@ -66,6 +66,9 @@ class TankGameEngine {
         this._id = `java-${++uniqueIdCounter}`;
         this._version = determineEngineVersion(command);
         this._comm = new JsonCommunicationChannel(command, timeout, this._id);
+
+        // Hacky way to detect if we're using an engine from the main or stable branch
+        this._isMainBranch = this._version != "0.0.2";
     }
 
     _runCommand(command, data) {
@@ -94,11 +97,21 @@ class TankGameEngine {
     }
 
     getGameStateFromEngineState(state) {
-        return gameStateFromRawState(state);
+        if(this._isMainBranch) {
+            return boardStateMain.gameStateFromRawState(state);
+        }
+        else {
+            throw new Error("Unsupported version");
+        }
     }
 
     getEngineStateFromGameState(state, gameVersion) {
-        return gameStateToRawState(state, gameVersion);
+        if(this._isMainBranch) {
+            return boardStateMain.gameStateToRawState(state, gameVersion);
+        }
+        else {
+            throw new Error("Unsupported version");
+        }
     }
 
     async getBoardState() {
