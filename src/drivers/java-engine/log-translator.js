@@ -1,5 +1,5 @@
-import { Position } from "../../game/state/board/position";
-import { buildPosition } from "./board-state-main";
+import { Position } from "../../game/state/board/position.js";
+import { buildPosition } from "./board-state-main.js";
 
 const COUNCIL_ACTIONS = ["bounty", "grant_life", "stimulus"];
 
