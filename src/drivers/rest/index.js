@@ -63,7 +63,7 @@ const app = express();
 app.use(express.json());
 app.use(gameAccessor(gameManager));
 
-defineRoutes(app, buildInfo);
+defineRoutes(app, buildInfo, engineManager);
 
 app.listen(port, () => {
     logger.info(`Listening on ${port}`);

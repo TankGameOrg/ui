@@ -101,7 +101,7 @@ export class Game {
     }
 
     getGameVersion() {
-        return this._gameData.gameVersion;
+        return this._gameData?.gameVersion;
     }
 
     getState() {

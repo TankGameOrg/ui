@@ -31,13 +31,12 @@ export class GameManager {
     constructor(gamesFolder, engineManager, opts = {}) {
         this._gamesFolder = gamesFolder;
         this._engineManager = engineManager;
-        this.loaded = this._loadGamesFromFolder(opts);
+        this._gameOptions = opts;
+        this._games = {};
+        this.loaded = this._loadGamesFromFolder();
     }
 
-    async _loadGamesFromFolder(gameOptions) {
-        this._gamePromises = {};
-        this._games = {};
-
+    async _loadGamesFromFolder() {
         for(const gameFile of await fs.readdir(this._gamesFolder)) {
             // Only load json files
             if(!gameFile.endsWith(".json")) continue;
@@ -45,8 +44,11 @@ export class GameManager {
             const filePath = path.join(this._gamesFolder, gameFile);
             const {name} = path.parse(gameFile);
 
+            // This game has already been loaded don't reload
+            if(this._games[name] !== undefined) continue;
+
             // Load and process the game asyncronously (does not return a promise)
-            this._games[name] = loadGameFromFile(filePath, this._engineManager, gameOptions);
+            this._games[name] = loadGameFromFile(filePath, this._engineManager, this._gameOptions);
         }
     }
 
@@ -60,6 +62,27 @@ export class GameManager {
 
     shutdown() {
         return Promise.all(this.getAllGames().map(game => game.shutdown()));
+    }
+
+    async reload({ gameVersion, gameName } = {}) {
+        const isAllGames = gameVersion === undefined && gameName === undefined;
+
+        // Shutdown and remove any games we want to reload
+        await Promise.all(
+            Object.keys(this._games).map(async name => {
+                const game = this._games[name];
+                // Not the requested version don't do anything
+                if(!isAllGames && game.getGameVersion() !== gameVersion && name !== gameName) {
+                    return;
+                }
+
+                await game.shutdown();
+                delete this._games[name];
+            }),
+        );
+
+        // Rescan the folder, reloading any games we shutdown and detecting any games that we added
+        await this._loadGamesFromFolder();
     }
 }
 
