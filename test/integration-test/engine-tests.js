@@ -2,7 +2,7 @@
 /* global process */
 import fs from "node:fs";
 import { configureLogging } from "#platform/logging.js";
-import { getAllVersions, getGameVersion } from "../../src/versions/index.js";
+import { getGameVersion } from "../../src/versions/index.js";
 import { testPossibleActions } from "./engine-tests/possible-actions.js";
 import { incrementalPlaythrough } from "./engine-tests/incremental-playthrough.js";
 

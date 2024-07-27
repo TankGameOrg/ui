@@ -3,7 +3,8 @@ import express from "express";
 import { createGameManager } from "../game-file.js";
 import { logger } from "#platform/logging.js"
 import { defineRoutes } from "./routes.js";
-import { createEngine } from "../java-engine/engine-interface.js";
+import { getAllEngineFactories } from "../java-engine/engine-interface.js";
+import { EngineManager } from "../engine-manager.js";
 
 // If build info is supplied print it
 const buildInfo = process.env.BUILD_INFO;
@@ -50,8 +51,12 @@ function gameAccessor(gameManager) {
     };
 }
 
+const engineManager = new EngineManager([
+    getAllEngineFactories(),
+]);
+
 const port = 3333;
-let gameManager = createGameManager(createEngine, true /* save updated files */);
+let gameManager = createGameManager(engineManager, true /* save updated files */);
 
 const app = express();
 

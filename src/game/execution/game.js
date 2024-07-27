@@ -19,7 +19,7 @@ export class Game {
         this.loaded = this._initializeGame(opts.gameDataPromise);
         this._saveHandler = opts.saveHandler;
         this._factories = {
-            engineFactory: opts.engineFactory,
+            engineManager: opts.engineManager,
             createInteractor: opts.createInteractor || createDefaultInteractor,
             getGameVersion:  opts.getGameVersion || defaultGetGameVersion,
             createAutoStartOfDay: opts.createAutoStartOfDay || createDefaultAutoStartOfDay,
@@ -61,7 +61,7 @@ export class Game {
             if(this._hasBeenShutDown) return;
 
             const gameVersion = this._factories.getGameVersion(this._gameData.gameVersion);
-            const engine = this._factories.engineFactory.createEngine();
+            const engine = this._getEngineFactory().createEngine();
             let actionFactories = gameVersion.getActionFactories(engine);
 
             // If we don't automate the start of day process let users submit it as an action
@@ -92,6 +92,12 @@ export class Game {
             this._automaticStartOfDay = this._factories.createAutoStartOfDay(this);
             this.loaded.then(() => this._automaticStartOfDay.start());
         }
+    }
+
+    _getEngineFactory() {
+        if(this._gameData === undefined) return;
+
+        return this._factories.engineManager.getEngineFactory(this._gameData.gameVersion);
     }
 
     getGameVersion() {
@@ -228,6 +234,6 @@ export class Game {
     }
 
     getEngineVersionInfo() {
-        return this._factories.engineFactory.getEngineVersion();
+        return this._getEngineFactory()?.getEngineVersion?.() || "No engine available";
     }
 }

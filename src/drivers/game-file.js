@@ -28,9 +28,9 @@ export async function save(filePath, fileData) {
 }
 
 export class GameManager {
-    constructor(gamesFolder, engineFactory, opts = {}) {
+    constructor(gamesFolder, engineManager, opts = {}) {
         this._gamesFolder = gamesFolder;
-        this._engineFactory = engineFactory;
+        this._engineManager = engineManager;
         this.loaded = this._loadGamesFromFolder(opts);
     }
 
@@ -46,7 +46,7 @@ export class GameManager {
             const {name} = path.parse(gameFile);
 
             // Load and process the game asyncronously (does not return a promise)
-            this._games[name] = loadGameFromFile(filePath, this._engineFactory, gameOptions);
+            this._games[name] = loadGameFromFile(filePath, this._engineManager, gameOptions);
         }
     }
 
@@ -63,7 +63,7 @@ export class GameManager {
     }
 }
 
-export function loadGameFromFile(filePath, engineFactory, { saveBack, makeTimeStamp } = {}) {
+export function loadGameFromFile(filePath, engineManager, { saveBack, makeTimeStamp } = {}) {
     const {name} = path.parse(filePath);
     logger.info(`Loading ${name} from ${filePath}`);
 
@@ -73,13 +73,13 @@ export function loadGameFromFile(filePath, engineFactory, { saveBack, makeTimeSt
     return new Game({
         name,
         gameDataPromise,
-        engineFactory,
+        engineManager,
         saveHandler,
     });
 }
 
-export function createGameManager(engineFactory, saveUpdatedFiles) {
+export function createGameManager(engineManager, saveUpdatedFiles) {
     const gamesFolder = path.join(process.env.TANK_GAMES_FOLDER || ".");
-    const gameManager = new GameManager(gamesFolder, engineFactory, { saveBack: saveUpdatedFiles });
+    const gameManager = new GameManager(gamesFolder, engineManager, { saveBack: saveUpdatedFiles });
     return gameManager;
 }

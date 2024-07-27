@@ -54,7 +54,7 @@ async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForL
     });
 
     let game = new Game({
-        engineFactory,
+        engineManager,
         createInteractor,
         getGameVersion,
         createAutoStartOfDay,
@@ -73,8 +73,10 @@ async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForL
     return game;
 }
 
-const engineFactory = {
-    createEngine: () => new MockEngine(),
+const engineManager = {
+    getEngineFactory: () => ({
+        createEngine: () => new MockEngine(),
+    }),
 };
 
 const createInteractor = opts => new MockInteractor(opts);

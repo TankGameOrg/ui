@@ -78,13 +78,15 @@ describe("GameFile", () => {
     });
 
     it("can load all of the games in a folder", async () => {
-        const mockEngineFactory = {
-            createEngine: () => new MockEngine(),
+        const mockEngineManager = {
+            getEngineFactory: () => ({
+                createEngine: () => new MockEngine(),
+            }),
         };
 
         // This test logs load errors to the console as warnings.  You may want to set the LOG_LEVEL to info
         // in the package.json if you want to debug this test.
-        const gameManager = new GameManager(TEST_FILES, mockEngineFactory, {
+        const gameManager = new GameManager(TEST_FILES, mockEngineManager, {
             gameVersion: new MockGameVersion(),
         });
 
