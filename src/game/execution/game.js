@@ -19,7 +19,7 @@ export class Game {
         this.loaded = this._initializeGame(opts.gameDataPromise);
         this._saveHandler = opts.saveHandler;
         this._factories = {
-            createEngine: opts.createEngine,
+            engineFactory: opts.engineFactory,
             createInteractor: opts.createInteractor || createDefaultInteractor,
             getGameVersion:  opts.getGameVersion || defaultGetGameVersion,
             createAutoStartOfDay: opts.createAutoStartOfDay || createDefaultAutoStartOfDay,
@@ -61,7 +61,7 @@ export class Game {
             if(this._hasBeenShutDown) return;
 
             const gameVersion = this._factories.getGameVersion(this._gameData.gameVersion);
-            const engine = this._factories.createEngine();
+            const engine = this._factories.engineFactory.createEngine();
             let actionFactories = gameVersion.getActionFactories(engine);
 
             // If we don't automate the start of day process let users submit it as an action
@@ -228,6 +228,6 @@ export class Game {
     }
 
     getEngineVersionInfo() {
-        return this._factories.createEngine().getVersionInfo();
+        return this._factories.engineFactory.getEngineVersion();
     }
 }

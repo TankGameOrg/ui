@@ -73,14 +73,14 @@ async function buildAllPossibleActions(actionBuilder, specIdx, callback) {
     }
 }
 
-export async function testPossibleActions(createEngine, possibleActionsPath) {
+export async function testPossibleActions(engineFactory, possibleActionsPath) {
     let lastTime = 0;
     const makeTimeStamp = () => {
         lastTime += 20 * 60; // 20 minutes in seconds
         return lastTime;
     };
 
-    const game = loadGameFromFile(possibleActionsPath, createEngine, {makeTimeStamp});
+    const game = loadGameFromFile(possibleActionsPath, engineFactory, {makeTimeStamp});
     await game.loaded;
 
     if(game.state === "error") {

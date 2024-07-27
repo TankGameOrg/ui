@@ -11,26 +11,6 @@ import { convertLogEntry } from "./log-translator.js";
 const TANK_GAME_TIMEOUT = 3; // seconds
 const ENGINE_NAME_EXPR = /TankGame-(.+?).jar$/;
 
-const ENGINE_SEARCH_DIR = process.env.TANK_GAME_ENGINE_SEARCH_DIR || "engine";
-const TANK_GAME_ENGINE_COMMAND = (function() {
-    let command = process.env.TANK_GAME_ENGINE_COMMAND;
-
-    if(!command) {
-        const jars = fs.readdirSync(ENGINE_SEARCH_DIR).filter(file => file.endsWith(".jar"));
-        if(jars.length != 1) {
-            logger.warn(`Expected exactly 1 tank game jar but found: ${jars}`);
-            return;
-        }
-
-        command = ["java", "-jar", path.join(ENGINE_SEARCH_DIR, jars[0])];
-    }
-
-    if(typeof command == "string") command = command.split(" ");
-
-    return command;
-})();
-
-
 function determineEngineVersion(command) {
     const fileName = command
             .map(arg => ENGINE_NAME_EXPR.exec(arg))
@@ -159,14 +139,33 @@ class TankGameEngine {
     }
 
     getVersionInfo() {
-        return `Java Engine v${this._version}`;
+        return `Java Engine ${this._version}`;
     }
 }
 
-export function createEngine(timeout = TANK_GAME_TIMEOUT) {
-    return new TankGameEngine(TANK_GAME_ENGINE_COMMAND, timeout);
+export function getAllEngineFactories() {
+    const ENGINE_SEARCH_DIR = process.env.TANK_GAME_ENGINE_SEARCH_DIR || "engine";
+
+    return fs.readdirSync(ENGINE_SEARCH_DIR)
+        .filter(file => file.endsWith(".jar"))
+        .map(jar => ["java", "-jar", path.join(ENGINE_SEARCH_DIR, jar)])
+        .map(command => new EngineFactory(command));
 }
 
-export function isEngineAvailable() {
-    return TANK_GAME_ENGINE_COMMAND !== undefined;
+class EngineFactory {
+    constructor(engineCommand) {
+        this._engineCommand = engineCommand;
+    }
+
+    createEngine() {
+        return new TankGameEngine(this._engineCommand, TANK_GAME_TIMEOUT);
+    }
+
+    getEngineVersion() {
+        return this.createEngine().getVersionInfo();
+    }
+
+    getSupportedGameVersions() {
+        return ["3", "4"];
+    }
 }

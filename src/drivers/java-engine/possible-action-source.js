@@ -13,10 +13,15 @@ export class JavaEngineSource {
         const player = gameState.players.getPlayerByName(playerName);
         if(!player) return [];
 
-        const isCouncil = ["senator", "councilor"].includes(player.type);
-        const subject = playerName;
+        let playerToRequest = playerName;
+        if(!engine._isMainBranch) {
+            const isCouncil = ["senator", "councilor"].includes(player.type);
+            if(isCouncil) {
+                playerToRequest = "Council";
+            }
+        }
 
-        let possibleActions = await engine.getPossibleActions(isCouncil ? "Council" : playerName);
+        const possibleActions = await engine.getPossibleActions(playerToRequest);
 
         return possibleActions.map(possibleAction => {
             const actionName = possibleAction.rule;
@@ -30,7 +35,7 @@ export class JavaEngineSource {
             if(!fieldSpecs) return;
 
             return new GenericPossibleAction({
-                subject,
+                subject: playerName,
                 actionName: actionName,
                 fieldSpecs,
             });
