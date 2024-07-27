@@ -166,6 +166,7 @@ class EngineFactory {
     }
 
     getSupportedGameVersions() {
+        // TODO: Dynamically detect supported versions
         return ["3", "4"];
     }
 }

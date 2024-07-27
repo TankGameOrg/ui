@@ -2,7 +2,6 @@
 /* global process */
 import fs from "node:fs";
 import { configureLogging } from "#platform/logging.js";
-import { getGameVersion } from "../../src/versions/index.js";
 import { testPossibleActions } from "./engine-tests/possible-actions.js";
 import { incrementalPlaythrough } from "./engine-tests/incremental-playthrough.js";
 
@@ -30,7 +29,7 @@ export function defineTestsForEngine(engineFactory) {
             else {
                 // Save full trace logs for easy local debugging
                 configureLogging({
-                    logFile: `integration-tests/${logFile}`,
+                    logFile: `integration-tests/${engineFactory.getEngineVersion()}/${logFile}`,
                     logLevel: process.env.LOG_LEVEL || "trace",
                     overwrite: true,
                 });
@@ -46,8 +45,7 @@ export function defineTestsForEngine(engineFactory) {
         });
     }
 
-    const versionsToTest = engineFactory.getSupportedGameVersions()
-        .filter(supportedVersion => !!getGameVersion(supportedVersion));
+    const versionsToTest = engineFactory.getSupportedGameVersions();
 
     for(const supportedGameVersion of versionsToTest) {
         const TEST_GAME_PATH = `example/tank_game_v${supportedGameVersion}.json`;
