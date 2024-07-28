@@ -71,7 +71,7 @@ export function loadFromRaw(content, { makeTimeStamp } = {}) {
 
     const logBook = LogBook.deserialize(content.logBook, makeTimeStamp);
     const openHours = content.openHours ?
-        OpenHours.deserialize(content.openHours) : new OpenHours([]);
+        OpenHours.legacyDeserialize(content.openHours) : new OpenHours([]);
 
     return {
         gameVersion: content.gameVersion,

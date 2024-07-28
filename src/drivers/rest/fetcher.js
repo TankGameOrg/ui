@@ -90,11 +90,10 @@ export const useGameList = makeReactDataFetchHelper({
 export const useGameInfo = makeReactDataFetchHelper({
     shouldSendRequest: game => game !== undefined,
     url: game => `/api/game/${game}/`,
+    deserializer,
     parse: data => {
         return {
             ...data,
-            buildInfo: data.buildInfo,
-            openHours: OpenHours.deserialize(data.openHours),
             logBook: LogBook.deserialize(data.logBook),
         };
     },

@@ -1,3 +1,4 @@
+import { deserializer } from "../../deserialization.js";
 import { Schedule, getCurrentTime } from "./schedule.js";
 
 export class OpenHours {
@@ -6,7 +7,7 @@ export class OpenHours {
         this._resolved = resolved;
     }
 
-    static deserialize(rawOpenHours) {
+    static legacyDeserialize(rawOpenHours) {
         let rawSchedules = rawOpenHours;
         let resolved;
         if(!Array.isArray(rawSchedules)) {
@@ -20,18 +21,15 @@ export class OpenHours {
         );
     }
 
-    serialize() {
-        const rawSchedules = this.schedules.map(schedule => schedule.serialize());
+    static deserialize(rawOpenHours) {
+        return new OpenHours(rawOpenHours.schedules, rawOpenHours.resolved);
+    }
 
-        if(this._resolved !== undefined) {
-            return {
-                schedules: rawSchedules,
-                resolved: this._resolved,
-            };
-        }
-        else {
-            return rawSchedules;
-        }
+    serialize() {
+        return {
+            schedules: this.schedules,
+            resolved: this._resolved,
+        };
     }
 
     asResolved(now) {
@@ -85,3 +83,5 @@ export class OpenHours {
         return !!this.schedules.find(schedule => schedule.autoStartOfDay);
     }
 }
+
+deserializer.registerClass("open-hours-v1", OpenHours);

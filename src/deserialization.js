@@ -32,7 +32,6 @@ export class Deserializer {
     }
 
     _serialize(key, value) {
-        logger.info({ msg: "Concidder", value, key: value?.[SERIALIZER_KEY] });
         if(typeof value != "object" || typeof value[SERIALIZER_KEY] != "string") {
             return value;
         }

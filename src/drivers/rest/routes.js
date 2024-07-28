@@ -7,6 +7,13 @@ import { deserializer } from "../../deserialization.js";
 
 const STATIC_DIR = "www";
 
+function serialize(res, json) {
+    res.writeHead(200, {
+        "Content-Type": "application/json",
+    });
+    res.end(deserializer.serialize(json));
+}
+
 export function defineRoutes(app, buildInfo, engineManager) {
     try {
         fs.accessSync(STATIC_DIR);
@@ -41,12 +48,12 @@ export function defineRoutes(app, buildInfo, engineManager) {
         const {valid, interactor, game} = req.games.getGameIfAvailable();
         if(!valid) return;
 
-        res.json({
+        serialize(res, {
             buildInfo,
             engineInfo: game.getEngineVersionInfo(),
             game: game.getBasicGameInfo(),
             gameSettings: game.getSettings(),
-            openHours: game.getOpenHours().asResolved().serialize(),
+            openHours: game.getOpenHours().asResolved(),
             logBook: interactor.getLogBook().serialize(),
         });
     });
@@ -107,8 +114,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
         }
 
         const factories = await interactor.getActions(req.params.playerName);
-        res.writeHead(200);
-        res.end(deserializer.serialize(factories));
+        serialize(res, factories);
     });
 
     app.get("/api/game/:gameName/reload", async (req, res) => {
