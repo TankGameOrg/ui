@@ -63,7 +63,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
         if(!valid) return;
 
         const state = interactor.getGameStateById(+req.params.turnId);
-        res.json(state && state.serialize());
+        serialize(res, state);
     });
 
     app.post("/api/game/:gameName/turn", async (req, res) => {

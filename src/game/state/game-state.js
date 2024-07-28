@@ -1,42 +1,44 @@
+import { deserializer } from "../../deserialization.js";
 import Board from "./board/board.js";
 import Entity from "./board/entity.js";
 import Players from "./players/players.js";
 
 export class GameState {
     constructor(players, board, metaEntities) {
-        this.players = players;
+        this.players = new Players(players);
         this.board = board;
         this.metaEntities = metaEntities;
     }
 
-    static deserialize(rawGameState) {
-        let players = Players.deserialize(rawGameState.players);
+    static legacyDeserialize(rawGameState) {
+        let players = Players.legacyDeserialize(rawGameState.players);
 
         let metaEntities = {};
         for(const name of Object.keys(rawGameState.metaEntities)) {
-            metaEntities[name] = Entity.deserialize(rawGameState.metaEntities[name], players);
+            metaEntities[name] = Entity.legacyDeserialize(rawGameState.metaEntities[name], players);
         }
 
         return new GameState(
-            players,
-            Board.deserialize(rawGameState.board, players),
+            players.getAllPlayers(),
+            Board.legacyDeserialize(rawGameState.board, players),
             metaEntities,
         );
     }
 
+    static deserialize(rawGameState) {
+        return new GameState(
+            rawGameState.players,
+            rawGameState.board,
+            rawGameState.metaEntities,
+        );
+    }
+
     serialize() {
-        let metaEntities = {};
-        for(const entityName of Object.keys(this.metaEntities)) {
-            metaEntities[entityName] = this.metaEntities[entityName].serialize(this);
-        }
-
-        let raw = {
-            players: this.players.serialize(),
-            board: this.board.serialize(this),
-            metaEntities,
+        return {
+            players: this.players.getAllPlayers(),
+            board: this.board,
+            metaEntities: this.metaEntities,
         };
-
-        return raw;
     }
 
     modify({ players, board, metaEntities } = {}) {
@@ -59,3 +61,5 @@ export class GameState {
             });
     }
 }
+
+deserializer.registerClass("game-state-v1", GameState);

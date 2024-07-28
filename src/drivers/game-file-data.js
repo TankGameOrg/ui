@@ -78,7 +78,7 @@ export function loadFromRaw(content, { makeTimeStamp } = {}) {
         openHours,
         logBook,
         gameSettings: content.gameSettings,
-        initialGameState: GameState.deserialize(content.initialGameState),
+        initialGameState: GameState.legacyDeserialize(content.initialGameState),
     };
 }
 

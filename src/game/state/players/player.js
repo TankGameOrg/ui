@@ -1,3 +1,4 @@
+import { deserializer } from "../../../deserialization.js";
 import { deepClone } from "../../../utils.js";
 
 let idGenerator = 0;
@@ -31,8 +32,17 @@ export default class Player {
      * @param {*} rawPlayer
      * @returns
      */
-    static deserialize(rawPlayer) {
+    static legacyDeserialize(rawPlayer) {
         return new Player(rawPlayer);
+    }
+
+    /**
+     * Construct a player from a json serialized object
+     * @param {*} rawPlayer
+     * @returns
+     */
+    static deserialize(rawPlayer) {
+        return new Player(rawPlayer.attributes, rawPlayer.uniqueId);
     }
 
     /**
@@ -40,7 +50,7 @@ export default class Player {
      * @returns
      */
     serialize() {
-        return this.attributes;
+        return this;
     }
 
     /**
@@ -60,12 +70,24 @@ export default class Player {
     }
 }
 
+deserializer.registerClass("player-v1", Player);
+
 /**
  * A handle to a player
  */
 export class PlayerRef {
     constructor(player) {
         this._playerId = player.uniqueId;
+    }
+
+    static deserialize(rawPlayerRef) {
+        return new PlayerRef({ uniqueId: rawPlayerRef.playerId });
+    }
+
+    serialize() {
+        return {
+            playerId: this._playerId,
+        };
     }
 
     /**
@@ -86,3 +108,5 @@ export class PlayerRef {
         return this._playerId == player.uniqueId;
     }
 }
+
+deserializer.registerClass("player-ref-v1", PlayerRef);

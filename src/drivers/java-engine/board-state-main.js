@@ -69,7 +69,7 @@ export function gameStateFromRawState(rawGameState) {
     });
 
     let gameState = new GameState(
-        new Players(Object.values(playersByName)),
+        Object.values(playersByName),
         board,
         {
             council: convertCouncil(rawGameState.$COUNCIL, playersByName),

@@ -103,7 +103,7 @@ export const useGameInfo = makeReactDataFetchHelper({
 export const useGameState = makeReactDataFetchHelper({
     shouldSendRequest: (game, entryId) => game !== undefined && entryId !== undefined,
     url: (game, entryId) => `/api/game/${game}/turn/${entryId}`,
-    parse: rawGameState => GameState.deserialize(rawGameState),
+    deserializer,
 });
 
 export const usePossibleActionFactories = makeReactDataFetchHelper({

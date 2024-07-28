@@ -1,3 +1,4 @@
+import { deserializer } from "../../../deserialization.js";
 import Player from "./player.js";
 
 /**
@@ -28,19 +29,10 @@ export default class Players {
      * @param {*} rawPlayers
      * @returns
      */
-    static deserialize(rawPlayers) {
+    static legacyDeserialize(rawPlayers) {
         return new Players(
-            rawPlayers.map(rawPlayer => Player.deserialize(rawPlayer))
+            rawPlayers.map(rawPlayer => Player.legacyDeserialize(rawPlayer))
         );
-    }
-
-    /**
-     * Convert a players instance to a serialized json object
-     * @returns
-     */
-    serialize() {
-        return this.getAllPlayers()
-            .map(player => player.serialize());
     }
 
     /**

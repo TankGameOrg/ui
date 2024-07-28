@@ -82,7 +82,21 @@ export class Deserializer {
         }
 
         Class.prototype[SERIALIZER_KEY] = className;
-        this.registerSerializer(className, Class.serialize || (object => Class.prototype.serialize.call(object)));
+
+        let serialize;
+        if(Class.serialize !== undefined) {
+            serialize = Class.serialize;
+        }
+
+        if(serialize === undefined && Class.prototype.serialize !== undefined) {
+            serialize = object => Class.prototype.serialize.call(object);
+        }
+
+        if(serialize === undefined) {
+            throw new Error(`Class ${className} does not define a serialize function`);
+        }
+
+        this.registerSerializer(className, serialize);
         this.registerDeserializer(className, Class.deserialize)
     }
 

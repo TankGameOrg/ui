@@ -1,3 +1,4 @@
+import { deserializer, DESERIALIZER_KEY } from "../../../deserialization.js";
 import { deepClone } from "../../../utils.js";
 import { Position } from "./position.js";
 
@@ -58,7 +59,7 @@ export default class Entity {
      * @param {*} players The Players object for this game state to look up referenced players in
      * @returns
      */
-    static deserialize(rawEntity, players) {
+    static legacyDeserialize(rawEntity, players) {
         let attributes = deepClone(rawEntity);
         delete attributes.type;
         delete attributes.players;
@@ -76,18 +77,39 @@ export default class Entity {
     }
 
     /**
-     * Serialize this entity to a json object
-     * @param {*} gameState The game state this entity is a part of to look up player names
+     * Load an entity from a json serialized object
+     * @param {*} rawEntity the json serialized object to load
      * @returns
      */
-    serialize(gameState) {
+    static deserialize(rawEntity) {
+        let attributes = deepClone(rawEntity);
+        delete attributes.type;
+        delete attributes.players;
+        delete attributes.position;
+        delete attributes[DESERIALIZER_KEY];
+
+        return new Entity({
+            type: rawEntity.type,
+            attributes,
+            players: rawEntity.players,
+            position: rawEntity.position,
+        });
+    }
+
+    /**
+     * Serialize this entity to a json object
+     * @returns
+     */
+    serialize() {
         return {
             ...this.attributes,
             type: this.type,
-            position: this.position?.humanReadable,
+            position: this.position,
             players: this._playerRefs.length === 0 ?
                 undefined : // Don't include a players field if it's empty
-                this._playerRefs.map(player => player.getPlayer(gameState).name),
+                this._playerRefs,
         };
     }
 }
+
+deserializer.registerClass("entity", Entity);
