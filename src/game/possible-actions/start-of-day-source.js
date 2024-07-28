@@ -1,3 +1,4 @@
+import { deserializer } from "../../deserialization.js";
 import { GenericPossibleAction } from "./generic-possible-action.js";
 import { LogFieldSpec } from "./log-field-spec.js";
 
@@ -37,3 +38,5 @@ export class StartOfDayFactory extends GenericPossibleAction {
         ];
     }
 }
+
+deserializer.registerClass("start-of-day-factory", StartOfDayFactory);

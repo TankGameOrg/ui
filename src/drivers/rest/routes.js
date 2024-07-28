@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { logger } from "#platform/logging.js";
 import { getGameVersion } from "../../versions/index.js";
+import { deserializer } from "../../deserialization.js";
 
 const STATIC_DIR = "www";
 
@@ -106,7 +107,8 @@ export function defineRoutes(app, buildInfo, engineManager) {
         }
 
         const factories = await interactor.getActions(req.params.playerName);
-        res.json(factories.serialize());
+        res.writeHead(200);
+        res.end(deserializer.serialize(factories));
     });
 
     app.get("/api/game/:gameName/reload", async (req, res) => {

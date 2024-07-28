@@ -1,4 +1,5 @@
 import { logger } from "#platform/logging.js";
+import { deserializer } from "../../deserialization.js";
 import { Position } from "../state/board/position.js";
 import { DiceLogFieldSpec } from "./dice-log-field-spec.js";
 import { Dice } from "./die.js";
@@ -72,19 +73,13 @@ export class ShootAction extends GenericPossibleAction {
 
     static deserialize(rawShootAction) {
         return new ShootAction({
-            targets: rawShootAction.targets.map(target => ({
-                ...target,
-                dice: target.dice.map(dice => Dice.deserialize(dice)),
-            })),
+            targets: rawShootAction.targets,
         });
     }
 
     serialize() {
         return {
-            targets: this._targets.map(target => ({
-                ...target,
-                dice: target.dice.map(dice => dice.serialize()),
-            }))
+            targets: this._targets,
         };
     }
 
@@ -134,3 +129,5 @@ export class ShootAction extends GenericPossibleAction {
         return rawLogEntry;
     }
 }
+
+deserializer.registerClass("shoot-action", ShootAction);

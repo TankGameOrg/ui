@@ -1,3 +1,5 @@
+import { logger } from "#platform/logging.js";
+
 export const SERIALIZER_KEY = Symbol("serializer");
 export const DESERIALIZER_KEY = "class";
 
@@ -17,7 +19,7 @@ export class Deserializer {
      * @returns the json string
      */
     serialize(object, { prettyPrint } = {}) {
-        return JSON.stringify(object, this._transform.bind(this, "serialize"), prettyPrint ? 4 : 0);
+        return JSON.stringify(object, this._serialize.bind(this), prettyPrint ? 4 : 0);
     }
 
     /**
@@ -26,44 +28,44 @@ export class Deserializer {
      * @returns the parsed object
      */
     deserialize(jsonString) {
-        return JSON.parse(jsonString, this._transform.bind(this, "deserialize"));
+        return JSON.parse(jsonString, this._deserialize.bind(this));
     }
 
-    /**
-     * Transform an object to or from a json friendly object
-     * @param {*} operation the operation "serialize" or "deserialize"
-     * @param {*} key the key of value to transform
-     * @param {*} value the value to transform
-     * @returns
-     */
-    _transform(operation, key, value) {
-        const {transformerMap, srcKey, destKey} = {
-            serialize: {
-                transformerMap: this._serializers,
-                srcKey: SERIALIZER_KEY,
-                destKey: DESERIALIZER_KEY,
-            },
-            deserialize: {
-                transformerMap: this._deserializers,
-                srcKey: DESERIALIZER_KEY,
-                destKey: SERIALIZER_KEY,
-            },
-        }[operation];
-
-        if(typeof value != "object" || typeof value[srcKey] != "string") {
+    _serialize(key, value) {
+        logger.info({ msg: "Concidder", value, key: value?.[SERIALIZER_KEY] });
+        if(typeof value != "object" || typeof value[SERIALIZER_KEY] != "string") {
             return value;
         }
 
-        const className = value[srcKey];
-        const transformer = transformerMap.get(className);
+        const className = value[SERIALIZER_KEY];
+        const transformer = this._serializers.get(className);
         if(transformer === undefined) {
-            throw new Error(`Could not find a ${operation}r for ${value[srcKey]}`);
+            throw new Error(`Could not find a serializer for ${value[SERIALIZER_KEY]}`);
+        }
+
+        let serialized = transformer(value);
+        if(serialized[DESERIALIZER_KEY] === undefined) {
+            serialized[DESERIALIZER_KEY] = className;
+        }
+
+        return serialized;
+    }
+
+    _deserialize(key, value) {
+        if(typeof value != "object" || typeof value[DESERIALIZER_KEY] != "string") {
+            return value;
+        }
+
+        const className = value[DESERIALIZER_KEY];
+        const transformer = this._deserializers.get(className);
+        if(transformer === undefined) {
+            throw new Error(`Could not find a deserializer for ${value[DESERIALIZER_KEY]}`);
         }
 
         let transformed = transformer(value);
 
-        if(transformed[destKey] === undefined) {
-            throw new Error(`${operation}r for ${className} failed to set ${destKey.toString()} (key = ${key})`);
+        if(transformed[SERIALIZER_KEY] === undefined) {
+            throw new Error(`Deserializer for ${className} failed to set ${SERIALIZER_KEY.toString()} (key = ${key})`);
         }
 
         return transformed;
@@ -80,6 +82,7 @@ export class Deserializer {
             return this.registerClass.bind(this, className);
         }
 
+        Class.prototype[SERIALIZER_KEY] = className;
         this.registerSerializer(className, Class.serialize || (object => Class.prototype.serialize.call(object)));
         this.registerDeserializer(className, Class.deserialize)
     }
@@ -112,3 +115,8 @@ export class Deserializer {
         this._deserializers.set(className, deserializer);
     }
 }
+
+/**
+ * Global deserializer used for files, game state, and possible actions
+ */
+export let deserializer = new Deserializer();

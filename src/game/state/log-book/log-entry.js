@@ -50,7 +50,7 @@ export class LogEntry {
             .filter(field => field.value?.type == "die-roll");
 
         for(const rollField of rollFields) {
-            const dice = actions.get(this.type).getDiceFor(rollField.key, {
+            const dice = actions.find(action => action.getActionName() == this.type).getDiceFor(rollField.key, {
                 rawLogEntry: this.rawLogEntry,
             });
 
@@ -62,7 +62,7 @@ export class LogEntry {
     }
 
     finalizeEntry({ actions }) {
-        const action = actions.get(this.type);
+        const action = actions.find(action => action.getActionName() == this.type);
 
         for(const field of Object.keys(this.rawLogEntry)) {
             const value = this.rawLogEntry[field];

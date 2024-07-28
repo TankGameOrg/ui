@@ -1,3 +1,4 @@
+import { deserializer } from "../../deserialization.js";
 import { prettyifyName } from "../../utils.js";
 import { Dice } from "./die.js";
 
@@ -68,3 +69,5 @@ export class DiceLogFieldSpec {
         return this.dice.map(dice => dice.toString());
     }
 }
+
+deserializer.registerClass("dice-log-field-spec", DiceLogFieldSpec);

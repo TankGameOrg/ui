@@ -1,13 +1,6 @@
-import { buildDeserializer } from "../../utils.js";
-import { DiceLogFieldSpec } from "./dice-log-field-spec.js";
-import { LogFieldSpec } from "./log-field-spec.js";
-
-
-// Build a registry of all logfield types
-export const logFieldSpecDeserializer = buildDeserializer([
-    LogFieldSpec,
-    DiceLogFieldSpec,
-]);
+import { deserializer } from "../../deserialization.js";
+import "./dice-log-field-spec.js";
+import "./log-field-spec.js";
 
 
 export class GenericPossibleAction {
@@ -28,14 +21,14 @@ export class GenericPossibleAction {
     static deserialize(rawGenericPossibleAction) {
         return new GenericPossibleAction({
             ...rawGenericPossibleAction,
-            fieldSpecs: rawGenericPossibleAction.fieldSpecs.map(spec => logFieldSpecDeserializer(spec)),
+            fieldSpecs: rawGenericPossibleAction.fieldSpecs,
         });
     }
 
     serialize() {
         return {
             actionName: this._actionName,
-            fieldSpecs: this._fieldSpecs.map(spec => spec.serialize()),
+            fieldSpecs: this._fieldSpecs,
         };
     }
 
@@ -53,3 +46,5 @@ export class GenericPossibleAction {
         return this._fieldSpecs;
     }
 }
+
+deserializer.registerClass("generic-possible-action", GenericPossibleAction);

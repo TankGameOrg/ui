@@ -1,10 +1,10 @@
 /* globals window, location, history, fetch */
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { LogBook } from "../../game/state/log-book/log-book.js";
-import { NamedFactorySet } from "../../game/possible-actions/index.js";
 import { OpenHours } from "../../game/open-hours/index.js";
 import { GameState } from "../../game/state/game-state.js";
 import { LogEntry } from "../../game/state/log-book/log-entry.js";
+import { deserializer } from "../../deserialization.js";
 
 const FETCH_FREQUENCY = 2; // seconds
 
@@ -48,7 +48,7 @@ function makeReactDataFetchHelper(options) {
                     return;
                 }
 
-                let recievedData = await res.json();
+                let recievedData = options.deserializer ? options.deserializer.deserialize(await res.text()) : (await res.json());
 
                 if(recievedData.error) {
                     setData(undefined);
@@ -111,7 +111,7 @@ export const usePossibleActionFactories = makeReactDataFetchHelper({
     resetBeforeFetch: true,
     shouldSendRequest: (game, user, entryId) => game !== undefined && user !== undefined && entryId !== undefined,
     url: (game, user, entryId) => `/api/game/${game}/possible-actions/${user}/${entryId}`,
-    parse: rawActionFactories => NamedFactorySet.deserialize(rawActionFactories),
+    deserializer,
 });
 
 export const useAvilableEngines = makeReactDataFetchHelper({
