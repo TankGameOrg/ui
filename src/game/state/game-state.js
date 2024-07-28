@@ -1,6 +1,6 @@
 import { deserializer } from "../../deserialization.js";
-import Board from "./board/board.js";
-import Entity from "./board/entity.js";
+import "./board/board.js";
+import "./board/entity.js";
 import Players from "./players/players.js";
 
 export class GameState {
@@ -8,21 +8,6 @@ export class GameState {
         this.players = new Players(players);
         this.board = board;
         this.metaEntities = metaEntities;
-    }
-
-    static legacyDeserialize(rawGameState) {
-        let players = Players.legacyDeserialize(rawGameState.players);
-
-        let metaEntities = {};
-        for(const name of Object.keys(rawGameState.metaEntities)) {
-            metaEntities[name] = Entity.legacyDeserialize(rawGameState.metaEntities[name], players);
-        }
-
-        return new GameState(
-            players.getAllPlayers(),
-            Board.legacyDeserialize(rawGameState.board, players),
-            metaEntities,
-        );
     }
 
     static deserialize(rawGameState) {

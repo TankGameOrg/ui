@@ -1,24 +1,10 @@
 import { deserializer } from "../../deserialization.js";
-import { Schedule, getCurrentTime } from "./schedule.js";
+import { getCurrentTime } from "./schedule.js";
 
 export class OpenHours {
     constructor(schedules, resolved) {
         this.schedules = schedules;
         this._resolved = resolved;
-    }
-
-    static legacyDeserialize(rawOpenHours) {
-        let rawSchedules = rawOpenHours;
-        let resolved;
-        if(!Array.isArray(rawSchedules)) {
-            rawSchedules = rawOpenHours.schedules;
-            resolved = rawOpenHours.resolved;
-        }
-
-        return new OpenHours(
-            rawSchedules.map(rawSchedule => Schedule.deserialize(rawSchedule)),
-            resolved,
-        );
     }
 
     static deserialize(rawOpenHours) {

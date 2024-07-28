@@ -1,6 +1,3 @@
-import { deserializer } from "../../../deserialization.js";
-import Player from "./player.js";
-
 /**
  * A searchable collection of players
  */
@@ -22,17 +19,6 @@ export default class Players {
                 this._playersByType[player.type].push(player);
             }
         }
-    }
-
-    /**
-     * Construct a players instance from a serialized json object
-     * @param {*} rawPlayers
-     * @returns
-     */
-    static legacyDeserialize(rawPlayers) {
-        return new Players(
-            rawPlayers.map(rawPlayer => Player.legacyDeserialize(rawPlayer))
-        );
     }
 
     /**

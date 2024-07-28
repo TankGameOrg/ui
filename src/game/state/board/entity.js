@@ -1,6 +1,5 @@
 import { deserializer, DESERIALIZER_KEY } from "../../../deserialization.js";
 import { deepClone } from "../../../utils.js";
-import { Position } from "./position.js";
 
 /**
  * An entity which could be on the board, a floor tile, or a meta entity (i.e. council)
@@ -51,29 +50,6 @@ export default class Entity {
             players: removePlayers ? [] : this._playerRefs.slice(0),
             attributes: deepClone(this.attributes),
         });
-    }
-
-    /**
-     * Load this entity from a json serialized object
-     * @param {*} rawEntity The json serialized object to load
-     * @param {*} players The Players object for this game state to look up referenced players in
-     * @returns
-     */
-    static legacyDeserialize(rawEntity, players) {
-        let attributes = deepClone(rawEntity);
-        delete attributes.type;
-        delete attributes.players;
-
-        let position;
-        if(attributes.position !== undefined) {
-            position = new Position(attributes.position);
-        }
-
-        delete attributes.position;
-
-        const myPlayers = (rawEntity.players || [])
-            .map(playerName => players.getPlayerByName(playerName));
-        return new Entity({ type: rawEntity.type, attributes, players: myPlayers, position });
     }
 
     /**

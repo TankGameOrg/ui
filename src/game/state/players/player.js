@@ -27,14 +27,6 @@ export default class Player {
      */
     get type() { return this.attributes.type; }
 
-    /**
-     * Construct a player from a json serialized object
-     * @param {*} rawPlayer
-     * @returns
-     */
-    static legacyDeserialize(rawPlayer) {
-        return new Player(rawPlayer);
-    }
 
     /**
      * Construct a player from a json serialized object

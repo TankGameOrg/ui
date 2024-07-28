@@ -5,8 +5,10 @@ import { gameStateFromRawState } from "./java-engine/board-state-stable.js";
 import { GameState } from "../game/state/game-state.js";
 import Players from "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
+import { deserializer } from "../deserialization.js";
+import { Position } from "../game/state/board/position.js";
 
-export const FILE_FORMAT_VERSION = 6;
+export const FILE_FORMAT_VERSION = 7;
 export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
 
 
@@ -41,12 +43,61 @@ function migrateToV6(content) {
     content.initialGameState = gameStateFromRawState(content.initialGameState).gameState.serialize();
 }
 
+function migrateToV7(content) {
+    content.openHours = {
+        class: "open-hours-v1",
+        schedules: content.openHours.map(schedule => ({
+            ...schedule,
+            class: "schedule",
+        })),
+    };
 
-export function loadFromRaw(content, { makeTimeStamp } = {}) {
-    if(makeTimeStamp === undefined) {
-        makeTimeStamp = () => Date.now();
+    // Starting in v7 players a referenced by a unique (to a state) ID we need to assign those
+    let nextUniqueId = 0;
+    let nameToIdMap = new Map();
+    content.initialGameState.players = content.initialGameState.players.map(playerAttributes => {
+        ++nextUniqueId;
+        nameToIdMap.set(playerAttributes.name, nextUniqueId);
+
+        return {
+            class: "player-v1",
+            uniqueId: nextUniqueId,
+            attributes: playerAttributes,
+        };
+    });
+
+    for(const name of Object.keys(content.initialGameState.metaEntities)) {
+        migrateEntityToV7(content.initialGameState.metaEntities[name], nameToIdMap);
     }
 
+    for(let boardArray of [content.initialGameState.board.entities, content.initialGameState.board.floor]) {
+        for(let entity of boardArray) migrateEntityToV7(entity, nameToIdMap);
+    }
+
+    content.initialGameState.board.class = "board-v1";
+    content.initialGameState.class = "game-state-v1";
+}
+
+function migrateEntityToV7(entity, nameToIdMap) {
+    entity.class = "entity";
+
+    if(entity.position !== undefined) {
+        const position = new Position(entity.position);
+        entity.position = {
+            class: "position",
+            x: position.x,
+            y: position.y,
+        };
+    }
+
+    entity.players = entity.players?.map?.(playerName => ({
+        playerId: nameToIdMap.get(playerName),
+        class: "player-ref-v1"
+    }));
+}
+
+
+export function loadFromRaw(content, { makeTimeStamp } = {}) {
     if(content?.fileFormatVersion === undefined) {
         throw new Error("File format version missing not a valid game file");
     }
@@ -63,6 +114,12 @@ export function loadFromRaw(content, { makeTimeStamp } = {}) {
         migrateToV6(content);
     }
 
+    if(content.fileFormatVersion == 6) {
+        migrateToV7(content);
+    }
+
+    content = deserializer.deserialize(JSON.stringify(content));
+
     // Make sure we have the config required to load this game.  This
     // does not check if the engine supports this game version.
     if(!getGameVersion(content.gameVersion)) {
@@ -70,34 +127,37 @@ export function loadFromRaw(content, { makeTimeStamp } = {}) {
     }
 
     const logBook = LogBook.deserialize(content.logBook, makeTimeStamp);
-    const openHours = content.openHours ?
-        OpenHours.legacyDeserialize(content.openHours) : new OpenHours([]);
+
+    if(content.openHours === undefined) {
+        content.openHours = new OpenHours([]);
+    }
 
     return {
         gameVersion: content.gameVersion,
-        openHours,
+        openHours: content.openHours,
         logBook,
         gameSettings: content.gameSettings,
-        initialGameState: GameState.legacyDeserialize(content.initialGameState),
+        initialGameState: content.initialGameState,
     };
 }
 
 export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, gameSettings}) {
-    return {
+    // TODO: Remove JSON.parse
+    return JSON.parse(deserializer.serialize({
         fileFormatVersion: FILE_FORMAT_VERSION,
         gameVersion,
         gameSettings,
-        openHours: openHours.serialize(),
+        openHours,
         logBook: logBook.withoutStateInfo().serialize(),
-        initialGameState: initialGameState.serialize(),
-    };
+        initialGameState: initialGameState,
+    }));
 }
 
 export function createEmptyFileData({gameVersion, width, height, metaEntities = {}}) {
     return {
         gameVersion,
         openHours: new OpenHours([]),
-        logBook: new LogBook([], () => Date.now()),
+        logBook: new LogBook([]),
         gameSettings: {},
         initialGameState: new GameState(
             new Players([]),

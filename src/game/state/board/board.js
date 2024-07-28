@@ -10,20 +10,6 @@ export default class Board {
         this._floor = {};
     }
 
-    static legacyDeserialize(rawBoard, players) {
-        let board = new Board(rawBoard.width, rawBoard.height);
-
-        for(const rawEntry of rawBoard.entities) {
-            board.setEntity(Entity.legacyDeserialize(rawEntry, players));
-        }
-
-        for(const rawFloorTile of rawBoard.floor) {
-            board.setFloorTile(Entity.legacyDeserialize(rawFloorTile, players));
-        }
-
-        return board;
-    }
-
     static deserialize(rawBoard) {
         let board = new Board(rawBoard.width, rawBoard.height);
 
