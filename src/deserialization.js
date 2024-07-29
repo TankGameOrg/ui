@@ -1,7 +1,27 @@
-import { logger } from "#platform/logging.js";
-
 export const SERIALIZER_KEY = Symbol("serializer");
 export const DESERIALIZER_KEY = "class";
+
+/**
+ * A helper for cloning and modifying an object
+ * @param {*} object the object to clone
+ * @param {*} transform a function to call on every key of the object
+ * @returns
+ */
+function cloneObject(object, transform) {
+    let value = object;
+    if(typeof value == "object") {
+        value = Array.isArray(value) ? [] : {};
+        for(const key of Object.keys(object)) {
+            value[key] = transform(key, object[key]);
+        }
+
+        if(object[SERIALIZER_KEY]) {
+            value[SERIALIZER_KEY] = object[SERIALIZER_KEY];
+        }
+    }
+
+    return value;
+}
 
 /**
  * A helper for serializing and deserializing classes to JSON
@@ -15,11 +35,10 @@ export class Deserializer {
     /**
      * Serialize an object
      * @param {*} object the object to serialize
-     * @param {*} prettyPrint whether to put spaces in to make the json more human readable
      * @returns the json string
      */
-    serialize(object, { prettyPrint } = {}) {
-        return JSON.stringify(object, this._serialize.bind(this), prettyPrint ? 4 : 0);
+    serialize(object) {
+        return JSON.stringify(this._serializeRecursive("", object));
     }
 
     /**
@@ -28,9 +47,37 @@ export class Deserializer {
      * @returns the parsed object
      */
     deserialize(jsonString) {
-        return JSON.parse(jsonString, this._deserialize.bind(this));
+        return this._deserializeRecursive("", JSON.parse(jsonString));
     }
 
+    /**
+     * Recursivly serialize an object (order root to leaves)
+     * @param {*} key the key that object was pulled from
+     * @param {*} object the object to serialize
+     * @returns
+     */
+    _serializeRecursive(key, object) {
+        object = this._serialize(key, object);
+        return cloneObject(object, (key, value) => this._serializeRecursive(key, value));
+    }
+
+    /**
+     * Recursivly deserialize an object (order leaves to root)
+     * @param {*} key the key that object was pulled from
+     * @param {*} object the object to deserialize
+     * @returns
+     */
+    _deserializeRecursive(key, object) {
+        object = cloneObject(object, (key, value) => this._deserializeRecursive(key, value));
+        return this._deserialize(key, object);
+    }
+
+    /**
+     * Serialize a single object using a registered serializer
+     * @param {*} key the key that object was pulled from
+     * @param {*} value the object to serialize
+     * @returns
+     */
     _serialize(key, value) {
         if(typeof value != "object" || typeof value[SERIALIZER_KEY] != "string") {
             return value;
@@ -50,6 +97,12 @@ export class Deserializer {
         return serialized;
     }
 
+    /**
+     * Deserialize a single object using a registered deserializer
+     * @param {*} key the key that object was pulled from
+     * @param {*} value the object to deserialize
+     * @returns
+     */
     _deserialize(key, value) {
         if(typeof value != "object" || typeof value[DESERIALIZER_KEY] != "string") {
             return value;

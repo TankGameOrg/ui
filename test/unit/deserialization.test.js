@@ -5,6 +5,7 @@ class Foo {
     constructor(foo) {
         this.foo = foo;
         this[SERIALIZER_KEY] = "foo";
+        Object.freeze(this);
     }
 
     static deserialize(object) {
@@ -27,6 +28,7 @@ class Bar {
     constructor(bar) {
         this.bar = bar;
         this[SERIALIZER_KEY] = "bar";
+        Object.freeze(this);
     }
 
     toString() {
