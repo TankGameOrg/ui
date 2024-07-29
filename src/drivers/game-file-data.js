@@ -127,7 +127,7 @@ export function loadFromRaw(content) {
         migrateToV7(content);
     }
 
-    content = deserializer.deserialize(JSON.stringify(content));
+    content = deserializer.deserialize(content);
 
     // Make sure we have the config required to load this game.  This
     // does not check if the engine supports this game version.
@@ -143,15 +143,14 @@ export function loadFromRaw(content) {
 }
 
 export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, gameSettings}) {
-    // TODO: Remove JSON.parse
-    return JSON.parse(deserializer.serialize({
+    return deserializer.serialize({
         fileFormatVersion: FILE_FORMAT_VERSION,
         gameVersion,
         gameSettings,
         openHours,
         logBook: logBook.withoutStateInfo(),
         initialGameState: initialGameState,
-    }));
+    });
 }
 
 export function createEmptyFileData({gameVersion, width, height, metaEntities = {}}) {

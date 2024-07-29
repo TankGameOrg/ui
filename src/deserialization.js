@@ -35,19 +35,19 @@ export class Deserializer {
     /**
      * Serialize an object
      * @param {*} object the object to serialize
-     * @returns the json string
+     * @returns the json object
      */
     serialize(object) {
-        return JSON.stringify(this._serializeRecursive("", object));
+        return this._serializeRecursive("", object);
     }
 
     /**
-     * Convert a json string to an object
-     * @param {*} jsonString the json string to parse
+     * Convert a json object to an object
+     * @param {*} jsonString the json object to parse
      * @returns the parsed object
      */
     deserialize(jsonString) {
-        return this._deserializeRecursive("", JSON.parse(jsonString));
+        return this._deserializeRecursive("", jsonString);
     }
 
     /**

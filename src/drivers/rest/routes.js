@@ -8,10 +8,7 @@ import { deserializer } from "../../deserialization.js";
 const STATIC_DIR = "www";
 
 function serialize(res, json) {
-    res.writeHead(200, {
-        "Content-Type": "application/json",
-    });
-    res.end(deserializer.serialize(json));
+    res.json(deserializer.serialize(json));
 }
 
 export function defineRoutes(app, buildInfo, engineManager) {

@@ -48,7 +48,7 @@ function makeReactDataFetchHelper(options) {
                     return;
                 }
 
-                let recievedData = deserializer.deserialize(await res.text());
+                let recievedData = deserializer.deserialize(await res.json());
 
                 if(recievedData.error) {
                     setData(undefined);
@@ -119,7 +119,7 @@ async function fetchHelper(url, jsonBody) {
     }
 
     const res = await fetch(url, opts);
-    const result = deserializer.deserialize(await res.text());
+    const result = deserializer.deserialize(await res.json());
 
     if(!result.success) throw new Error(result.error);
 
