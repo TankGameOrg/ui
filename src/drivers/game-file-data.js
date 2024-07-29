@@ -85,6 +85,7 @@ function migrateToV7(content) {
     };
 
     content.initialGameState.class = "game-state-v1";
+    content.gameVersion = `default-v${content.gameVersion}`;
 }
 
 function migrateEntityToV7(entity, nameToIdMap) {

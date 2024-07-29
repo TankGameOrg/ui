@@ -44,15 +44,23 @@ deserializer.registerDeserializer("bar", bar => new Bar(bar.bar));
 
 describe("Deserialization", () => {
     it("it can do basic serialization and deserialization", () => {
-        const rawFoo = `{"foo":"my string","${DESERIALIZER_KEY}":"foo"}`;
+        const rawFoo = {
+            foo: "my string",
+            [DESERIALIZER_KEY]: "foo",
+        };
+
         const foo = deserializer.deserialize(rawFoo);
         assert.equal(foo.toString(), "foo my string");
-        assert.equal(rawFoo, deserializer.serialize(foo));
+        assert.deepEqual(rawFoo, deserializer.serialize(foo));
 
-        const rawBar = `{"bar":"my other string","${DESERIALIZER_KEY}":"bar"}`;
+        const rawBar = {
+            bar: "my other string",
+            [DESERIALIZER_KEY]: "bar",
+        };
+
         const bar = deserializer.deserialize(rawBar);
         assert.equal(bar.toString(), "bar my other string");
-        assert.equal(rawBar, deserializer.serialize(bar));
+        assert.deepEqual(rawBar, deserializer.serialize(bar));
     });
 
     it("can do nested serialization and deserialization", () => {
