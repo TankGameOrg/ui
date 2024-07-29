@@ -29,7 +29,7 @@ export class GameState {
 
     modify({ players, board, metaEntities } = {}) {
         return new GameState(
-            players || this.players,
+            (players || this.players).getAllPlayers?.(),
             board || this.board,
             metaEntities || this.metaEntities);
     }
