@@ -13,6 +13,11 @@ export default class Player {
      * @param {*} uniqueId The unique ID for this player (optional)
      */
     constructor(attributes = {}, uniqueId) {
+        // Make sure the next ID we generate doesn't overlap with an existing ID
+        if(!isNaN(+uniqueId)) {
+            idGenerator = Math.max(idGenerator, uniqueId + 1);
+        }
+
         this.uniqueId = uniqueId || (++idGenerator + "");
         this.attributes = attributes;
     }
