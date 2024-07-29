@@ -52,9 +52,6 @@ describe("GameFile", () => {
             const oldFile = await load(oldFilePath);
             const newFile = await load(sampleFilePath);
 
-            delete oldFile.logBook._makeTimeStamp;
-            delete newFile.logBook._makeTimeStamp;
-
             stripPlayerIds(oldFile);
             stripPlayerIds(newFile);
 

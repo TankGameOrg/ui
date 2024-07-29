@@ -75,6 +75,15 @@ function migrateToV7(content) {
     }
 
     content.initialGameState.board.class = "board-v1";
+
+    content.logBook = {
+        class: "log-book-v1",
+        entries: content.logBook.map(entry => ({
+            ...entry,
+            class: "log-entry-v1",
+        })),
+    };
+
     content.initialGameState.class = "game-state-v1";
 }
 
@@ -97,7 +106,7 @@ function migrateEntityToV7(entity, nameToIdMap) {
 }
 
 
-export function loadFromRaw(content, { makeTimeStamp } = {}) {
+export function loadFromRaw(content) {
     if(content?.fileFormatVersion === undefined) {
         throw new Error("File format version missing not a valid game file");
     }
@@ -126,19 +135,11 @@ export function loadFromRaw(content, { makeTimeStamp } = {}) {
         throw new Error(`Game version ${content.gameVersion} is not supported`);
     }
 
-    const logBook = LogBook.deserialize(content.logBook, makeTimeStamp);
-
     if(content.openHours === undefined) {
         content.openHours = new OpenHours([]);
     }
 
-    return {
-        gameVersion: content.gameVersion,
-        openHours: content.openHours,
-        logBook,
-        gameSettings: content.gameSettings,
-        initialGameState: content.initialGameState,
-    };
+    return content;
 }
 
 export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, gameSettings}) {
@@ -148,7 +149,7 @@ export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, ga
         gameVersion,
         gameSettings,
         openHours,
-        logBook: logBook.withoutStateInfo().serialize(),
+        logBook: logBook.withoutStateInfo(),
         initialGameState: initialGameState,
     }));
 }

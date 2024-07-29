@@ -1,3 +1,4 @@
+import { deserializer } from "../../../deserialization.js";
 import { Dice } from "../../possible-actions/die.js";
 
 export class LogEntry {
@@ -6,6 +7,10 @@ export class LogEntry {
         this.rawLogEntry = rawLogEntry;
         this.dieRolls = dieRolls;
         this.message = message;
+
+        if(this.rawLogEntry.timestamp === undefined) {
+            this.rawLogEntry.timestamp = LogEntry.makeTimeStamp();
+        }
     }
 
     static deserialize(rawEntry) {
@@ -33,6 +38,18 @@ export class LogEntry {
                 dieRolls: this.dieRolls,
             }
         }
+    }
+
+    static makeTimeStamp() {
+        return Math.floor(Date.now() / 1000);
+    }
+
+    static enableTestModeTimeStamps() {
+        let lastTime = 0;
+        LogEntry.makeTimeStamp = () => {
+            lastTime += 20 * 60; // 20 minutes in seconds
+            return lastTime;
+        };
     }
 
     withoutStateInfo() {
@@ -85,3 +102,5 @@ export class LogEntry {
         }
     }
 }
+
+deserializer.registerClass("log-entry-v1", LogEntry);
