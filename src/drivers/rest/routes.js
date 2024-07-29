@@ -54,7 +54,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
             game: game.getBasicGameInfo(),
             gameSettings: game.getSettings(),
             openHours: game.getOpenHours().asResolved(),
-            logBook: interactor.getLogBook().serialize(),
+            logBook: interactor.getLogBook(),
         });
     });
 
