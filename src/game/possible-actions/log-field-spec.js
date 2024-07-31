@@ -58,10 +58,6 @@ export class LogFieldSpec {
         return option;
     }
 
-    static canConstruct(type) {
-        return VALID_TYPES.includes(type);
-    }
-
     static deserialize(rawSpec) {
         return new LogFieldSpec(rawSpec);
     }

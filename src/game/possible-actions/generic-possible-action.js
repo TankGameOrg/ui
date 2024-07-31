@@ -14,10 +14,6 @@ export class GenericPossibleAction {
         return this._actionName;
     }
 
-    static canConstruct(type) {
-        return type == "generic-possible-action";
-    }
-
     static deserialize(rawGenericPossibleAction) {
         return new GenericPossibleAction({
             ...rawGenericPossibleAction,

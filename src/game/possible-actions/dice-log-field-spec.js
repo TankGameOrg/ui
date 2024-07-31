@@ -12,10 +12,6 @@ export class DiceLogFieldSpec {
         this.expandedDice = Dice.expandAll(this.dice);
     }
 
-    static canConstruct(type) {
-        return type == "roll-dice";
-    }
-
     static deserialize(rawSpec) {
         return new DiceLogFieldSpec(rawSpec);
     }

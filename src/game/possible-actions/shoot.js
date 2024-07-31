@@ -67,10 +67,6 @@ export class ShootAction extends GenericPossibleAction {
         }
     }
 
-    static canConstruct(type) {
-        return type == "shoot";
-    }
-
     static deserialize(rawShootAction) {
         return new ShootAction({
             targets: rawShootAction.targets,

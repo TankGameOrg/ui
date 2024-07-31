@@ -14,10 +14,6 @@ export class StartOfDayFactory extends GenericPossibleAction {
         this._dayToStart = dayToStart;
     }
 
-    static canConstruct(type) {
-        return type == "start-of-day";
-    }
-
     static deserialize(rawStartOfDayFactory) {
         return new StartOfDayFactory(rawStartOfDayFactory.dayToStart);
     }
