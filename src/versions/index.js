@@ -4,6 +4,7 @@ import { version4 } from "./4.js";
 const gameVersions = {
     3: version3,
     4: version4,
+    "default-v5-experimental": version4,
 };
 
 
