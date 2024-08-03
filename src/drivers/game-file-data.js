@@ -8,8 +8,8 @@ import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
 
-export const FILE_FORMAT_VERSION = 7;
-export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
+const FILE_FORMAT_VERSION = 7;
+const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
 
 
 function migrateToV6(content) {
@@ -107,29 +107,40 @@ function migrateEntityToV7(entity, nameToIdMap) {
     }));
 }
 
+export function loadFromRaw(fileData) {
+    let fileDataUpdated = false;
 
-export function loadFromRaw(content) {
-    if(content?.fileFormatVersion !== undefined) {
-        if(content.fileFormatVersion > FILE_FORMAT_VERSION) {
-            throw new Error(`File version ${content.fileFormatVersion} is not supported.  Try a newer Tank Game UI version.`);
+    // Upgrade legacy file formats
+    if(fileData?.fileFormatVersion !== undefined) {
+        if(fileData.fileFormatVersion > FILE_FORMAT_VERSION) {
+            throw new Error(`File version ${fileData.fileFormatVersion} is not supported.  Try a newer Tank Game UI version.`);
         }
 
-        if(content.fileFormatVersion < MINIMUM_SUPPORTED_FILE_FORMAT_VERSION) {
-            throw new Error(`File version ${content.fileFormatVersion} is no longer supported.  Try an older Tank Game UI version.`);
+        if(fileData.fileFormatVersion < MINIMUM_SUPPORTED_FILE_FORMAT_VERSION) {
+            throw new Error(`File version ${fileData.fileFormatVersion} is no longer supported.  Try an older Tank Game UI version.`);
         }
 
-        if(content.fileFormatVersion == 5) {
-            migrateToV6(content);
+        if(fileData.fileFormatVersion == 5) {
+            migrateToV6(fileData);
         }
 
-        if(content.fileFormatVersion == 6) {
-            migrateToV7(content);
+        if(fileData.fileFormatVersion == 6) {
+            migrateToV7(fileData);
         }
+
+        fileDataUpdated = true;
     }
 
-    content = deserializer.deserialize(content);
+    const helpers = {
+        updatedContent: () => fileDataUpdated = true,
+    };
 
-    return content;
+    fileData = deserializer.deserialize(fileData, helpers);
+
+    return {
+        fileData,
+        fileDataUpdated,
+    };
 }
 
 export function dumpToRaw(fileData) {

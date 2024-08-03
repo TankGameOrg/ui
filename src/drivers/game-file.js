@@ -6,17 +6,12 @@ import { logger } from "#platform/logging.js";
 import { Game } from "../game/execution/game.js";
 import { dumpToRaw, loadFromRaw } from "./game-file-data.js";
 
-export const FILE_FORMAT_VERSION = 6;
-export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
-
-
 export async function load(filePath, { saveBack = false } = {}) {
     let content = await readJson(filePath);
 
-    const saveUpdatedFile = saveBack && (content?.fileFormatVersion < FILE_FORMAT_VERSION);
-    const fileData = loadFromRaw(content);
+    const {fileData, fileDataUpdated} = loadFromRaw(content);
 
-    if(saveUpdatedFile) {
+    if(saveBack && fileDataUpdated) {
         save(filePath, fileData);
     }
 

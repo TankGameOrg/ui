@@ -8,7 +8,8 @@ class Foo {
         Object.freeze(this);
     }
 
-    static deserialize(object, deserialize) {
+    static deserialize(object, deserialize, helpers) {
+        helpers?.poke?.();
         return new Foo(deserialize(object.foo, "foo"));
     }
 
@@ -74,5 +75,20 @@ describe("Deserialization", () => {
         assert.deepEqual(recreated, nested);
         assert.equal(recreated.foo.toString(), "foo object1");
         assert.equal(recreated.baz.toString(), "bar foo bop");
+    });
+
+    it("can do nested serialization and deserialization with helpers", () => {
+        const nested = {
+            foo: new Foo("object1"),
+            baz: new Bar(new Foo("bop")),
+        };
+
+        let counter = 0;
+        const helpers = {
+            poke: () => ++counter,
+        };
+
+        deserializer.deserialize(deserializer.serialize(nested), helpers);
+        assert.equal(counter, 2);
     });
 });
