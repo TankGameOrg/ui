@@ -12,6 +12,7 @@ export async function load(filePath, { saveBack = false } = {}) {
     const {fileData, fileDataUpdated} = loadFromRaw(content);
 
     if(saveBack && fileDataUpdated) {
+        logger.info({ msg: "Updating file", filePath });
         save(filePath, fileData);
     }
 

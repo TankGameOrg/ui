@@ -7,6 +7,7 @@ import Players from "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
+import { logger } from "#platform/logging.js";
 
 const FILE_FORMAT_VERSION = 7;
 const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
@@ -132,7 +133,10 @@ export function loadFromRaw(fileData) {
     }
 
     const helpers = {
-        updatedContent: () => fileDataUpdated = true,
+        updatedContent() {
+            logger.debug({ msg: "File data update requested", key: this.getKey() });
+            fileDataUpdated = true;
+        },
     };
 
     fileData = deserializer.deserialize(fileData, helpers);

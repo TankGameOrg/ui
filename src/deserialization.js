@@ -47,7 +47,7 @@ export class Deserializer {
      * @param {*} helpers an object containing helpers to be passed to all deserialize methods
      * @returns the parsed object
      */
-    deserialize(jsonString, helpers) {
+    deserialize(jsonString, helpers = {}) {
         return this._deserializeRecursive("", jsonString, helpers);
     }
 
@@ -123,6 +123,7 @@ export class Deserializer {
             throw new Error(`Could not find a deserializer for ${value[DESERIALIZER_KEY]}`);
         }
 
+        helpers.getKey = () => key;
         let transformed = transformer(value, this._deserializeCallback.bind(this, key, helpers), helpers);
 
         if(transformed[SERIALIZER_KEY] === undefined) {
