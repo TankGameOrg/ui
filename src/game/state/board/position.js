@@ -45,7 +45,10 @@ export class Position {
     }
 
     serialize() {
-        return this;
+        return {
+            x: this.x,
+            y: this.y,
+        };
     }
 
     get humanReadableX() {

@@ -14,10 +14,10 @@ export class GenericPossibleAction {
         return this._actionName;
     }
 
-    static deserialize(rawGenericPossibleAction) {
+    static deserialize(rawGenericPossibleAction, deserialize) {
         return new GenericPossibleAction({
             ...rawGenericPossibleAction,
-            fieldSpecs: rawGenericPossibleAction.fieldSpecs,
+            fieldSpecs: deserialize(rawGenericPossibleAction.fieldSpecs, "fieldSpecs"),
         });
     }
 

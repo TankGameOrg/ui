@@ -7,6 +7,7 @@ import Players from "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
+import { logger } from "#platform/logging.js";
 
 export const FILE_FORMAT_VERSION = 7;
 export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;

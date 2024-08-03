@@ -8,8 +8,8 @@ class Foo {
         Object.freeze(this);
     }
 
-    static deserialize(object) {
-        return new Foo(object.foo);
+    static deserialize(object, deserialize) {
+        return new Foo(deserialize(object.foo, "foo"));
     }
 
     serialize() {
@@ -39,7 +39,7 @@ class Bar {
 let deserializer = new Deserializer();
 deserializer.registerClass("foo", Foo);
 deserializer.registerSerializer("bar", bar => ({ bar: bar.bar, [DESERIALIZER_KEY]: "bar" }));
-deserializer.registerDeserializer("bar", bar => new Bar(bar.bar));
+deserializer.registerDeserializer("bar", (bar, deserialize) => new Bar(deserialize(bar.bar, "bar")));
 
 
 describe("Deserialization", () => {

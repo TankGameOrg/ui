@@ -7,8 +7,10 @@ export class OpenHours {
         this._resolved = resolved;
     }
 
-    static deserialize(rawOpenHours) {
-        return new OpenHours(rawOpenHours.schedules, rawOpenHours.resolved);
+    static deserialize(rawOpenHours, deserialize) {
+        return new OpenHours(
+            deserialize(rawOpenHours.schedules, "schedules"),
+            rawOpenHours.resolved);
     }
 
     serialize() {

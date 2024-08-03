@@ -11,11 +11,11 @@ export class GameState {
         this.metaEntities = metaEntities;
     }
 
-    static deserialize(rawGameState) {
+    static deserialize(rawGameState, deserialize) {
         return new GameState(
-            rawGameState.players,
-            rawGameState.board,
-            rawGameState.metaEntities,
+            deserialize(rawGameState.players, "players"),
+            deserialize(rawGameState.board, "board"),
+            deserialize(rawGameState.metaEntities, "metaEntities"),
         );
     }
 

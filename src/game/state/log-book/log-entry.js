@@ -13,7 +13,7 @@ export class LogEntry {
         }
     }
 
-    static deserialize(rawEntry) {
+    static deserialize(rawEntry, deserialize) {
         let message;
         let dieRolls;
         if(rawEntry.savedData !== undefined) {
@@ -23,6 +23,7 @@ export class LogEntry {
             delete rawEntry.savedData;
         }
 
+        rawEntry = deserialize(rawEntry);
         return new LogEntry(rawEntry, message, dieRolls);
     }
 

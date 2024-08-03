@@ -58,8 +58,11 @@ export class LogFieldSpec {
         return option;
     }
 
-    static deserialize(rawSpec) {
-        return new LogFieldSpec(rawSpec);
+    static deserialize(rawSpec, deserialize) {
+        return new LogFieldSpec({
+            ...rawSpec,
+            options: deserialize(rawSpec.options, "options"),
+        });
     }
 
     serialize() {

@@ -57,7 +57,7 @@ export default class Entity {
      * @param {*} rawEntity the json serialized object to load
      * @returns
      */
-    static deserialize(rawEntity) {
+    static deserialize(rawEntity, deserialize) {
         let attributes = deepClone(rawEntity);
         delete attributes.type;
         delete attributes.players;
@@ -67,8 +67,8 @@ export default class Entity {
         return new Entity({
             type: rawEntity.type,
             attributes,
-            players: rawEntity.players,
-            position: rawEntity.position,
+            players: deserialize(rawEntity.players, "players"),
+            position: deserialize(rawEntity.position, "position"),
         });
     }
 

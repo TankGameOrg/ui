@@ -43,8 +43,10 @@ export class Dice {
         return dice.flatMap(dice => dice.expandDice());
     }
 
-    static deserialize(rawDice) {
-        return new Dice(rawDice.count, rawDice.die);
+    static deserialize(rawDice, deserialize) {
+        return new Dice(
+            rawDice.count,
+            deserialize(rawDice.die, "die"));
     }
 
     serialize() {

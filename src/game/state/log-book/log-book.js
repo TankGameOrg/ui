@@ -1,3 +1,4 @@
+import { logger } from "#platform/logging.js";
 import { deserializer } from "../../../deserialization.js";
 import { LogEntry } from "./log-entry.js";
 
@@ -36,13 +37,15 @@ export class LogBook {
         }
     }
 
-    static deserialize(rawLogBook) {
+    static deserialize(rawLogBook, deserialize) {
         // 0 length log books are not supported start day 1 if we have no entries
         if(rawLogBook?.entries === undefined || rawLogBook.entries.length === 0) {
             rawLogBook.entries = [
                 new LogEntry({ day: 1 }),
             ];
         }
+
+        rawLogBook.entries = deserialize(rawLogBook.entries, "entries");
 
         let previousTime = 0;
         rawLogBook.entries.forEach((entry, idx) => {

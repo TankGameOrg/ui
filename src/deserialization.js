@@ -1,3 +1,5 @@
+import { logger } from "#platform/logging.js";
+
 export const SERIALIZER_KEY = Symbol("serializer");
 export const DESERIALIZER_KEY = "class";
 
@@ -68,8 +70,14 @@ export class Deserializer {
      * @returns
      */
     _deserializeRecursive(key, object) {
-        object = cloneObject(object, (key, value) => this._deserializeRecursive(key, value));
-        return this._deserialize(key, object);
+        if(object === undefined) return;
+
+        if(typeof object[DESERIALIZER_KEY] != "string") {
+            return cloneObject(object, (key, value) => this._deserializeRecursive(key, value));
+        }
+        else {
+            return this._deserialize(key, object);
+        }
     }
 
     /**
@@ -114,7 +122,7 @@ export class Deserializer {
             throw new Error(`Could not find a deserializer for ${value[DESERIALIZER_KEY]}`);
         }
 
-        let transformed = transformer(value);
+        let transformed = transformer(value, this._deserializeCallback.bind(this, key));
 
         if(transformed[SERIALIZER_KEY] === undefined) {
             throw new Error(`Deserializer for ${className} failed to set ${SERIALIZER_KEY.toString()} (key = ${key})`);
@@ -122,6 +130,28 @@ export class Deserializer {
 
         return transformed;
     }
+
+    /**
+     * A callback passed to a deserializer to be used for recursive deserialization
+     * @param {*} parentKey The key that we were deserializing before calling the deserializer (should be bound)
+     * @param {*} value the value to deserialize
+     * @param {*} key The key relative to the object we're deserializing (undefined if we're deserializing our self)
+     */
+    _deserializeCallback(parentKey, value, key) {
+        if(typeof key == "string") {
+            key = parentKey.length === 0 ? key : `${parentKey}.${key}`;
+            return this._deserializeRecursive(key, value);
+        }
+        else {
+            if(typeof value != "object") return value;
+
+            return this._deserializeRecursive(parentKey, {
+                ...value,
+                [DESERIALIZER_KEY]: undefined,
+            });
+        }
+    }
+
 
     /**
      * Register a class with serialize and deserialize methods (can be used as a decorator)
