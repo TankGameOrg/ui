@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 const TEST_FILES_DIR = path.join(path.dirname(new URL(import.meta.url).pathname), "test-files/");
-const TEST_FILE_EXPR = /tank_game_v3_format_v(\d+)\.json/;
+const TEST_FILE_EXPR = /(^|\/)tank_game_v3_format_v(\d+)\.json/;
 
 let allTestFiles = fs.readdirSync(TEST_FILES_DIR)
     .filter(fileName => TEST_FILE_EXPR.exec(fileName))

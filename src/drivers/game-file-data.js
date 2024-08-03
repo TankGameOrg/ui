@@ -7,6 +7,7 @@ import Players from "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
+import { logger } from "#platform/logging.js";
 
 const FILE_FORMAT_VERSION = 7;
 const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
@@ -40,7 +41,7 @@ function migrateToV6(content) {
     });
 
     // Convert initial state to the ui state format
-    content.initialGameState = gameStateFromRawState(content.initialGameState).gameState.serialize();
+    content.initialGameState = deserializer.serialize(gameStateFromRawState(content.initialGameState).gameState);
 }
 
 function migrateToV7(content) {
@@ -52,29 +53,33 @@ function migrateToV7(content) {
         })),
     };
 
-    // Starting in v7 players a referenced by a unique (to a state) ID we need to assign those
-    let nextUniqueId = 0;
-    let nameToIdMap = new Map();
-    content.initialGameState.players = content.initialGameState.players.map(playerAttributes => {
-        ++nextUniqueId;
-        nameToIdMap.set(playerAttributes.name, nextUniqueId);
+    // When translating from v5 games the game state is already in the latest format so don't touch it
+    if(content.initialGameState.class === undefined) {
+        // Starting in v7 players a referenced by a unique (to a state) ID we need to assign those
+        let nextUniqueId = 0;
+        let nameToIdMap = new Map();
+        content.initialGameState.players = content.initialGameState.players.map(playerAttributes => {
+            const uniqueId = (++nextUniqueId) + "";
+            nameToIdMap.set(playerAttributes.name, uniqueId);
 
-        return {
-            class: "player-v1",
-            uniqueId: nextUniqueId,
-            attributes: playerAttributes,
-        };
-    });
+            return {
+                class: "player-v1",
+                uniqueId,
+                attributes: playerAttributes,
+            };
+        });
 
-    for(const name of Object.keys(content.initialGameState.metaEntities)) {
-        migrateEntityToV7(content.initialGameState.metaEntities[name], nameToIdMap);
+        for(const name of Object.keys(content.initialGameState.metaEntities)) {
+            migrateEntityToV7(content.initialGameState.metaEntities[name], nameToIdMap);
+        }
+
+        for(let boardArray of [content.initialGameState.board.entities, content.initialGameState.board.floor]) {
+            for(let entity of boardArray) migrateEntityToV7(entity, nameToIdMap);
+        }
+
+        content.initialGameState.board.class = "board-v1";
+        content.initialGameState.class = "game-state-v1";
     }
-
-    for(let boardArray of [content.initialGameState.board.entities, content.initialGameState.board.floor]) {
-        for(let entity of boardArray) migrateEntityToV7(entity, nameToIdMap);
-    }
-
-    content.initialGameState.board.class = "board-v1";
 
     content.logBook = {
         class: "log-book-v1",
@@ -84,7 +89,6 @@ function migrateToV7(content) {
         })),
     };
 
-    content.initialGameState.class = "game-state-v1";
     content.gameVersion = `default-v${content.gameVersion}`;
     content.class = "file-data-v7";
 }
@@ -120,11 +124,11 @@ export function loadFromRaw(fileData) {
             throw new Error(`File version ${fileData.fileFormatVersion} is no longer supported.  Try an older Tank Game UI version.`);
         }
 
-        if(fileData.fileFormatVersion == 5) {
+        if(fileData.fileFormatVersion < 6) {
             migrateToV6(fileData);
         }
 
-        if(fileData.fileFormatVersion == 6) {
+        if(fileData.fileFormatVersion < 7) {
             migrateToV7(fileData);
         }
 
@@ -192,8 +196,8 @@ class FileData {
     serialize() {
         return {
             gameVersion: this.gameVersion,
-            gameSettings: this.gameSettings,
             openHours: this.openHours,
+            gameSettings: this.gameSettings,
             logBook: this.logBook.withoutStateInfo(),
             initialGameState: this.initialGameState,
         };

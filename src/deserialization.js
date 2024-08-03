@@ -94,6 +94,7 @@ export class Deserializer {
 
         let serialized = transformer(value);
         if(serialized[DESERIALIZER_KEY] === undefined) {
+            serialized = Object.assign({}, serialized);
             serialized[DESERIALIZER_KEY] = className;
         }
 
