@@ -180,7 +180,7 @@ class FileData {
 
         if(initialGameState === undefined) {
             initialGameState = new GameState(
-                new Players([]),
+                [],
                 new Board(gameStateInitializer.width, gameStateInitializer.height),
                 gameStateInitializer.metaEntities,
             );
