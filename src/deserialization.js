@@ -1,5 +1,3 @@
-import { logger } from "#platform/logging.js";
-
 export const SERIALIZER_KEY = Symbol("serializer");
 export const DESERIALIZER_KEY = "class";
 
@@ -145,10 +143,11 @@ export class Deserializer {
         else {
             if(typeof value != "object") return value;
 
-            return this._deserializeRecursive(parentKey, {
-                ...value,
-                [DESERIALIZER_KEY]: undefined,
-            });
+            // Remove the DESERIALIZER_KEY so we don't enter an infine loop
+            value = Object.assign({}, value);
+            delete value[DESERIALIZER_KEY];
+
+            return this._deserializeRecursive(parentKey, value);
         }
     }
 

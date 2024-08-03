@@ -1,4 +1,4 @@
-import { deserializer, DESERIALIZER_KEY } from "../../../deserialization.js";
+import { deserializer } from "../../../deserialization.js";
 import { deepClone } from "../../../utils.js";
 
 /**
@@ -58,17 +58,18 @@ export default class Entity {
      * @returns
      */
     static deserialize(rawEntity, deserialize) {
-        let attributes = deepClone(rawEntity);
+        let attributes = deserialize(rawEntity);
+        const {players, position} = attributes;
+
         delete attributes.type;
         delete attributes.players;
         delete attributes.position;
-        delete attributes[DESERIALIZER_KEY];
 
         return new Entity({
             type: rawEntity.type,
             attributes,
-            players: deserialize(rawEntity.players, "players"),
-            position: deserialize(rawEntity.position, "position"),
+            players,
+            position,
         });
     }
 
