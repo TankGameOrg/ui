@@ -1,7 +1,7 @@
 /* globals process */
 import fs from "node:fs";
 import path from "node:path";
-import {exec, spawnSync} from "node:child_process";
+import {spawnSync} from "node:child_process";
 import { logger } from "#platform/logging.js";
 import * as boardStateMain from "./board-state-main.js";
 import * as boardStateStable from "./board-state-stable.js";
@@ -162,9 +162,12 @@ class EngineFactory {
         catch(err) {
             logger.warn({ msg: "Failed to dynamically engine version", err });
 
+            const version = determineEngineVersion(this._engineCommand);
+
             // Support legacy engines
             this._versionInfo = {
-                version: determineEngineVersion(this._engineCommand),
+                version,
+                pretty_version: `Engine ${version}`,
                 // All versions that don't support --version support versions 3 and 4
                 supported_rulesets: ["3", "4"],
             };
@@ -176,7 +179,7 @@ class EngineFactory {
     }
 
     getEngineVersion() {
-        return `Java Engine ${this._versionInfo.version}`;
+        return this._versionInfo.pretty_version;
     }
 
     getSupportedGameVersions() {
