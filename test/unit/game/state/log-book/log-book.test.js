@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { LogBook } from "../../../../../src/game/state/log-book/log-book.js";
 import { LogEntry } from "../../../../../src/game/state/log-book/log-entry.js";
+import { deserializer } from "../../../../../src/deserialization.js";
 
 // These should point to the start of day actions in the list below
 const firstDayIndex = 0;
@@ -32,13 +33,12 @@ const entries = [
 ];
 
 describe("LogBook", () => {
-    xit("can deserialize and reserialize itself", () => {
-        const logBook = LogBook.deserialize(entries);
+    it("can deserialize and reserialize itself", () => {
+        const logBook = new LogBook(entries);
+        const rawLogBook = deserializer.serialize(logBook.withoutStateInfo());
+        assert.deepEqual(logBook, deserializer.deserialize(rawLogBook));
 
-        const serialized = logBook.withoutStateInfo().serialize();
-        assert.deepEqual(serialized, entries);
-
-        const serializedWithMessage = LogBook.deserialize(logBook.serialize());
+        const serializedWithMessage = deserializer.deserialize(deserializer.serialize(logBook));
         assert.deepEqual(serializedWithMessage, logBook);
     });
 

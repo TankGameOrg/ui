@@ -29,7 +29,7 @@ export class LogEntry {
 
     serialize() {
         if(this.message == undefined) {
-            return this.rawLogEntry;
+            return Object.assign({}, this.rawLogEntry);
         }
 
         return {

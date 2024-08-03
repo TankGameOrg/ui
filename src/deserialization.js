@@ -102,6 +102,8 @@ export class Deserializer {
             serialized[DESERIALIZER_KEY] = className;
         }
 
+        delete serialized[SERIALIZER_KEY];
+
         return serialized;
     }
 
@@ -129,6 +131,8 @@ export class Deserializer {
         if(transformed[SERIALIZER_KEY] === undefined) {
             throw new Error(`Deserializer for ${className} failed to set ${SERIALIZER_KEY.toString()} (key = ${key})`);
         }
+
+        delete transformed[DESERIALIZER_KEY];
 
         return transformed;
     }
