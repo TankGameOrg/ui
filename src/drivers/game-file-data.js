@@ -7,7 +7,6 @@ import Players from "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
-import { logger } from "#platform/logging.js";
 
 export const FILE_FORMAT_VERSION = 7;
 export const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
@@ -87,6 +86,7 @@ function migrateToV7(content) {
 
     content.initialGameState.class = "game-state-v1";
     content.gameVersion = `default-v${content.gameVersion}`;
+    content.class = "file-data-v7";
 }
 
 function migrateEntityToV7(entity, nameToIdMap) {
@@ -109,62 +109,81 @@ function migrateEntityToV7(entity, nameToIdMap) {
 
 
 export function loadFromRaw(content) {
-    if(content?.fileFormatVersion === undefined) {
-        throw new Error("File format version missing not a valid game file");
-    }
+    if(content?.fileFormatVersion !== undefined) {
+        if(content.fileFormatVersion > FILE_FORMAT_VERSION) {
+            throw new Error(`File version ${content.fileFormatVersion} is not supported.  Try a newer Tank Game UI version.`);
+        }
 
-    if(content.fileFormatVersion > FILE_FORMAT_VERSION) {
-        throw new Error(`File version ${content.fileFormatVersion} is not supported.  Try a newer Tank Game UI version.`);
-    }
+        if(content.fileFormatVersion < MINIMUM_SUPPORTED_FILE_FORMAT_VERSION) {
+            throw new Error(`File version ${content.fileFormatVersion} is no longer supported.  Try an older Tank Game UI version.`);
+        }
 
-    if(content.fileFormatVersion < MINIMUM_SUPPORTED_FILE_FORMAT_VERSION) {
-        throw new Error(`File version ${content.fileFormatVersion} is no longer supported.  Try an older Tank Game UI version.`);
-    }
+        if(content.fileFormatVersion == 5) {
+            migrateToV6(content);
+        }
 
-    if(content.fileFormatVersion == 5) {
-        migrateToV6(content);
-    }
-
-    if(content.fileFormatVersion == 6) {
-        migrateToV7(content);
+        if(content.fileFormatVersion == 6) {
+            migrateToV7(content);
+        }
     }
 
     content = deserializer.deserialize(content);
 
-    // Make sure we have the config required to load this game.  This
-    // does not check if the engine supports this game version.
-    if(!getGameVersion(content.gameVersion)) {
-        throw new Error(`Game version ${content.gameVersion} is not supported`);
-    }
-
-    if(content.openHours === undefined) {
-        content.openHours = new OpenHours([]);
-    }
-
     return content;
 }
 
-export function dumpToRaw({gameVersion, logBook, initialGameState, openHours, gameSettings}) {
-    return deserializer.serialize({
-        fileFormatVersion: FILE_FORMAT_VERSION,
-        gameVersion,
-        gameSettings,
-        openHours,
-        logBook: logBook.withoutStateInfo(),
-        initialGameState: initialGameState,
-    });
+export function dumpToRaw(fileData) {
+    return deserializer.serialize(fileData);
 }
 
 export function createEmptyFileData({gameVersion, width, height, metaEntities = {}}) {
-    return {
+    return new FileData({
         gameVersion,
-        openHours: new OpenHours([]),
-        logBook: new LogBook([]),
-        gameSettings: {},
-        initialGameState: new GameState(
-            new Players([]),
-            new Board(width, height),
+        gameStateInitializer: {
+            width,
+            height,
             metaEntities,
-        ),
-    };
+        },
+    });
 }
+
+class FileData {
+    constructor({ gameVersion, openHours, logBook, gameSettings, initialGameState, gameStateInitializer }) {
+        // Make sure we have the config required to load this game.  This
+        // does not check if the engine supports this game version.
+        if(!getGameVersion(gameVersion)) {
+            throw new Error(`Game version ${gameVersion} is not supported`);
+        }
+
+        this.gameVersion = gameVersion;
+        this.openHours = openHours === undefined ? new OpenHours([]) : openHours;
+        this.logBook = logBook === undefined ? new LogBook([]) : logBook;
+        this.gameSettings = gameSettings === undefined ? {} : gameSettings;
+
+        if(initialGameState === undefined) {
+            initialGameState = new GameState(
+                new Players([]),
+                new Board(gameStateInitializer.width, gameStateInitializer.height),
+                gameStateInitializer.metaEntities,
+            );
+        }
+
+        this.initialGameState = initialGameState;
+    }
+
+    static deserialize(rawFileData, deserialize) {
+        return new FileData(deserialize(rawFileData));
+    }
+
+    serialize() {
+        return {
+            gameVersion: this.gameVersion,
+            gameSettings: this.gameSettings,
+            openHours: this.openHours,
+            logBook: this.logBook.withoutStateInfo(),
+            initialGameState: this.initialGameState,
+        };
+    }
+}
+
+deserializer.registerClass("file-data-v7", FileData);
