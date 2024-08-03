@@ -1,7 +1,6 @@
 import assert from "node:assert";
 import { GenericPossibleAction } from "../../../../src/game/possible-actions/generic-possible-action.js";
 import { LogFieldSpec } from "../../../../src/game/possible-actions/log-field-spec.js";
-import { deserializer } from "../../../../src/deserialization.js";
 
 const possibleAction = new GenericPossibleAction({
     subject: "John",
@@ -27,7 +26,7 @@ describe("GenericPossibleAction", () => {
     });
 
     it("can serialize and deserialize actions", () => {
-        const newAction = deserializer.deserialize(deserializer.serialize(possibleAction));
+        const newAction = GenericPossibleAction.deserialize(possibleAction.serialize());
         assert.deepEqual(newAction, possibleAction);
     });
 });

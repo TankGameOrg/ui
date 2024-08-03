@@ -38,10 +38,8 @@ export default class Player {
      * @param {*} rawPlayer
      * @returns
      */
-    static deserialize(rawPlayer, deserialize) {
-        return new Player(
-            deserialize(rawPlayer.attributes, "attributes"),
-            rawPlayer.uniqueId);
+    static deserialize(rawPlayer) {
+        return new Player(rawPlayer.attributes, rawPlayer.uniqueId);
     }
 
     /**

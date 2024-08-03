@@ -7,7 +7,6 @@ import Players from "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
-import { logger } from "#platform/logging.js";
 
 const FILE_FORMAT_VERSION = 7;
 const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 5;
@@ -186,8 +185,8 @@ class FileData {
         this.initialGameState = initialGameState;
     }
 
-    static deserialize(rawFileData, deserialize) {
-        return new FileData(deserialize(rawFileData));
+    static deserialize(rawFileData) {
+        return new FileData(rawFileData);
     }
 
     serialize() {

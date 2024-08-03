@@ -12,11 +12,8 @@ export class DiceLogFieldSpec {
         this.expandedDice = Dice.expandAll(this.dice);
     }
 
-    static deserialize(rawSpec, deserialize) {
-        return new DiceLogFieldSpec({
-            ...rawSpec,
-            dice: deserialize(rawSpec.dice, "dice"),
-        });
+    static deserialize(rawSpec) {
+        return new DiceLogFieldSpec(rawSpec);
     }
 
     serialize() {

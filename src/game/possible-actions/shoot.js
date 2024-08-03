@@ -67,9 +67,9 @@ export class ShootAction extends GenericPossibleAction {
         }
     }
 
-    static deserialize(rawShootAction, deserialize) {
+    static deserialize(rawShootAction) {
         return new ShootAction({
-            targets: deserialize(rawShootAction.targets, "targets"),
+            targets: rawShootAction.targets,
         });
     }
 

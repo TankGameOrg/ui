@@ -4,7 +4,6 @@ import { OpenHours } from "../../../../src/game/open-hours/index.js";
 import { LogBook } from "../../../../src/game/state/log-book/log-book.js";
 import { AutomaticStartOfDay } from "../../../../src/game/open-hours/automatic-start-of-day.js";
 import { LogEntry } from "../../../../src/game/state/log-book/log-entry.js";
-import { deserializer } from "../../../../src/deserialization.js";
 
 function checkIsOpen(scheduleName, schedule, date, expected) {
     assert.equal(schedule.isGameOpen(date), expected, `is ${scheduleName} game open ${date}`);
@@ -93,8 +92,8 @@ describe("OpenHours", () => {
 
         assert.ok(!maybeOpenHours.isGameOpen(friday0501));
 
-        const resolvedMaybeOpenHours = deserializer.deserialize(
-            deserializer.serialize(maybeOpenHours.asResolved(monday0217)));
+        const resolvedMaybeOpenHours = OpenHours.deserialize(
+            maybeOpenHours.asResolved(monday0217).serialize());
 
         assert.ok(resolvedMaybeOpenHours.isGameOpen(friday0501));
     });
@@ -106,7 +105,7 @@ describe("OpenHours", () => {
 
     it("can be serialized and deserialized to the same thing", () => {
         const openHours = new OpenHours([nineToFive, noonTo9]);
-        const recreated = deserializer.deserialize(deserializer.serialize(openHours));
+        const recreated = OpenHours.deserialize(openHours.serialize());
         assert.deepEqual(recreated, openHours);
     });
 

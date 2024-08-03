@@ -3,6 +3,8 @@ import { Dice } from "../../possible-actions/die.js";
 
 export class LogEntry {
     constructor(rawLogEntry, message, dieRolls) {
+        if(rawLogEntry.class !== undefined) throw new Error("Class present");
+
         this.type = rawLogEntry.action || "start_of_day";
         this.rawLogEntry = rawLogEntry;
         this.dieRolls = dieRolls;
@@ -13,7 +15,7 @@ export class LogEntry {
         }
     }
 
-    static deserialize(rawEntry, deserialize) {
+    static deserialize(rawEntry) {
         let message;
         let dieRolls;
         if(rawEntry.savedData !== undefined) {
@@ -23,7 +25,6 @@ export class LogEntry {
             delete rawEntry.savedData;
         }
 
-        rawEntry = deserialize(rawEntry);
         return new LogEntry(rawEntry, message, dieRolls);
     }
 

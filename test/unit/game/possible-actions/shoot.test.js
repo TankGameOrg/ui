@@ -3,7 +3,6 @@ import { Dice } from "../../../../src/game/possible-actions/die.js";
 import { ShootAction } from "../../../../src/game/possible-actions/shoot.js";
 import { LogFieldSpec } from "../../../../src/game/possible-actions/log-field-spec.js";
 import { DiceLogFieldSpec } from "../../../../src/game/possible-actions/dice-log-field-spec.js";
-import { deserializer } from "../../../../src/deserialization.js";
 
 const shoot = new ShootAction({
     targets: [
@@ -42,7 +41,7 @@ describe("ShootAction", () => {
     });
 
     it("can be serialized and deserialized", () => {
-        const shootSerialized = deserializer.deserialize(deserializer.serialize(shoot));
+        const shootSerialized = ShootAction.deserialize(shoot.serialize());
         assert.deepEqual(shootSerialized, shoot);
     });
 });

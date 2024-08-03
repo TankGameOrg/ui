@@ -70,14 +70,8 @@ export class Deserializer {
      * @returns
      */
     _deserializeRecursive(key, object, helpers) {
-        if(object === undefined) return;
-
-        if(typeof object[DESERIALIZER_KEY] != "string") {
-            return cloneObject(object, (key, value) => this._deserializeRecursive(key, value, helpers));
-        }
-        else {
-            return this._deserialize(key, object, helpers);
-        }
+        object = cloneObject(object, (key, value) => this._deserializeRecursive(key, value, helpers));
+        return this._deserialize(key, object, helpers);
     }
 
     /**
@@ -92,6 +86,7 @@ export class Deserializer {
         }
 
         const className = value[SERIALIZER_KEY];
+
         const transformer = this._serializers.get(className);
         if(transformer === undefined) {
             throw new Error(`Could not find a serializer for ${value[SERIALIZER_KEY]}`);
@@ -101,8 +96,6 @@ export class Deserializer {
         if(serialized[DESERIALIZER_KEY] === undefined) {
             serialized[DESERIALIZER_KEY] = className;
         }
-
-        delete serialized[SERIALIZER_KEY];
 
         return serialized;
     }
@@ -120,46 +113,23 @@ export class Deserializer {
         }
 
         const className = value[DESERIALIZER_KEY];
+
+        delete value[DESERIALIZER_KEY];
+
         const transformer = this._deserializers.get(className);
         if(transformer === undefined) {
             throw new Error(`Could not find a deserializer for ${value[DESERIALIZER_KEY]}`);
         }
 
         helpers.getKey = () => key;
-        let transformed = transformer(value, this._deserializeCallback.bind(this, key, helpers), helpers);
+        let transformed = transformer(value, helpers);
 
         if(transformed[SERIALIZER_KEY] === undefined) {
             throw new Error(`Deserializer for ${className} failed to set ${SERIALIZER_KEY.toString()} (key = ${key})`);
         }
 
-        delete transformed[DESERIALIZER_KEY];
-
         return transformed;
     }
-
-    /**
-     * A callback passed to a deserializer to be used for recursive deserialization
-     * @param {*} parentKey The key that we were deserializing before calling the deserializer (should be bound)
-     * @param {*} helpers an object containing helpers to be passed to all deserialize methods (should be bound)
-     * @param {*} value the value to deserialize
-     * @param {*} key The key relative to the object we're deserializing (undefined if we're deserializing our self)
-     */
-    _deserializeCallback(parentKey, helpers, value, key) {
-        if(typeof key == "string") {
-            key = parentKey.length === 0 ? key : `${parentKey}.${key}`;
-            return this._deserializeRecursive(key, value, helpers);
-        }
-        else {
-            if(typeof value != "object") return value;
-
-            // Remove the DESERIALIZER_KEY so we don't enter an infine loop
-            value = Object.assign({}, value);
-            delete value[DESERIALIZER_KEY];
-
-            return this._deserializeRecursive(parentKey, value, helpers);
-        }
-    }
-
 
     /**
      * Register a class with serialize and deserialize methods (can be used as a decorator)
