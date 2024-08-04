@@ -1,34 +1,61 @@
 {
-    "fileFormatVersion": 6,
-    "gameVersion": "4",
-    "openHours": [],
-    "logBook": [
-        {
-            "day": 1,
-            "timestamp": 1200
-        }
-    ],
+    "gameVersion": "default-v4",
+    "openHours": {
+        "schedules": [],
+        "class": "open-hours-v1"
+    },
+    "gameSettings": {},
+    "logBook": {
+        "entries": [
+            {
+                "day": 1,
+                "timestamp": 1200,
+                "class": "log-entry-v1"
+            }
+        ],
+        "class": "log-book-v1"
+    },
     "initialGameState": {
         "players": [
             {
-                "name": "Lena",
-                "type": "councilor"
+                "uniqueId": "1",
+                "attributes": {
+                    "name": "Lena",
+                    "type": "councilor"
+                },
+                "class": "player-v1"
             },
             {
-                "name": "Dan",
-                "type": "senator"
+                "uniqueId": "2",
+                "attributes": {
+                    "name": "Dan",
+                    "type": "senator"
+                },
+                "class": "player-v1"
             },
             {
-                "name": "Schmude",
-                "type": "tank"
+                "uniqueId": "3",
+                "attributes": {
+                    "name": "Schmude",
+                    "type": "tank"
+                },
+                "class": "player-v1"
             },
             {
-                "name": "Josh",
-                "type": "tank"
+                "uniqueId": "4",
+                "attributes": {
+                    "name": "Josh",
+                    "type": "tank"
+                },
+                "class": "player-v1"
             },
             {
-                "name": "Jason",
-                "type": "councilor"
+                "uniqueId": "5",
+                "attributes": {
+                    "name": "Jason",
+                    "type": "councilor"
+                },
+                "class": "player-v1"
             }
         ],
         "board": {
@@ -42,28 +69,52 @@
                     "range": 2,
                     "actions": 5,
                     "type": "tank",
-                    "position": "A1",
+                    "position": {
+                        "x": 0,
+                        "y": 0,
+                        "class": "position"
+                    },
                     "players": [
-                        "Schmude"
-                    ]
+                        {
+                            "playerId": "3",
+                            "class": "player-ref-v1"
+                        }
+                    ],
+                    "class": "entity"
                 },
                 {
                     "durability": 3,
                     "gold": 0,
                     "type": "tank",
-                    "position": "B3",
+                    "position": {
+                        "x": 1,
+                        "y": 2,
+                        "class": "position"
+                    },
                     "players": [
-                        "Lena"
-                    ]
+                        {
+                            "playerId": "1",
+                            "class": "player-ref-v1"
+                        }
+                    ],
+                    "class": "entity"
                 },
                 {
                     "durability": 3,
                     "gold": 0,
                     "type": "tank",
-                    "position": "D4",
+                    "position": {
+                        "x": 3,
+                        "y": 3,
+                        "class": "position"
+                    },
                     "players": [
-                        "Jason"
-                    ]
+                        {
+                            "playerId": "5",
+                            "class": "player-ref-v1"
+                        }
+                    ],
+                    "class": "entity"
                 },
                 {
                     "health": 3,
@@ -72,13 +123,22 @@
                     "gold": 15,
                     "bounty": 0,
                     "type": "tank",
-                    "position": "E3",
+                    "position": {
+                        "x": 4,
+                        "y": 2,
+                        "class": "position"
+                    },
                     "players": [
-                        "Josh"
-                    ]
+                        {
+                            "playerId": "4",
+                            "class": "player-ref-v1"
+                        }
+                    ],
+                    "class": "entity"
                 }
             ],
-            "floor": []
+            "floor": [],
+            "class": "board-v1"
         },
         "metaEntities": {
             "council": {
@@ -89,11 +149,23 @@
                 },
                 "type": "council",
                 "players": [
-                    "Lena",
-                    "Dan",
-                    "Jason"
-                ]
+                    {
+                        "playerId": "1",
+                        "class": "player-ref-v1"
+                    },
+                    {
+                        "playerId": "2",
+                        "class": "player-ref-v1"
+                    },
+                    {
+                        "playerId": "5",
+                        "class": "player-ref-v1"
+                    }
+                ],
+                "class": "entity"
             }
-        }
-    }
+        },
+        "class": "game-state-v1"
+    },
+    "class": "file-data-v7"
 }
