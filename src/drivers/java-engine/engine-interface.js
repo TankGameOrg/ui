@@ -169,7 +169,7 @@ class EngineFactory {
                 version,
                 pretty_version: `Engine ${version}`,
                 // All versions that don't support --version support versions 3 and 4
-                supported_rulesets: ["3", "4"],
+                supported_rulesets: ["default-v3", "default-v4"],
             };
         }
     }
