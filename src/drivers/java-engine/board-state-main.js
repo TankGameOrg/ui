@@ -104,7 +104,7 @@ function getAttributeName(name, type, rawAttributes) {
 }
 
 function shouldKeepAttribute(attributeName, rawAttributes) {
-    if(!attributeName.startsWith("$")) return false;
+    if(!attributeName.startsWith("$") || attributeName.endsWith("_MAX")) return false;
 
     if(["$DEAD", "$POSITION", "$PLAYER_REF"].includes(attributeName)) {
         return false;
@@ -125,6 +125,13 @@ function decodeAttributes(type, rawAttributes) {
 
         const actualName = getAttributeName(attributeName, type, rawAttributes);
         attributes[actualName] = rawAttributes[attributeName];
+
+        if(rawAttributes[attributeName + "_MAX"] !== undefined) {
+            attributes[actualName] = {
+                value: attributes[actualName],
+                max: rawAttributes[attributeName + "_MAX"],
+            };
+        }
     }
 
     return attributes;
@@ -281,7 +288,13 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
 
     let attributes = {};
     for(const attributeName of Object.keys(entity.attributes)) {
-        attributes["$" + attributeName.toUpperCase()] = entity.attributes[attributeName];
+        let value = entity.attributes[attributeName];
+        if(value.max !== undefined) {
+            attributes["$" + attributeName.toUpperCase() + "_MAX"] = value.max;
+            value = value.value;
+        }
+
+        attributes["$" + attributeName.toUpperCase()] = value;
     }
 
     if(entity.type == "tank") {
