@@ -56,7 +56,7 @@ const engineManager = new EngineManager([
 ]);
 
 const port = 3333;
-let gameManager = createGameManager(engineManager, false /* save updated files */);
+let gameManager = createGameManager(engineManager, true /* save updated files */);
 
 const app = express();
 
