@@ -9,7 +9,6 @@ import Board from "../../game/state/board/board.js";
 import Entity from "../../game/state/board/entity.js";
 import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
-import Players from "../../game/state/players/players.js";
 import { Position } from "../../game/state/board/position.js";
 import { logger } from "#platform/logging.js";
 
@@ -66,7 +65,7 @@ export function gameStateFromRawState(rawGameState) {
     });
 
     let gameState = new GameState(
-        new Players(Object.values(playersByName)),
+        Object.values(playersByName),
         board,
         {
             council: convertCouncil(rawGameState.$COUNCIL, playersByName),
