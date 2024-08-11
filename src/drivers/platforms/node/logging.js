@@ -1,4 +1,4 @@
-/* globals process */
+/* globals process, console */
 import pino from "pino";
 import pinoPretty from "pino-pretty";
 import fs from "node:fs";
