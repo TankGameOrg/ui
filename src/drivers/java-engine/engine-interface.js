@@ -132,7 +132,7 @@ class TankGameEngine {
 
         const targets = shootAction.fields.find(field => field.name == "target");
         if(!targets) {
-            throw new Error("Shoot action is missing the target parameter");
+            return [];
         }
 
         return targets.range;

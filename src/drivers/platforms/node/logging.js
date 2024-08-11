@@ -68,10 +68,15 @@ export function configureLogging({ logFile, logLevel, overwrite, logToConsole = 
 
 
 process.on('uncaughtException', function (err) {
-    logger.error({
-        msg: "Uncaught error",
-        err
-    });
+    if(logger) {
+        logger.error({
+            msg: "Uncaught error",
+            err
+        });
+    }
+    else {
+        console.log(err);
+    }
 });
 
 
