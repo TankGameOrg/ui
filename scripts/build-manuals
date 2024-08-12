@@ -1,0 +1,38 @@
+#!/bin/bash
+
+generate_page() {
+    local title="$(basename "$1" .md)"
+    local outfile="$public_dir/$title.html"
+
+    cat >"$outfile" <<-EOF
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$(echo "${title}" | sed "s/[-_]/ /g")</title>
+</head>
+<body>
+$(marked --gfm -i "$file" "$1")
+</body>
+</html>
+EOF
+}
+
+repo_root="$(git rev-parse --show-toplevel || echo ".")"
+public_dir="${repo_root}/public/manuals"
+
+export PATH="${repo_root}/node_modules/.bin:$PATH"
+
+cd "${repo_root}/manuals"
+
+rm -rf "$public_dir"
+mkdir -p "$public_dir"
+
+for file in *; do
+    if [[ "$file" =~ \.md$ ]]; then
+        generate_page "$file"
+    else
+        cp -r "$file" "$public_dir"
+    fi
+done
