@@ -11,6 +11,21 @@ generate_page() {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>$(echo "${title}" | sed "s/[-_]/ /g")</title>
+    <style>
+        table {
+            border-collapse: collapse;
+        }
+
+        table td, table th {
+            border: 1px solid #000;
+            padding: 2px 7px;
+        }
+
+        table th {
+            background: #333;
+            color: #fff;
+        }
+    </style>
 </head>
 <body>
 $(marked --gfm -i "$file" "$1")
