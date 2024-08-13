@@ -20,7 +20,8 @@
     "dependencies": {
         "express": "^4.19.1",
         "pino": "^9.3.2",
-        "pino-pretty": "^11.2.2"
+        "pino-pretty": "^11.2.2",
+        "qrcode": "^1.5.4"
     },
     "devDependencies": {
         "@babel/eslint-parser": "^7.25.1",
