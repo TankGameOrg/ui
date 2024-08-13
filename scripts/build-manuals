@@ -34,7 +34,7 @@ $(marked --gfm -i "$file" "$1")
 EOF
 }
 
-repo_root="$(git rev-parse --show-toplevel || echo ".")"
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 public_dir="${repo_root}/public/manuals"
 
 export PATH="${repo_root}/node_modules/.bin:$PATH"

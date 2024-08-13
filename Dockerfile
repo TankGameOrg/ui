@@ -2,7 +2,7 @@ FROM node:20-alpine AS frontend
 
 # Install build dependencies
 COPY package*.json /build/
-RUN cd /build/ && npm ci
+RUN apk add --update --no-cache bash && cd /build/ && npm ci
 
 # Build frontend
 ARG BUILD_INFO
