@@ -20,7 +20,7 @@ export const rawV4Config = {
         ...rawV3Config.entryDescriptors,
         wall: V4WallDescriptor,
     },
-    manualPath: "/manuals/Tank_Game_Rules_v4.pdf",
+    manualPath: "/manuals/default-v4.html",
     findCooldowns: findGlobalCooldowns,
 };
 
