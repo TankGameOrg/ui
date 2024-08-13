@@ -83,7 +83,7 @@ export const rawV3Config = {
         "senator",
     ],
     attributeDescriptors: commonAttributeDescriptors,
-    manualPath: "/manuals/Tank_Game_Rules_v3.pdf",
+    manualPath: "/manuals/default-v3.html",
     actionFactory,
 };
 
