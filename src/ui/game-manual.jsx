@@ -1,3 +1,4 @@
+/* global console */
 import "./game-manual.css";
 import { useEffect, useState } from "preact/hooks";
 import QRCode from "qrcode";
@@ -10,9 +11,9 @@ export function GameManual({ manualPath }) {
     const [isManualOpen, setManualOpen] = useState(false);
     const [qrImage, setQrImage] = useState();
 
-    if(!manualPath) return;
-
     useEffect(() => {
+        if(!manualPath) return;
+
         const manualUrl = `${MANUAL_URL_BASE}${manualPath}`
             .replace(".html", ".md");
 
@@ -24,6 +25,8 @@ export function GameManual({ manualPath }) {
             setQrImage(!err ? url : undefined);
         });
     }, [manualPath, setQrImage]);
+
+    if(!manualPath) return;
 
     const qrImageElement = qrImage !== undefined ? (
         <div>
