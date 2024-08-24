@@ -10,14 +10,14 @@ COPY . /build/
 RUN cd /build/ && npm run build
 
 FROM docker.io/openjdk:21-jdk-bookworm AS engine
-WORKDIR /build/
 
 RUN apt-get update && \
     apt-get install -y --no-install-recommends maven git && \
     rm -rf /var/lib/apt/lists/*
 
 # Build tank game engine to be included with the default image
-COPY engine /build/
+COPY . /build/
+WORKDIR /build/engine/
 RUN --mount=type=cache,target=/root/.m2 mvn clean package
 
 FROM node:20-alpine
@@ -37,7 +37,7 @@ ENV BUILD_INFO=${BUILD_INFO}
 # Copy everything over to the final image
 COPY src /app/src
 COPY --from=frontend /build/dist/ /app/www/
-COPY --from=engine /build/target/TankGame-*.jar /app/engine/
+COPY --from=engine /build/engine/target/TankGame-*.jar /app/engine/
 COPY entrypoint.sh /entrypoint.sh
 
 # Place some sample data in /data so users can try out the app
