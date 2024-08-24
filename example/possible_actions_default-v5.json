@@ -13,125 +13,6 @@
                 "day": 1,
                 "timestamp": 1200,
                 "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "start_of_day",
-                "day": 2,
-                "timestamp": 1724477880,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "start_of_day",
-                "day": 3,
-                "timestamp": 1724520974,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "spawn_lava",
-                "target": "D3",
-                "timestamp": 1724521973,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Josh",
-                "action": "move",
-                "target": "D3",
-                "timestamp": 1724521981,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Josh",
-                "action": "start_of_day",
-                "day": 4,
-                "timestamp": 1724522225,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Lena",
-                "action": "hasten",
-                "target": "Josh",
-                "timestamp": 1724522882,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Josh",
-                "action": "move",
-                "target": "A2",
-                "timestamp": 1724525100,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Josh",
-                "action": "start_of_day",
-                "day": 5,
-                "timestamp": 1724525162,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Lena",
-                "action": "slow",
-                "target": "Josh",
-                "timestamp": 1724525240,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Josh",
-                "action": "move",
-                "target": "A3",
-                "timestamp": 1724525288,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "spawn_wall",
-                "target": "B5",
-                "timestamp": 1724525308,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "start_of_day",
-                "day": 6,
-                "timestamp": 1724525365,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "start_of_day",
-                "day": 7,
-                "timestamp": 1724525369,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "start_of_day",
-                "day": 8,
-                "timestamp": 1724525371,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Lena",
-                "action": "heal",
-                "target": "Josh",
-                "timestamp": 1724525381,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "start_of_day",
-                "day": 9,
-                "timestamp": 1724525410,
-                "class": "log-entry-v1"
-            },
-            {
-                "subject": "Jason",
-                "action": "smite",
-                "target": "Josh",
-                "timestamp": 1724525415,
-                "class": "log-entry-v1"
             }
         ],
         "class": "log-book-v1"
@@ -270,11 +151,6 @@
         },
         "metaEntities": {
             "council": {
-                "coffer": 60,
-                "armistice": {
-                    "value": 0,
-                    "max": 100
-                },
                 "type": "council",
                 "players": [
                     {
