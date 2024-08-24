@@ -9,7 +9,8 @@ export class LogEntryFormatter {
     format(logEntry, gameState, version) {
         const formatFunction = this._formatFunctions[logEntry.type];
         if(!formatFunction) {
-            throw new Error(`Log entry type ${logEntry.type} is not supported`);
+            // throw new Error(`Log entry type ${logEntry.type} is not supported`);
+            return `Log entry type ${logEntry.type} is not supported`;
         }
 
         return formatFunction(logEntry.rawLogEntry, new FormatingHelpers(gameState, version, logEntry));

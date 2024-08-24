@@ -20,7 +20,7 @@ function mapTypeToClass(type, boardType, gameVersion) {
         return boardType == "entity" ? "EmptyUnit" : "WalkableFloor";
     }
 
-    const className = {
+    let className = {
         tank: "GenericTank",
         wall: "Wall",
         gold_mine: "GoldMine",
@@ -29,13 +29,13 @@ function mapTypeToClass(type, boardType, gameVersion) {
         unwalkable_floor: "UnwalkableFloor",
     }[type];
 
-    if(className === undefined) throw new Error(`Could not find class name for ${type}`);
+    if(className === undefined) className = type;//throw new Error(`Could not find class name for ${type}`);
 
     return className;
 }
 
 function mapClassToType(className) {
-    const type = {
+    let type = {
         Wall: "wall",
         GoldMine: "gold_mine",
         GenericTank: "tank",
@@ -47,7 +47,7 @@ function mapClassToType(className) {
         UnwalkableFloor: "unwalkable_floor",
     }[className];
 
-    if(type === undefined) throw new Error(`Could not find type for ${className}`);
+    if(type === undefined) type = className; // throw new Error(`Could not find type for ${className}`);
 
     return type;
 }
