@@ -30,8 +30,12 @@ export class TankDescriptor extends EntityDescriptor {
     }
 
     getBadge() {
-        const {actions} = this.entity.attributes;
+        let {actions} = this.entity.attributes;
         if(actions === undefined) return;
+
+        if(actions?.value !== undefined) {
+            actions = actions.value;
+        }
 
         return new Badge({
             text: actions,

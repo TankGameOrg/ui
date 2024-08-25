@@ -64,7 +64,7 @@ function actionFactory(engine) {
 // V4 is almost identical to v3 so let it reuse everything
 export const rawV3Config = {
     logFormatter: new LogEntryFormatter(baseEntryFunctions),
-    entryDescriptors: {
+    entityDescriptors: {
         tank: TankDescriptor,
         wall: Wall,
     },

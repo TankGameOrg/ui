@@ -6,6 +6,7 @@ import { UnwalkableFloor } from "./shared/unwalkable-floor.js";
 import { ShootActionSource } from "../game/possible-actions/shoot.js";
 import { Dice } from "../game/possible-actions/die.js";
 import { LavaDescriptor } from "./shared/lava.js";
+import { LootBoxDescriptor } from "./shared/loot-box.js";
 
 
 function getDiceForShot() {
@@ -33,6 +34,10 @@ function actionFactory(engine) {
 
 export const rawV5Config = {
     ...rawV4Config,
+    entityDescriptors: {
+        ...rawV4Config.entityDescriptors,
+        LootBox: LootBoxDescriptor,
+    },
     floorTileDescriptors: {
         ...rawV4Config.floorTileDescriptors,
         health_pool: HealthPoolDescriptor,
@@ -41,6 +46,7 @@ export const rawV5Config = {
         Lava: LavaDescriptor,
     },
     actionFactory,
+    manualPath: undefined,
 };
 
 export const version5 = new GameVersion(rawV5Config);
