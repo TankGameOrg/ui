@@ -3,7 +3,7 @@ import { EntityDescriptor, TileStyle, imageBackground } from "../base/descriptor
 const NUM_WALL_STAGES = 6;
 
 export class Wall extends EntityDescriptor {
-    getBackground() {
+    getTileStyle() {
         const durability = this.entity.attributes.durability;
 
         let status = "";
