@@ -23,7 +23,7 @@
                 "uniqueId": "1",
                 "attributes": {
                     "name": "Lena",
-                    "type": "councilor",
+                    "type": "tank",
                     "team": "abrams"
                 },
                 "class": "player-v1"
@@ -91,7 +91,7 @@
                     "class": "entity"
                 },
                 {
-                    "durability": 3,
+                    "health": 3,
                     "gold": 0,
                     "type": "tank",
                     "position": {

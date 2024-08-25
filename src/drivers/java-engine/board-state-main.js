@@ -106,7 +106,7 @@ function getAttributeName(name, type, rawAttributes) {
 function shouldKeepAttribute(attributeName, rawAttributes) {
     if(!attributeName.startsWith("$") || attributeName.endsWith("_MAX")) return false;
 
-    if(["$DEAD", "$POSITION", "$PLAYER_REF"].includes(attributeName)) {
+    if(["$DEAD", "$POSITION", "$PLAYER_REF", "$ONLY_LOOTABLE_BY"].includes(attributeName)) {
         return false;
     }
 

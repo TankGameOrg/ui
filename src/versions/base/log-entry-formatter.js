@@ -115,7 +115,7 @@ export function shoot(entry, formatter) {
 
     let damageInfo = "";
     if(entry.damage !== undefined) {
-        damageInfo = ` dealing $${entry.damage} damage`;
+        damageInfo = ` dealing ${entry.damage} damage`;
     }
 
     return `${entry.subject} ${verb}${damageInfo} ${target}${formatter.dieRoll("hit_roll", { prefix: " [", suffix: "]" })}`
