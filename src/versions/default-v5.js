@@ -5,6 +5,7 @@ import { HealthPoolDescriptor } from "./shared/health-pool.js";
 import { UnwalkableFloor } from "./shared/unwalkable-floor.js";
 import { ShootActionSource } from "../game/possible-actions/shoot.js";
 import { Dice } from "../game/possible-actions/die.js";
+import { LavaDescriptor } from "./shared/lava.js";
 
 
 function getDiceForShot() {
@@ -37,6 +38,7 @@ export const rawV5Config = {
         health_pool: HealthPoolDescriptor,
         unwalkable_floor: UnwalkableFloor,
         destructible_floor: DestructibleFloor,
+        Lava: LavaDescriptor,
     },
     actionFactory,
 };
