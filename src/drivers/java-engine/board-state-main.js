@@ -106,7 +106,7 @@ function getAttributeName(name, type, rawAttributes) {
 function shouldKeepAttribute(attributeName, rawAttributes) {
     if(!attributeName.startsWith("$") || attributeName.endsWith("_MAX")) return false;
 
-    if(["$DEAD", "$POSITION", "$PLAYER_REF", "$ONLY_LOOTABLE_BY"].includes(attributeName)) {
+    if(["$DEAD", "$POSITION", "$PLAYER_REF"].includes(attributeName)) {
         return false;
     }
 
@@ -125,6 +125,10 @@ function decodeAttributes(type, rawAttributes) {
 
         const actualName = getAttributeName(attributeName, type, rawAttributes);
         attributes[actualName] = rawAttributes[attributeName];
+
+        if(actualName == "only_lootable_by") {
+            attributes[actualName] = attributes[actualName].name;
+        }
 
         if(rawAttributes[attributeName + "_MAX"] !== undefined) {
             attributes[actualName] = {
