@@ -10,8 +10,8 @@ class Die {
         this._rawToDisplay = {};
         this.sideNames = [];
         for(const side of sides) {
-            const display = side.display !== undefined ? side.display : side;
             const value = side.value !== undefined ? side.value : side;
+            const display = side.display !== undefined ? side.display : value;
             this.sideNames.push(display);
             this._displayToRaw[display] = value;
             this._rawToDisplay[value] = { display, icon: side.icon };
@@ -20,7 +20,8 @@ class Die {
 
     roll() {
         const sideIdx = Math.floor(Math.random() * this.sides.length);
-        return this.sides[sideIdx].value;
+        const side = this.sides[sideIdx];
+        return side.value !== undefined ? side.value : side;
     }
 
     translateValue(display) {
@@ -37,6 +38,9 @@ export class Dice {
     constructor(count, dieName) {
         this.count = count;
         this.die = commonDice[dieName];
+        if(this.die === undefined) {
+            throw new Error(`No die named ${dieName}`);
+        }
     }
 
     static expandAll(dice) {
@@ -77,6 +81,26 @@ const commonDice = {
         sides: [
             { display: "hit", value: true, icon: "hit" },
             { display: "miss", value: false, icon: "" },
+        ]
+    }),
+    "d4": new Die({
+        name: "d4",
+        sides: [
+            1,
+            2,
+            3,
+            4,
+        ]
+    }),
+    "d6": new Die({
+        name: "d6",
+        sides: [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
         ]
     }),
 };

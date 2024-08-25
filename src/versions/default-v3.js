@@ -53,6 +53,7 @@ function getDiceForShot({ gameState, subject, target }) {
 function actionFactory(engine) {
     let actionSources = [
         new ShootActionSource({
+            diceField: "hit_roll",
             getDiceForTarget: getDiceForShot,
             playerCanShoot: player => player.type == "tank",
         }),
