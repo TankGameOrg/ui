@@ -8,14 +8,6 @@ import { GoldMineDescriptor } from "./shared/gold-mine.js";
 import { TankDescriptor } from "./shared/tank.js";
 import { Wall } from "./shared/wall.js";
 
-class V3WallDescriptor extends Wall {
-    wallUrls = {
-        1: "Wall-1",
-        2: "Wall-2",
-        3: "Wall-4",
-    };
-}
-
 function getDiceForShot({ gameState, subject, target }) {
     // First action doesn't have state but it will always be start of day
     if(!gameState) return [];
@@ -74,7 +66,7 @@ export const rawV3Config = {
     logFormatter: new LogEntryFormatter(baseEntryFunctions),
     entryDescriptors: {
         tank: TankDescriptor,
-        wall: V3WallDescriptor,
+        wall: Wall,
     },
     floorTileDescriptors: {
         gold_mine: GoldMineDescriptor,

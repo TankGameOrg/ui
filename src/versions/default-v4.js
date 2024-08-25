@@ -1,25 +1,9 @@
 import { GameVersion } from "./base/index.js";
 import { rawV3Config } from "./default-v3.js";
-import { Wall } from "./shared/wall.js";
 import { findGlobalCooldowns } from "./shared/global-cooldown.js";
-
-class V4WallDescriptor extends Wall {
-    wallUrls = {
-        1: "Wall-1",
-        2: "Wall-2",
-        3: "Wall-3",
-        4: "Wall-4",
-        5: "Wall-5",
-        6: "Wall-6",
-    };
-}
 
 export const rawV4Config = {
     ...rawV3Config,
-    entryDescriptors: {
-        ...rawV3Config.entryDescriptors,
-        wall: V4WallDescriptor,
-    },
     manualPath: "/manuals/default-v4.html",
     findCooldowns: findGlobalCooldowns,
 };

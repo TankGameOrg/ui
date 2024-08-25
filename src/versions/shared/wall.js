@@ -1,17 +1,21 @@
 import { EntityDescriptor, TileStyle, imageBackground } from "../base/descriptors.js";
 
-export class Wall extends EntityDescriptor {
-    static wallUrls = {};
+const NUM_WALL_STAGES = 6;
 
-    getTileStyle() {
+export class Wall extends EntityDescriptor {
+    getBackground() {
         const durability = this.entity.attributes.durability;
-        const url = this.wallUrls[durability];
-        if(!url) {
-            throw new Error(`Walls can't have a durability of ${durability}`);
+
+        let status = "";
+        if(durability.max !== undefined) {
+            status = Math.round((durability.value / durability.max) * NUM_WALL_STAGES);
+        }
+        else {
+            status = Math.min(durability, NUM_WALL_STAGES);
         }
 
         return new TileStyle({
-            background: imageBackground(url),
+            background: imageBackground(`Wall-${status}`),
         });
     }
 }
