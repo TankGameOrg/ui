@@ -15,9 +15,6 @@ function cloneObject(object, transform) {
 			if(!key.startsWith("__")) {
 	            value[key] = transform(key, object[key]);
 			}
-			else {
-				value[key] = object[key];
-			}
         }
 
         if(object[SERIALIZER_KEY]) {
