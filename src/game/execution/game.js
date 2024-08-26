@@ -145,7 +145,7 @@ export class Game {
         }
 
         if(this.getState() == "game-over") {
-            let winners = this._victoryInfo.winners.map(player => player.name).join(", ");
+            let winners = this._victoryInfo.winners.join(", ");
 
             const lastComa = winners.lastIndexOf(",");
             if(lastComa !== -1) {

@@ -75,11 +75,21 @@ export function gameStateFromRawState(rawGameState) {
     let victoryInfo;
 
     if(rawGameState.$WINNER?.length > 1) {
+        let winners = [rawGameState.$WINNER];
+        let victoryType = "last_team_standing";
+
+        if(rawGameState.$WINNER == "Council") {
+            victoryType = "armistice_vote";
+            winners = gameState.metaEntities.council.getPlayerRefs()
+                .map(ref => ref.getPlayer(gameState).attributes.name);
+        }
+        else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
+            victoryType = "last_tank_standing";
+        }
+
         victoryInfo = {
-            type: rawGameState.$WINNER == "Council" ? "armistice_vote" : "last_tank_standing",
-            winners: rawGameState.$WINNER == "Council" ?
-                gameState.metaEntities.council.getPlayerRefs().map(ref => ref.getPlayer(gameState)) :
-                [gameState.players.getPlayerByName(rawGameState.$WINNER)],
+            type: victoryType,
+            winners,
         };
     }
 
