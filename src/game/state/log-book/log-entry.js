@@ -1,4 +1,3 @@
-import { logger } from "#platform/logging.js";
 import { deserializer } from "../../../deserialization.js";
 import { Dice } from "../../possible-actions/die.js";
 

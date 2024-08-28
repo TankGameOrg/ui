@@ -96,10 +96,6 @@ export class ShootAction extends GenericPossibleAction {
             const dice = this._diceToRoll[logEntry.target];
 
             if(dice.length > 0) {
-                if(this._diceField === undefined) {
-                    throw new Error("Not set");
-                }
-
                 hitFields = [
                     new DiceLogFieldSpec({
                         name: this._diceField,

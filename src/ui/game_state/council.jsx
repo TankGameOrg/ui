@@ -49,10 +49,7 @@ function Section({ name, users, setSelectedUser, canSubmitAction, gameState }) {
                         </button>
                     ) : undefined;
 
-                    // TODO: Do better
-                    const powerBlerb = !hasEntitiesOnBoard ? ` (power = ${user.attributes.power})` : "";
-
-                    return <li key={user.name}>{user.name}{powerBlerb}{actionButton}</li>
+                    return <li key={user.name}>{user.name}{actionButton}</li>
                 })}
             </ul>
         </>
