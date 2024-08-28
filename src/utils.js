@@ -44,7 +44,7 @@ export function deepClone(object) {
 
     let newObject = {};
     for(const key of Object.keys(object)) {
-        if(typeof object == "object") {
+        if(typeof object == "object" && !key.startsWith("__")) {
             newObject[key] = deepClone(object[key]);
         }
         else {

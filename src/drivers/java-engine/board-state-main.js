@@ -10,7 +10,6 @@ import Entity from "../../game/state/board/entity.js";
 import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
-import { logger } from "#platform/logging.js";
 
 
 const deadTankAttributesToRemove = ["$ACTIONS", "$RANGE", "$BOUNTY"];
@@ -20,7 +19,7 @@ function mapTypeToClass(type, boardType, gameVersion) {
         return boardType == "entity" ? "EmptyUnit" : "WalkableFloor";
     }
 
-    const className = {
+    let className = {
         tank: "GenericTank",
         wall: "Wall",
         gold_mine: "GoldMine",
@@ -29,13 +28,13 @@ function mapTypeToClass(type, boardType, gameVersion) {
         unwalkable_floor: "UnwalkableFloor",
     }[type];
 
-    if(className === undefined) throw new Error(`Could not find class name for ${type}`);
+    if(className === undefined) className = type;//throw new Error(`Could not find class name for ${type}`);
 
     return className;
 }
 
 function mapClassToType(className) {
-    const type = {
+    let type = {
         Wall: "wall",
         GoldMine: "gold_mine",
         GenericTank: "tank",
@@ -47,7 +46,7 @@ function mapClassToType(className) {
         UnwalkableFloor: "unwalkable_floor",
     }[className];
 
-    if(type === undefined) throw new Error(`Could not find type for ${className}`);
+    if(type === undefined) type = className; // throw new Error(`Could not find type for ${className}`);
 
     return type;
 }
@@ -75,11 +74,21 @@ export function gameStateFromRawState(rawGameState) {
     let victoryInfo;
 
     if(rawGameState.$WINNER?.length > 1) {
+        let winners = [rawGameState.$WINNER];
+        let victoryType = "last_team_standing";
+
+        if(rawGameState.$WINNER == "Council") {
+            victoryType = "armistice_vote";
+            winners = gameState.metaEntities.council.getPlayerRefs()
+                .map(ref => ref.getPlayer(gameState).attributes.name);
+        }
+        else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
+            victoryType = "last_tank_standing";
+        }
+
         victoryInfo = {
-            type: rawGameState.$WINNER == "Council" ? "armistice_vote" : "last_tank_standing",
-            winners: rawGameState.$WINNER == "Council" ?
-                gameState.metaEntities.council.getPlayerRefs().map(ref => ref.getPlayer(gameState)) :
-                [gameState.players.getPlayerByName(rawGameState.$WINNER)],
+            type: victoryType,
+            winners,
         };
     }
 
@@ -104,7 +113,7 @@ function getAttributeName(name, type, rawAttributes) {
 }
 
 function shouldKeepAttribute(attributeName, rawAttributes) {
-    if(!attributeName.startsWith("$") || attributeName.endsWith("_MAX")) return false;
+    if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
 
     if(["$DEAD", "$POSITION", "$PLAYER_REF"].includes(attributeName)) {
         return false;
@@ -126,10 +135,15 @@ function decodeAttributes(type, rawAttributes) {
         const actualName = getAttributeName(attributeName, type, rawAttributes);
         attributes[actualName] = rawAttributes[attributeName];
 
-        if(rawAttributes[attributeName + "_MAX"] !== undefined) {
+        if(actualName == "only_lootable_by") {
+            attributes[actualName] = attributes[actualName].name;
+        }
+
+        const maxAttributeName = "$MAX_" + attributeName.replace("$", "");
+        if(rawAttributes[maxAttributeName] !== undefined) {
             attributes[actualName] = {
                 value: attributes[actualName],
-                max: rawAttributes[attributeName + "_MAX"],
+                max: rawAttributes[maxAttributeName],
             };
         }
     }
@@ -290,7 +304,7 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
     for(const attributeName of Object.keys(entity.attributes)) {
         let value = entity.attributes[attributeName];
         if(value.max !== undefined) {
-            attributes["$" + attributeName.toUpperCase() + "_MAX"] = value.max;
+            attributes["$MAX_" + attributeName.toUpperCase()] = value.max;
             value = value.value;
         }
 
@@ -307,6 +321,7 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
         }
 
         if(attributes.$DURABILITY === undefined) {
+            attributes.$MAX_DURABILITY = attributes.$MAX_HEALTH;
             attributes.$DURABILITY = attributes.$HEALTH;
             delete attributes.$HEALTH;
         }

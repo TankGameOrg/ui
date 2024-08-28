@@ -7,7 +7,8 @@ import { GenericPossibleAction } from "./generic-possible-action.js";
 import { LogFieldSpec } from "./log-field-spec.js";
 
 export class ShootActionSource {
-    constructor({ getDiceForTarget, playerCanShoot }) {
+    constructor({ diceField, getDiceForTarget, playerCanShoot }) {
+        this._diceField = diceField;
         this._getDiceForTarget = getDiceForTarget;
         this._playerCanShoot = playerCanShoot;
     }
@@ -37,6 +38,7 @@ export class ShootActionSource {
 
         return [
             new ShootAction({
+                diceField: this._diceField,
                 targets: range.map(position => {
                     position = position.humanReadable;
 
@@ -57,9 +59,10 @@ export class ShootActionSource {
 }
 
 export class ShootAction extends GenericPossibleAction {
-    constructor({ targets }) {
+    constructor({ targets, diceField }) {
         super({ actionName: "shoot", type: "shoot" });
         this._targets = targets;
+        this._diceField = diceField;
 
         this._diceToRoll = {};
         for(const target of targets) {
@@ -70,12 +73,14 @@ export class ShootAction extends GenericPossibleAction {
     static deserialize(rawShootAction) {
         return new ShootAction({
             targets: rawShootAction.targets,
+            diceField: rawShootAction.diceField,
         });
     }
 
     serialize() {
         return {
             targets: this._targets,
+            diceField: this._diceField,
         };
     }
 
@@ -93,7 +98,7 @@ export class ShootAction extends GenericPossibleAction {
             if(dice.length > 0) {
                 hitFields = [
                     new DiceLogFieldSpec({
-                        name: "hit_roll",
+                        name: this._diceField,
                         dice,
                     }),
                 ];
@@ -120,6 +125,10 @@ export class ShootAction extends GenericPossibleAction {
         if(rawLogEntry.hit_roll?.roll?.length > 0) {
             // If any dice hit the shot hits
             rawLogEntry.hit = !!rawLogEntry.hit_roll.roll.find(hit => hit);
+        }
+
+        if(rawLogEntry.damage_roll?.roll?.length > 0) {
+            rawLogEntry.damage = rawLogEntry.damage_roll.roll.reduce((total, die) => total + die, 0);
         }
 
         return rawLogEntry;

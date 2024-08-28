@@ -72,12 +72,18 @@ class FormatingHelpers {
 
 // Common log entries
 export const startOfDay = entry => `Start of day ${entry.day}`;
-export const buyAction = entry => `${entry.subject} traded ${entry.gold} gold for actions`
-export const donate = entry => `${entry.subject} donated ${entry.donation} pre-tax gold to ${entry.target}`
-export const upgradeRange = entry => `${entry.subject} upgraded their range`
-export const bounty = entry => `${entry.subject} placed a ${entry.bounty} gold bounty on ${entry.target}`
-export const stimulus = entry => `${entry.subject} granted a stimulus of 1 action to ${entry.target}`
-export const grantLife = entry => `${entry.subject} granted 1 life to ${entry.target}`
+export const buyAction = entry => `${entry.subject} traded ${entry.gold} gold for actions`;
+export const donate = entry => `${entry.subject} donated ${entry.donation} pre-tax gold to ${entry.target}`;
+export const upgradeRange = entry => `${entry.subject} upgraded their range`;
+export const bounty = entry => `${entry.subject} placed a ${entry.bounty} gold bounty on ${entry.target}`;
+export const stimulus = entry => `${entry.subject} granted a stimulus of 1 action to ${entry.target}`;
+export const grantLife = entry => `${entry.subject} granted 1 life to ${entry.target}`;
+export const spawnWall = entry => `${entry.subject} spawned a wall at ${entry.target}`;
+export const spawnLava = entry => `${entry.subject} spawned a lava at ${entry.target}`;
+export const smite = entry => `${entry.subject} smote ${entry.target}`;
+export const heal = entry => `${entry.subject} healed ${entry.target}`;
+export const slow = entry => `${entry.subject} slowed ${entry.target}`;
+export const hasten = entry => `${entry.subject} hastened ${entry.target}`;
 
 
 export function move(entry, formatter) {
@@ -90,14 +96,29 @@ export function move(entry, formatter) {
     return `${entry.subject} moved to ${location}`;
 }
 
+export function loot(entry, formatter) {
+    const location = formatter.describeLocation(entry.target, {
+        locationInParenthisis: false,
+        entity: false,
+        floor: true,
+    });
+
+    return `${entry.subject} looted ${location}`;
+}
+
 
 export function shoot(entry, formatter) {
-    const verb = entry.hit ? "shot" : "missed";
+    const verb = entry.hit || entry.hit === undefined ? "shot" : "missed";
     const target = formatter.describeLocation(entry.target, {
         locationInParenthisis: false,
     });
 
-    return `${entry.subject} ${verb} ${target}${formatter.dieRoll("hit_roll", { prefix: " [", suffix: "]" })}`
+    let damageInfo = "";
+    if(entry.damage !== undefined) {
+        damageInfo = ` dealing ${entry.damage} damage`;
+    }
+
+    return `${entry.subject} ${verb}${damageInfo} ${target}${formatter.dieRoll("hit_roll", { prefix: " [", suffix: "]" })}`
 }
 
 
@@ -111,4 +132,11 @@ export const baseEntryFunctions = {
     buy_action: buyAction,
     upgrade_range: upgradeRange,
     grant_life: grantLife,
+    loot,
+    hasten,
+    slow,
+    heal,
+    smite,
+    spawn_lava: spawnLava,
+    spawn_wall: spawnWall,
 };

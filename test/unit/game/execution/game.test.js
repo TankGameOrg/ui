@@ -35,7 +35,7 @@ function addDayTwo(game) {
     game.getInteractor().opts.onGameOver({
         type: "last_tank_standing",
         winners: [
-            new Player({ name: "Ted", }),
+            "Ted",
         ],
     });
 }

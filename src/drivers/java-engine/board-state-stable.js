@@ -42,8 +42,8 @@ export function gameStateFromRawState(rawGameState) {
         victoryInfo = {
             type: rawGameState.winner == "Council" ? "armistice_vote" : "last_tank_standing",
             winners: rawGameState.winner == "Council" ?
-                gameState.metaEntities.council.getPlayerRefs().map(ref => ref.getPlayer(gameState)) :
-                [gameState.players.getPlayerByName(rawGameState.winner)],
+                gameState.metaEntities.council.getPlayerRefs().map(ref => ref.getPlayer(gameState).attributes.name) :
+                [rawGameState.winner],
         };
     }
 

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "preact/hooks";
+import { useCallback, useMemo, useRef, useState } from "preact/hooks";
 import "./entity-tile.css";
 import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
@@ -27,12 +27,25 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
         );
     }) : undefined;
 
+    const entityPlayerRefs = entity.getPlayerRefs();
+    const attributes = useMemo(() => {
+        let allAttributes = entity.attributes;
+
+        entityPlayerRefs
+            .map(playerRef => playerRef.getPlayer(gameState))
+            .map(player => {
+                allAttributes = Object.assign({}, allAttributes, player.attributes);
+            });
+
+        return allAttributes;
+    }, [entity, entityPlayerRefs, gameState]);
+
     return (
         <>
             <div className="entity-details-title-wrapper">
                 <h2>{title}</h2>
             </div>
-            <AttributeList attributes={entity.attributes} versionConfig={versionConfig}></AttributeList>
+            <AttributeList attributes={attributes} versionConfig={versionConfig}></AttributeList>
             {takeActionButtons}
         </>
     )
