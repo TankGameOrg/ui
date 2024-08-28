@@ -12,9 +12,9 @@ function cloneObject(object, transform) {
     if(typeof value == "object") {
         value = Array.isArray(value) ? [] : {};
         for(const key of Object.keys(object)) {
-			if(!key.startsWith("__")) {
-	            value[key] = transform(key, object[key]);
-			}
+            if(!key.startsWith("__")) {
+                value[key] = transform(key, object[key]);
+            }
         }
 
         if(object[SERIALIZER_KEY]) {

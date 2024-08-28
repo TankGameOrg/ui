@@ -5,6 +5,7 @@ import { LogFieldSpec } from "../../../../src/game/possible-actions/log-field-sp
 import { DiceLogFieldSpec } from "../../../../src/game/possible-actions/dice-log-field-spec.js";
 
 const shoot = new ShootAction({
+    diceField: "hit_roll",
     targets: [
         { position: "B2", dice: [] },
         { position: "B4", dice: [new Dice(2, "hit die")] },
