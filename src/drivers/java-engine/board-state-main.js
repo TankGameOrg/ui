@@ -10,7 +10,6 @@ import Entity from "../../game/state/board/entity.js";
 import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
-import { logger } from "#platform/logging.js";
 
 
 const deadTankAttributesToRemove = ["$ACTIONS", "$RANGE", "$BOUNTY"];
@@ -114,7 +113,7 @@ function getAttributeName(name, type, rawAttributes) {
 }
 
 function shouldKeepAttribute(attributeName, rawAttributes) {
-    if(!attributeName.startsWith("$") || attributeName.endsWith("_MAX")) return false;
+    if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
 
     if(["$DEAD", "$POSITION", "$PLAYER_REF"].includes(attributeName)) {
         return false;
@@ -140,10 +139,11 @@ function decodeAttributes(type, rawAttributes) {
             attributes[actualName] = attributes[actualName].name;
         }
 
-        if(rawAttributes[attributeName + "_MAX"] !== undefined) {
+        const maxAttributeName = "$MAX_" + attributeName.replace("$", "");
+        if(rawAttributes[maxAttributeName] !== undefined) {
             attributes[actualName] = {
                 value: attributes[actualName],
-                max: rawAttributes[attributeName + "_MAX"],
+                max: rawAttributes[maxAttributeName],
             };
         }
     }
@@ -304,7 +304,7 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
     for(const attributeName of Object.keys(entity.attributes)) {
         let value = entity.attributes[attributeName];
         if(value.max !== undefined) {
-            attributes["$" + attributeName.toUpperCase() + "_MAX"] = value.max;
+            attributes["$MAX_" + attributeName.toUpperCase()] = value.max;
             value = value.value;
         }
 
@@ -321,6 +321,7 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
         }
 
         if(attributes.$DURABILITY === undefined) {
+            attributes.$MAX_DURABILITY = attributes.$MAX_HEALTH;
             attributes.$DURABILITY = attributes.$HEALTH;
             delete attributes.$HEALTH;
         }

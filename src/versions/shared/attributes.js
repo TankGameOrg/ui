@@ -12,6 +12,7 @@ export const commonAttributeDescriptors = {
     global_cooldown_end_time: AttributeDescriptor.make({ displayAs: "hidden" }),
     type: AttributeDescriptor.make({ displayAs: "hidden" }),
     previous_speed: AttributeDescriptor.make({ displayAs: "hidden" }),
+    name: AttributeDescriptor.make({ displayAs: "hidden" }),
     team: class extends AttributeDescriptor {
         getValueText() {
             return prettyifyName(this.attribute);
