@@ -69,12 +69,15 @@ export class LogEntry {
             .filter(field => field.value?.type == "die-roll");
 
         for(const rollField of rollFields) {
-            const dice = actions.find(action => action.getActionName() == this.type).getDiceFor(rollField.key, {
-                rawLogEntry: this.rawLogEntry,
-            });
+            const action = actions.find(action => action.getActionName() == this.type);
+            if(action) {
+                const dice = action.getDiceFor(rollField.key, {
+                    rawLogEntry: this.rawLogEntry,
+                });
 
-            this.dieRolls[rollField.key] = Dice.expandAll(dice)
-                .map((die, idx) => die.getSideFromValue(rollField.value.roll[idx]));
+                this.dieRolls[rollField.key] = Dice.expandAll(dice)
+                    .map((die, idx) => die.getSideFromValue(rollField.value.roll[idx]));
+            }
         }
 
         this.message = logEntryFormatter.formatLogEntry(this, previousState);

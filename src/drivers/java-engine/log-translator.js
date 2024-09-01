@@ -38,6 +38,7 @@ function convertToEngineEntry(logEntry) {
         target,
         subject,
         hit_roll: undefined,
+        damage_roll: undefined,
     };
 }
 
