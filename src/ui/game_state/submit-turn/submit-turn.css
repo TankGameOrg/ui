@@ -112,3 +112,7 @@
     text-decoration: line-through;
     color: #a00;
 }
+
+.select-action-errors-row {
+    padding-left: 10px;
+}

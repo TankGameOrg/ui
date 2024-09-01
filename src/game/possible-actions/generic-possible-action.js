@@ -7,7 +7,7 @@ export class GenericPossibleAction {
     constructor({ actionName, fieldSpecs, errors }) {
         this._actionName = actionName;
         this._fieldSpecs = fieldSpecs;
-        this._errors = errors;
+        this._errors = errors || [];
     }
 
     getActionName() {

@@ -1,13 +1,13 @@
 import "./submit-turn.css";
 import { submitTurn, usePossibleActionFactories } from "../../../drivers/rest/fetcher.js";
 import { ErrorMessage } from "../../error_message.jsx";
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { resetPossibleActions, selectActionType, setActionSpecificField, setLastError, setLastRollEntry, setPossibleActions, setSubject } from "../../../interface-adapters/build-turn.js";
-import { prettyifyName } from "../../../utils.js";
 import { LabelElement } from "./base.jsx";
 import { Select, SelectPosition } from "./select.jsx";
 import { Input } from "./input.jsx";
 import { DieRollResults, RollDice } from "./roll-dice.jsx";
+import { SelectAction } from "./select-action.jsx";
 
 export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, game, debug, entryId, builtTurnState, buildTurnDispatch, allowManualRolls }) {
     // Set this to undefined so we don't send a request for anthing other than the last turn
@@ -81,7 +81,6 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
                     value={builtTurnState.currentActionName}
                     setValue={selectAction}></SelectAction>
             </LabelElement>
-            <ErrorList errors={builtTurnState.currentErrors}></ErrorList>
             <SubmissionForm
                 builtTurnState={builtTurnState}
                 buildTurnDispatch={buildTurnDispatch}
@@ -172,43 +171,4 @@ function SubmissionForm({ builtTurnState, buildTurnDispatch, allowManualRolls })
             })}
         </>
     )
-}
-
-function ErrorList({ errors }) {
-    if(errors === undefined || errors.length === 0) {
-        return;
-    }
-
-    return (
-        <LabelElement key="errors" name="Action Unavailable">
-            <ul>
-                {errors.map(error => (
-                    <li key={error.toString()}>
-                        {error.toString()}
-                    </li>
-                ))}
-            </ul>
-        </LabelElement>
-    );
-}
-
-function SelectAction({ actions, value, setValue }) {
-    if(!actions) return;
-
-    return (
-        <div className="radio-container">
-            {actions.map((action) => {
-                const isAvailable = action.errors.length === 0;
-
-                return (
-                    <div key={action.name} className="radio-button-wrapper">
-                        <label>
-                            <input type="radio" value={action.name} onChange={() => setValue(action.name)} checked={action.name == value}/>
-                            <span className={isAvailable ? "" : "unavailable-action"}>{prettyifyName(action.name)}</span>
-                        </label>
-                    </div>
-                );
-            })}
-        </div>
-    );
 }
