@@ -6,19 +6,9 @@ import "../../game/state/game-state.js";
 import "../../game/state/log-book/log-entry.js";
 import "../../game/possible-actions/action-error.js";
 import { deserializer } from "../../deserialization.js";
+import { ServerError } from "./fetch-helper.js";
 
 const FETCH_FREQUENCY = 2; // seconds
-
-export class ServerError extends Error {
-    constructor(error) {
-        super(typeof error == "string" ? error : error.message);
-
-        if(typeof error == "object") {
-            this.code = error.code;
-            this.rawError = error;
-        }
-    }
-}
 
 function makeReactDataFetchHelper(options) {
     return (...args) => {
@@ -27,21 +17,7 @@ function makeReactDataFetchHelper(options) {
 
         const fetchData = useCallback(async () => {
             try {
-                if(options.resetBeforeFetch) {
-                    setData(undefined);
-                    setError(undefined);
-                }
-
-                if(options.shouldSendRequest && !options.shouldSendRequest(...args)) {
-                    return;
-                }
-
-                let url = options.url;
-                if(typeof options.url === "function") {
-                    url = options.url(...args);
-                }
-
-                const res = await fetch(url);
+                const res = await fetch(options.url);
 
                 if(!res.ok) {
                     setData(undefined);

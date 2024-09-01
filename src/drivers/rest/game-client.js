@@ -96,7 +96,7 @@ export function useGameClient(game, handler, dependencies=[]) {
 
     const client = game && getGameClient(game);
 
-    const wrappedHandler = useCallback(handler, dependencies);
+    const wrappedHandler = useCallback(handler, dependencies);  // eslint-disable-line
 
     const callHandler = useCallback(() => {
         if(client) {
