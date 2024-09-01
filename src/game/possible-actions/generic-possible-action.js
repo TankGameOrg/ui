@@ -4,10 +4,10 @@ import "./log-field-spec.js";
 
 
 export class GenericPossibleAction {
-    constructor({ actionName, fieldSpecs, type = "generic-possible-action" }) {
-        this.type = type;
+    constructor({ actionName, fieldSpecs, errors }) {
         this._actionName = actionName;
         this._fieldSpecs = fieldSpecs;
+        this._errors = errors;
     }
 
     getActionName() {
@@ -25,6 +25,7 @@ export class GenericPossibleAction {
         return {
             actionName: this._actionName,
             fieldSpecs: this._fieldSpecs,
+            errors: this._errors,
         };
     }
 
@@ -40,6 +41,10 @@ export class GenericPossibleAction {
 
     getParameterSpec(logEntry) {
         return this._fieldSpecs;
+    }
+
+    getErrors() {
+        return this._errors;
     }
 }
 

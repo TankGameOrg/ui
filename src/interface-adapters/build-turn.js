@@ -13,6 +13,7 @@ export function makeInitalState() {
         lastError: undefined,
         lastRollEntry: undefined,
         loading: true,
+        currentErrors: [],
     };
 }
 
@@ -64,6 +65,21 @@ function updateActionData(state) {
         throw new Error("An action must be selected before modifing action fields");
     }
 
+    const currentErrors = state._currentFactory.getErrors();
+
+    if(currentErrors.length > 0) {
+        return {
+            ...state,
+            currentSpecs: [],
+            locationSelector: {
+                isSelecting: false,
+            },
+            logBookEntry: {},
+            currentErrors,
+            isValid: false,
+        };
+    }
+
     // Build the entry to inform our factory
     let logBookEntry = buildLogEntry(state, state.currentSpecs, state.locationSelector);
     const currentSpecs = state._currentFactory.getParameterSpec(logBookEntry);
@@ -105,6 +121,7 @@ function updateActionData(state) {
         currentSpecs,
         locationSelector,
         logBookEntry,
+        currentErrors: [],
         isValid: state._currentFactory.isValidEntry(logBookEntry),
     };
 }
@@ -156,6 +173,7 @@ export function buildTurnReducer(state, invocation) {
             lastRollEntry: state.lastRollEntry,
             actions: Array.from(invocation.possibleActions || []).map(factory => ({
                 name: factory.getActionName(),
+                errors: factory.getErrors(),
             })),
         };
     }

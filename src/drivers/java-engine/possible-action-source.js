@@ -3,6 +3,7 @@ import { logger } from "#platform/logging.js";
 import { LogFieldSpec } from "../../game/possible-actions/log-field-spec.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
+import { ActionError } from "../../game/possible-actions/action-error.js";
 
 export class JavaEngineSource {
     constructor({ actionsToSkip = [] } = {}) {
@@ -29,15 +30,12 @@ export class JavaEngineSource {
             // This action will be handled by another factory
             if(this._actionsToSkip.has(actionName)) return;
 
-            // This action can't be submitted don't generate it
-            if(possibleAction.errors?.length > 0) return;
+            let {fieldSpecs, errors} = this._buildFieldSpecs(possibleAction.fields, gameState);
 
-            const fieldSpecs = this._buildFieldSpecs(possibleAction.fields, gameState);
-
-            // There is no way this action could be taken
-            if(!fieldSpecs) return;
+            errors = errors.concat(possibleAction.errors.map(error => new ActionError(error)));
 
             return new GenericPossibleAction({
+                errors,
                 subject: playerName,
                 actionName: actionName,
                 fieldSpecs,
@@ -53,15 +51,19 @@ export class JavaEngineSource {
     }
 
     _buildFieldSpecs(fields, gameState) {
-        let unSubmitableAction = false;
-        const specs = fields.map(field => {
+        let errors = [];
+        let fieldSpecs = fields.map(field => {
             const commonFields = {
                 name: field.name,
             };
 
             // No possible inputs for this action
             if(field.range?.length === 0) {
-                unSubmitableAction = true;
+                errors.push(new ActionError({
+                    category: "INVALID_DATA",
+                    message: `There are not valid options for '${field.name}'`
+                }));
+
                 return undefined;
             }
 
@@ -133,6 +135,10 @@ export class JavaEngineSource {
             });
         });
 
-        return unSubmitableAction ? undefined : specs;
+        if(errors.length > 0) {
+            fieldSpecs = [];
+        }
+
+        return {fieldSpecs, errors};
     }
 }

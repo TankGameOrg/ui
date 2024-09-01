@@ -1,6 +1,7 @@
 import { logger } from "#platform/logging.js";
 import { deserializer } from "../../deserialization.js";
 import { Position } from "../state/board/position.js";
+import { ActionError } from "./action-error.js";
 import { DiceLogFieldSpec } from "./dice-log-field-spec.js";
 import { Dice } from "./die.js";
 import { GenericPossibleAction } from "./generic-possible-action.js";
@@ -132,6 +133,11 @@ export class ShootAction extends GenericPossibleAction {
         }
 
         return rawLogEntry;
+    }
+
+    getErrors() {
+        return this._targets.length === 0 ?
+            [new ActionError({ category: "GENERIC", message: "No targets available" })] : [];
     }
 }
 

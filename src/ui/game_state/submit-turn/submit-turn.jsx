@@ -41,28 +41,8 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
         }
     }, [builtTurnState, buildTurnDispatch, refreshGameInfo, setStatus, game]);
 
-    // Reuse the select widget for choosing an action
-    const possibleActions = useMemo(() => {
-        let prettyToInternal = {};
-        let internalToPretty = {};
-        let options = [];
-
-        for(const action of builtTurnState.actions) {
-            const pretty = prettyifyName(action.name);
-            options.push(pretty);
-            prettyToInternal[pretty] = action.name;
-            internalToPretty[action.name] = pretty;
-        }
-
-        return {
-            options,
-            prettyToInternal,
-            internalToPretty,
-        };
-    }, [builtTurnState]);
-
     const selectAction = actionName => {
-        return buildTurnDispatch(selectActionType(possibleActions.prettyToInternal[actionName]));
+        return buildTurnDispatch(selectActionType(actionName));
     };
 
     if(builtTurnState.lastRollEntry) {
@@ -96,11 +76,12 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
     const actionSubmissionForm = builtTurnState.actions.length > 0 ? (
         <>
             <LabelElement name="Action">
-                <Select
-                    spec={possibleActions}
-                    value={possibleActions.internalToPretty[builtTurnState.currentActionName]}
-                    setValue={selectAction}></Select>
+                <SelectAction
+                    actions={builtTurnState?.actions}
+                    value={builtTurnState.currentActionName}
+                    setValue={selectAction}></SelectAction>
             </LabelElement>
+            <ErrorList errors={builtTurnState.currentErrors}></ErrorList>
             <SubmissionForm
                 builtTurnState={builtTurnState}
                 buildTurnDispatch={buildTurnDispatch}
@@ -191,4 +172,43 @@ function SubmissionForm({ builtTurnState, buildTurnDispatch, allowManualRolls })
             })}
         </>
     )
+}
+
+function ErrorList({ errors }) {
+    if(errors === undefined || errors.length === 0) {
+        return;
+    }
+
+    return (
+        <LabelElement key="errors" name="Action Unavailable">
+            <ul>
+                {errors.map(error => (
+                    <li key={error.toString()}>
+                        {error.toString()}
+                    </li>
+                ))}
+            </ul>
+        </LabelElement>
+    );
+}
+
+function SelectAction({ actions, value, setValue }) {
+    if(!actions) return;
+
+    return (
+        <div className="radio-container">
+            {actions.map((action) => {
+                const isAvailable = action.errors.length === 0;
+
+                return (
+                    <div key={action.name} className="radio-button-wrapper">
+                        <label>
+                            <input type="radio" value={action.name} onChange={() => setValue(action.name)} checked={action.name == value}/>
+                            <span className={isAvailable ? "" : "unavailable-action"}>{prettyifyName(action.name)}</span>
+                        </label>
+                    </div>
+                );
+            })}
+        </div>
+    );
 }

@@ -33,6 +33,10 @@ export class StartOfDayFactory extends GenericPossibleAction {
             }),
         ];
     }
+
+    getErrors() {
+        return [];
+    }
 }
 
 deserializer.registerClass("start-of-day-factory", StartOfDayFactory);
