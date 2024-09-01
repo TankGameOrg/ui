@@ -84,23 +84,6 @@ export const useGameList = makeReactDataFetchHelper({
     frequency: FETCH_FREQUENCY,
 });
 
-export const useGameInfo = makeReactDataFetchHelper({
-    shouldSendRequest: game => game !== undefined,
-    url: game => `/api/game/${game}/`,
-    frequency: FETCH_FREQUENCY,
-});
-
-export const useGameState = makeReactDataFetchHelper({
-    shouldSendRequest: (game, entryId) => game !== undefined && entryId !== undefined,
-    url: (game, entryId) => `/api/game/${game}/turn/${entryId}`,
-});
-
-export const usePossibleActionFactories = makeReactDataFetchHelper({
-    resetBeforeFetch: true,
-    shouldSendRequest: (game, user, entryId) => game !== undefined && user !== undefined && entryId !== undefined,
-    url: (game, user, entryId) => `/api/game/${game}/possible-actions/${user}/${entryId}`,
-});
-
 export const useAvilableEngines = makeReactDataFetchHelper({
     url: "/api/engine/",
     frequency: FETCH_FREQUENCY,
@@ -125,19 +108,6 @@ async function fetchHelper(url, jsonBody) {
     if(!result.success) throw new Error(result.error);
 
     return result;
-}
-
-export async function submitTurn(game, logBookEntry) {
-    const result = await fetchHelper(`/api/game/${game}/turn`, logBookEntry);
-    return result.entry;
-}
-
-export async function reloadGame(gameName) {
-    await fetchHelper(`/api/game/${gameName}/reload`);
-}
-
-export async function reloadAllGames() {
-    await fetchHelper("/api/games/reload");
 }
 
 export async function selectEngineForVersion(gameVersion, engineId) {

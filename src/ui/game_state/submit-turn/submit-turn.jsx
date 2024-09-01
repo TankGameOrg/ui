@@ -1,5 +1,4 @@
 import "./submit-turn.css";
-import { submitTurn, usePossibleActionFactories } from "../../../drivers/rest/fetcher.js";
 import { ErrorMessage } from "../../error_message.jsx";
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { resetPossibleActions, selectActionType, setActionSpecificField, setLastError, setLastRollEntry, setPossibleActions, setSubject } from "../../../interface-adapters/build-turn.js";
@@ -8,11 +7,16 @@ import { Select, SelectPosition } from "./select.jsx";
 import { Input } from "./input.jsx";
 import { DieRollResults, RollDice } from "./roll-dice.jsx";
 import { SelectAction } from "./select-action.jsx";
+import { getGameClient, useGameClient } from "../../../drivers/rest/game-client.js";
 
-export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, game, debug, entryId, builtTurnState, buildTurnDispatch, allowManualRolls }) {
-    // Set this to undefined so we don't send a request for anthing other than the last turn
-    const possibleActionsEntryId = canSubmitAction && isLatestEntry ? entryId : undefined;
-    const [actionFactories, error] = usePossibleActionFactories(game, builtTurnState.subject, possibleActionsEntryId);
+export function SubmitTurn({ isLatestEntry, canSubmitAction, game, debug, builtTurnState, buildTurnDispatch, allowManualRolls }) {
+    const [actionFactories, error] = useGameClient(game, client => {
+        // Don't send a request for anthing other than the last turn
+        if(canSubmitAction && isLatestEntry && builtTurnState.subject) {
+            return client.getPossibleActions(builtTurnState.subject);
+        }
+    }, [builtTurnState.subject, canSubmitAction, isLatestEntry]);
+
     const [status, setStatus] = useState();
 
     useEffect(() => {
@@ -26,10 +30,9 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
             buildTurnDispatch(setLastError(undefined));
 
             try {
-                const lastEntry = await submitTurn(game, builtTurnState.logBookEntry);
+                const lastEntry = await getGameClient(game).submitTurn(builtTurnState.logBookEntry);
 
                 // Reset the form
-                refreshGameInfo();
                 buildTurnDispatch(resetPossibleActions());
                 buildTurnDispatch(setLastRollEntry(lastEntry));
             }
@@ -39,7 +42,7 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
 
             setStatus(undefined);
         }
-    }, [builtTurnState, buildTurnDispatch, refreshGameInfo, setStatus, game]);
+    }, [builtTurnState, buildTurnDispatch, setStatus, game]);
 
     const selectAction = actionName => {
         return buildTurnDispatch(selectActionType(actionName));
