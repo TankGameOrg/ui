@@ -13,14 +13,16 @@ function convertSubject(logEntry) {
 function convertToEngineEntry(logEntry) {
     // Attempt to parse a target as a position and then switch to a player ref
     let target;
-    try {
-        target = buildPosition(new Position(logEntry.target));
-    }
-    catch(err) {
-        target = {
-            "class": "PlayerRef",
-            "name": logEntry.target,
-        };
+    if(logEntry.target !== undefined) {
+        try {
+            target = buildPosition(new Position(logEntry.target));
+        }
+        catch(err) {
+            target = {
+                "class": "PlayerRef",
+                "name": logEntry.target,
+            };
+        }
     }
 
     let subject;
@@ -35,14 +37,18 @@ function convertToEngineEntry(logEntry) {
         ...logEntry,
         target,
         subject,
+        hit_roll: undefined,
     };
 }
 
 export function convertLogEntry(logEntry, isMainBranch) {
-    logEntry = convertSubject(logEntry);
+    logEntry = logEntry.withoutStateInfo();
 
     if(isMainBranch) {
-        logEntry = convertToEngineEntry(logEntry);
+        logEntry = convertToEngineEntry(logEntry.rawLogEntry);
+    }
+    else {
+        logEntry = convertSubject(logEntry);
     }
 
     return logEntry;
