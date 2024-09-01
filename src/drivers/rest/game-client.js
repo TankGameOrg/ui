@@ -6,6 +6,7 @@ class GameClient {
         this._game = game;
         this._gameStateCache = new Map();
         this._gameInfoHandlers = new Set();
+        this._possibleActionHandlers = new Set();
     }
 
     onGameInfoUpdate(handler) {
@@ -14,17 +15,39 @@ class GameClient {
         return () => this._gameInfoHandlers.delete(handler);
     }
 
+    onPossibleActionUpdate(name, handler) {
+        const registration = {name, handler};
+        this._possibleActionHandlers.add(registration);
+
+        return () => this._possibleActionHandlers.delete(registration);
+    }
+
     pollGameInfo() {
         this._gameInfo = undefined;
         // Fetch the new data and trigger an event when it's done
         this.getGameInfo()
             .catch(() => {})
-            .then(() => this._triggerGameInfoUpdate());
+            .then(gameInfo => {
+                this._triggerGameInfoUpdate();
+
+                if(gameInfo && gameInfo.logBook.getLastEntryId() != this._lastLastEntryId) {
+                    this._lastLastEntryId = gameInfo.logBook.getLastEntryId();
+                    this._triggerPossibleActionsUpdate();
+                }
+            });
     }
 
     _triggerGameInfoUpdate() {
         for(const handler of this._gameInfoHandlers) {
             handler();
+        }
+    }
+
+    _triggerPossibleActionsUpdate(user) {
+        for(const registration of this._possibleActionHandlers) {
+            if(user === undefined || user === registration.name) {
+                registration.handler();
+            }
         }
     }
 
@@ -47,7 +70,21 @@ class GameClient {
     async getPossibleActions(user) {
         const {logBook} = await this.getGameInfo();
 
-        return await fetchHelper(`/api/game/${this._game}/possible-actions/${user}/${logBook.getLastEntryId()}`);
+        const actions = await fetchHelper(`/api/game/${this._game}/possible-actions/${user}/${logBook.getLastEntryId()}`);
+
+        // If any of these errors expire refresh the possible actions when they do
+        const timeToRefresh = actions
+            .flatMap(action => action.getErrors())
+            .map(error => error.getTimeToExpiration())
+            .filter(expiration => !isNaN(expiration))
+            .reduce((minTime, time) => Math.min(minTime, time), Infinity);
+
+        clearTimeout(this._possibleActionsRefreshHandle);
+        if(timeToRefresh < Infinity) {
+            this._possibleActionsRefreshHandle = setTimeout(() => this._triggerPossibleActionsUpdate(user), timeToRefresh);
+        }
+
+        return actions;
     }
 
     async submitTurn(logBookEntry) {
@@ -67,6 +104,7 @@ class GameClient {
 
     invalidateCache() {
         this._gameStateCache = new Map();
+        this._lastLastEntryId = undefined;
         this.pollGameInfo();
     }
 }
@@ -90,7 +128,7 @@ export async function reloadAllGames() {
     }
 }
 
-export function useGameClient(game, handler, dependencies=[]) {
+export function useGameClient(game, handler, dependencies=[], { possibleActionsUser } = {}) {
     const [result, setResult] = useState(undefined);
     const [error, setError] = useState(undefined);
 
@@ -116,9 +154,14 @@ export function useGameClient(game, handler, dependencies=[]) {
         callHandler();
 
         if(client) {
-            return client.onGameInfoUpdate(() => callHandler());
+            if(possibleActionsUser !== undefined) {
+                return client.onPossibleActionUpdate(possibleActionsUser, () => callHandler());
+            }
+            else {
+                return client.onGameInfoUpdate(() => callHandler());
+            }
         }
-    }, [callHandler, client]);
+    }, [callHandler, client, possibleActionsUser]);
 
     return [result, error];
 }

@@ -15,7 +15,7 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, game, debug, builtT
         if(canSubmitAction && isLatestEntry && builtTurnState.subject) {
             return client.getPossibleActions(builtTurnState.subject);
         }
-    }, [builtTurnState.subject, canSubmitAction, isLatestEntry]);
+    }, [builtTurnState.subject, canSubmitAction, isLatestEntry], { possibleActionsUser: builtTurnState.subject });
 
     const [status, setStatus] = useState();
 
