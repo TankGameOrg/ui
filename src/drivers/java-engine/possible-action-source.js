@@ -28,7 +28,7 @@ export class JavaEngineSource {
             // This action will be handled by another factory
             if(this._actionsToSkip.has(actionName)) return;
 
-            let {fieldSpecs, errors} = this._buildFieldSpecs(possibleAction.fields);
+            let {fieldSpecs, errors} = this._buildFieldSpecs(possibleAction.fields, gameState);
 
             errors = errors.concat(possibleAction.errors.map(error => new ActionError(error)));
 
@@ -48,12 +48,12 @@ export class JavaEngineSource {
         return new Position(tank.$POSITION !== undefined ? tank.$POSITION : tank.position);
     }
 
-    _buildFieldSpecs(fields) {
+    _buildFieldSpecs(fields, gameState) {
         let errors = [];
         let fieldSpecs = fields.map(field => {
             // EnumeratedLogFieldSpec
             if(field.options !== undefined) {
-                const {spec, error} = this._buildEnumeratedFieldSpec(field);
+                const {spec, error} = this._buildEnumeratedFieldSpec(field, gameState);
                 if(error !== undefined) {
                     errors.push(error);
                     return;
@@ -72,7 +72,7 @@ export class JavaEngineSource {
         return {fieldSpecs, errors};
     }
 
-    _buildEnumeratedFieldSpec(field) {
+    _buildEnumeratedFieldSpec(field, gameState) {
         // No possible inputs for this action
         if(field.options?.length === 0) {
             return {
@@ -85,6 +85,7 @@ export class JavaEngineSource {
 
         let type = "select";
         let options;
+        let playerPositions;
         switch(field.data_type) {
             case "Position":
                 type = "select-position";
@@ -92,12 +93,36 @@ export class JavaEngineSource {
                 break;
 
             case "PlayerRef":
-                options = field.options.map(option => {
-                    return {
-                        display: option.pretty_name,
-                        value: option.value.name,
-                    };
+                // If all of our players exist on the board use the position selector instead of the regular select
+                playerPositions = field.options.map(option => {
+                    const player = gameState.players.getPlayerByName(option.value.name);
+                    if(!player) {
+                        throw new Error(`${option.value.name} is not the name of a known player`);
+                    }
+
+                    const entities = gameState.getEntitiesByPlayer(player)
+                        .filter(entity => entity.position !== undefined);
+
+                    if(entities.length > 0) {
+                        return {
+                            position: entities[0].position.humanReadable,
+                            value: player.name,
+                        };
+                    }
                 });
+
+                if(playerPositions.find(position => position === undefined)) {
+                    options = field.options.map(option => {
+                        return {
+                            display: option.pretty_name,
+                            value: option.value.name,
+                        };
+                    });
+                }
+                else {
+                    type = "select-position";
+                    options = playerPositions;
+                }
                 break;
 
             // Any native JSON data type
