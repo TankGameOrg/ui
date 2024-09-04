@@ -1,7 +1,5 @@
 import { GenericPossibleAction } from "../../game/possible-actions/generic-possible-action.js";
-import { logger } from "#platform/logging.js";
 import { LogFieldSpec } from "../../game/possible-actions/log-field-spec.js";
-import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
 import { ActionError } from "../../game/possible-actions/action-error.js";
 
@@ -30,7 +28,7 @@ export class JavaEngineSource {
             // This action will be handled by another factory
             if(this._actionsToSkip.has(actionName)) return;
 
-            let {fieldSpecs, errors} = this._buildFieldSpecs(possibleAction.fields, gameState);
+            let {fieldSpecs, errors} = this._buildFieldSpecs(possibleAction.fields);
 
             errors = errors.concat(possibleAction.errors.map(error => new ActionError(error)));
 
@@ -50,89 +48,21 @@ export class JavaEngineSource {
         return new Position(tank.$POSITION !== undefined ? tank.$POSITION : tank.position);
     }
 
-    _buildFieldSpecs(fields, gameState) {
+    _buildFieldSpecs(fields) {
         let errors = [];
         let fieldSpecs = fields.map(field => {
-            const commonFields = {
-                name: field.name,
-            };
+            // EnumeratedLogFieldSpec
+            if(field.options !== undefined) {
+                const {spec, error} = this._buildEnumeratedFieldSpec(field);
+                if(error !== undefined) {
+                    errors.push(error);
+                    return;
+                }
 
-            // No possible inputs for this action
-            if(field.range?.length === 0) {
-                errors.push(new ActionError({
-                    category: "INVALID_DATA",
-                    message: `There are not valid options for '${field.name}'`
-                }));
-
-                return undefined;
+                return spec;
             }
 
-            // Handle the custom data types
-            if(field.data_type == "tank") {
-                return new LogFieldSpec({
-                    type: "select-position",
-                    options: field.range.map(tank => {
-                        const entities = tank instanceof Player && gameState.getEntitiesByPlayer(tank);
-                        const position = (entities?.[0]?.position || this._getPositionFromJava(tank)).humanReadable;
-                        if(typeof position !== "string") {
-                            logger.error({
-                                msg: "Expected a object with position or player",
-                                obj: tank,
-                            });
-                            throw new Error(`Got bad data expected a position but got ${position}`);
-                        }
-
-                        const name = tank.name || tank.$PLAYER_REF.name;
-
-                        return {
-                            position,
-                            value: name,
-                        };
-                    }),
-                    ...commonFields,
-                });
-            }
-
-            if(field.data_type == "position") {
-                return new LogFieldSpec({
-                    type: "select-position",
-                    options: field.range.map(position => {
-                        position = new Position(position).humanReadable;
-
-                        return {
-                            position,
-                            value: position,
-                        };
-                    }),
-                    ...commonFields,
-                });
-            }
-
-            // Generic data type with a list of options
-            if(field.range?.length > 0) {
-                let options = field.range;
-                let description;
-
-                return new LogFieldSpec({
-                    type: "select",
-                    options,
-                    description,
-                    ...commonFields,
-                });
-            }
-
-            // Data types with no options
-            if(field.data_type == "integer") {
-                return new LogFieldSpec({
-                    type: "input-number",
-                    ...commonFields,
-                });
-            }
-
-            return new LogFieldSpec({
-                type: "input",
-                ...commonFields,
-            });
+            throw new Error("Engine gave us an invalid LogFieldSpec");
         });
 
         if(errors.length > 0) {
@@ -140,5 +70,54 @@ export class JavaEngineSource {
         }
 
         return {fieldSpecs, errors};
+    }
+
+    _buildEnumeratedFieldSpec(field) {
+        // No possible inputs for this action
+        if(field.options?.length === 0) {
+            return {
+                error: new ActionError({
+                    category: "INVALID_DATA",
+                    message: `There are not valid options for '${field.field_name}'`
+                })
+            };
+        }
+
+        let type = "select";
+        let options;
+        switch(field.data_type) {
+            case "Position":
+                type = "select-position";
+                options = field.options.map(option => new Position(option.value).humanReadable);
+                break;
+
+            case "PlayerRef":
+                options = field.options.map(option => {
+                    return {
+                        display: option.pretty_name,
+                        value: option.value.name,
+                    };
+                });
+                break;
+
+            // Any native JSON data type
+            case undefined:
+                options = field.options.map(option => ({
+                    display: option.pretty_name,
+                    value: option.value,
+                }));
+                break;
+
+            default:
+                throw new Error(`Unsupported data type: ${field.data_type}`);
+        }
+
+        return {
+            spec: new LogFieldSpec({
+                name: field.field_name,
+                type,
+                options,
+            }),
+        };
     }
 }

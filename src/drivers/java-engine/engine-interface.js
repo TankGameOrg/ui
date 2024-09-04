@@ -130,12 +130,12 @@ class TankGameEngine {
             throw new Error("Failed to find shoot action");
         }
 
-        const targets = shootAction.fields.find(field => field.name == "target");
+        const targets = shootAction.fields.find(field => field.field_name == "target_position");
         if(!targets) {
             return [];
         }
 
-        return targets.range;
+        return targets.options.map(option => option.value);
     }
 }
 
