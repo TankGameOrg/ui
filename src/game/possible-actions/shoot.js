@@ -1,9 +1,7 @@
 import { logger } from "#platform/logging.js";
-import { deserializer } from "../../deserialization.js";
 import { Position } from "../state/board/position.js";
 import { ActionError } from "./action-error.js";
 import { DiceLogFieldSpec } from "./dice-log-field-spec.js";
-import { Dice } from "./die.js";
 import { GenericPossibleAction } from "./generic-possible-action.js";
 import { LogFieldSpec } from "./log-field-spec.js";
 
@@ -38,107 +36,47 @@ export class ShootActionSource {
         }).filter(position => position && gameState.board.isInBounds(position));
 
         return [
-            new ShootAction({
-                diceField: this._diceField,
-                targets: range.map(position => {
-                    position = position.humanReadable;
+            new GenericPossibleAction({
+                actionName: "shoot",
+                errors: range.length === 0 ?
+                    [new ActionError({ category: "GENERIC", message: "No targets available" })] : [],
+                fieldSpecs: [
+                    new LogFieldSpec({
+                        name: "target",
+                        type: "select-position",
+                        options: range.map(position => position.humanReadable),
+                        nestedSpecsByValue: range.map(position => {
+                            let hitFields = [];
 
-                    const dice = this._getDiceForTarget({
-                        gameState,
-                        subject: playerName,
-                        target: position,
-                    });
+                            const dice = this._getDiceForTarget({
+                                gameState,
+                                subject: playerName,
+                                target: position,
+                            });
 
-                    return {
-                        position,
-                        dice,
-                    };
-                })
+                            if(dice.length > 0) {
+                                hitFields = [
+                                    new DiceLogFieldSpec({
+                                        name: this._diceField,
+                                        dice,
+                                    }),
+                                ];
+                            }
+                            else {
+                                hitFields = [
+                                    new LogFieldSpec({
+                                        name: "hit",
+                                        type: "set-value",
+                                        value: true,
+                                    })
+                                ];
+                            }
+
+                            return [position.humanReadable, hitFields];
+                        }),
+                    }),
+                ],
             }),
         ];
     }
 }
-
-export class ShootAction extends GenericPossibleAction {
-    constructor({ targets, diceField }) {
-        super({ actionName: "shoot", type: "shoot" });
-        this._targets = targets;
-        this._diceField = diceField;
-
-        this._diceToRoll = {};
-        for(const target of targets) {
-            this._diceToRoll[target.position] = target.dice;
-        }
-    }
-
-    static deserialize(rawShootAction) {
-        return new ShootAction({
-            targets: rawShootAction.targets,
-            diceField: rawShootAction.diceField,
-        });
-    }
-
-    serialize() {
-        return {
-            targets: this._targets,
-            diceField: this._diceField,
-        };
-    }
-
-    getParameterSpec(logEntry) {
-        const targetSpec = new LogFieldSpec({
-            name: "target",
-            type: "select-position",
-            options: this._targets.map(target => target.position),
-        });
-
-        let hitFields = [];
-        if(logEntry.target) {
-            const dice = this._diceToRoll[logEntry.target];
-
-            if(dice.length > 0) {
-                hitFields = [
-                    new DiceLogFieldSpec({
-                        name: this._diceField,
-                        dice,
-                    }),
-                ];
-            }
-            else {
-                hitFields = [
-                    new LogFieldSpec({
-                        name: "hit",
-                        type: "set-value",
-                        value: true,
-                    })
-                ];
-            }
-        }
-
-        return [targetSpec, ...hitFields];
-    }
-
-    getDiceFor(fieldName, { rawLogEntry }) {
-        return this._diceToRoll[rawLogEntry.target];
-    }
-
-    finalizeLogEntry(rawLogEntry) {
-        if(rawLogEntry.hit_roll?.roll?.length > 0) {
-            // If any dice hit the shot hits
-            rawLogEntry.hit = !!rawLogEntry.hit_roll.roll.find(hit => hit);
-        }
-
-        if(rawLogEntry.damage_roll?.roll?.length > 0) {
-            rawLogEntry.damage = rawLogEntry.damage_roll.roll.reduce((total, die) => total + die, 0);
-        }
-
-        return rawLogEntry;
-    }
-
-    getErrors() {
-        return this._targets.length === 0 ?
-            [new ActionError({ category: "GENERIC", message: "No targets available" })] : [];
-    }
-}
-
-deserializer.registerClass("shoot-action", ShootAction);

@@ -10,7 +10,8 @@ const VALID_TYPES = [
 ];
 
 export class LogFieldSpec {
-    constructor({ name, display, type, options, value, description }) {
+    constructor(opts) {
+        let { name, display, type, options, value, description, nestedSpecsByValue } = opts;
         if(!VALID_TYPES.includes(type)) {
             throw new Error(`Invalid log field spec type ${type}`);
         }
@@ -28,6 +29,12 @@ export class LogFieldSpec {
         this.description = description;
         this.type = type;
         this.hidden = type == "set-value";
+
+        if(Array.isArray(nestedSpecsByValue)) {
+            nestedSpecsByValue = new Map(nestedSpecsByValue);
+        }
+
+        this.nestedSpecsByValue = nestedSpecsByValue;
 
         if(options) {
             this._origOptions = options;
@@ -70,6 +77,8 @@ export class LogFieldSpec {
             options: this._origOptions,
             value: this.options?.[0],
             description: this.description,
+            nestedSpecsByValue: this.nestedSpecsByValue !== undefined ?
+                Array.from(this.nestedSpecsByValue.entries()) : undefined,
         };
     }
 
