@@ -14,7 +14,7 @@ export class GenericPossibleAction {
         this._nestedSpecs = new Map();
         if(this._fieldSpecs !== undefined) {
             for(const fieldSpec of this._fieldSpecs) {
-                if(fieldSpec.nestedSpecsByValue !== undefined) {
+                if(fieldSpec.nestedSpecsByValue?.size > 0) {
                     this._nestedSpecs.set(fieldSpec.name, fieldSpec.nestedSpecsByValue);
                 }
             }

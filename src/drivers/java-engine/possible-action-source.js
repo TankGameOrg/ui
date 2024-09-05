@@ -2,6 +2,7 @@ import { GenericPossibleAction } from "../../game/possible-actions/generic-possi
 import { LogFieldSpec } from "../../game/possible-actions/log-field-spec.js";
 import { Position } from "../../game/state/board/position.js";
 import { ActionError } from "../../game/possible-actions/action-error.js";
+import { logger } from "#platform/logging.js";
 
 export class JavaEngineSource {
     constructor({ actionsToSkip = [] } = {}) {
@@ -137,11 +138,30 @@ export class JavaEngineSource {
                 throw new Error(`Unsupported data type: ${field.data_type}`);
         }
 
+        // Assumption the indexes in field.options and options point to the same value
+        const nestedSpecsByValue = field.options
+            .filter(option => option.nested_fields !== undefined)
+            .map((option, index) => {
+                const {fieldSpecs, errors} = this._buildFieldSpecs(option.nested_fields, gameState);
+                if(errors?.length > 0) {
+                    logger.error({
+                        msg: "Errors in nested specs are not supported",
+                        field,
+                        errors,
+                    });
+
+                    throw new Error("Errors in nested specs are not supported");
+                }
+
+                return [options[index], fieldSpecs];
+            });
+
         return {
             spec: new LogFieldSpec({
                 name: field.field_name,
                 type,
                 options,
+                nestedSpecsByValue,
             }),
         };
     }
