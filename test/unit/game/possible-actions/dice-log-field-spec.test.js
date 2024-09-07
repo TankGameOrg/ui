@@ -4,7 +4,7 @@ import { Dice } from "../../../../src/game/possible-actions/die.js";
 
 const hitField = new DiceLogFieldSpec({
     dice: [
-        new Dice(2, "hit die"),
+        new Dice(2, { name: "hit die" }),
     ],
 });
 

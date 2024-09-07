@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { Dice } from "../../../../src/game/possible-actions/die.js";
 
-const dice = new Dice(3, "hit die");
+const dice = new Dice(3,  { name: "hit die" });
 
 describe("Dice", () => {
     it("can translate die sides", () => {

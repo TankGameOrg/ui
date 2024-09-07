@@ -1,5 +1,4 @@
 import { Position } from "../../game/state/board/position.js";
-import { PlayerRef } from "../../game/state/players/player.js";
 import { buildPosition } from "./board-state-main.js";
 
 const COUNCIL_ACTIONS = ["bounty", "grant_life", "stimulus"];
@@ -13,21 +12,6 @@ function convertSubject(logEntry) {
 
 function convertToEngineEntry(logEntry) {
     logEntry = Object.assign({}, logEntry);
-
-    // Attempt to parse a target as a position and then switch to a player ref
-    if(logEntry.target !== undefined) {
-        try {
-            // Check if this is a valid position
-            new Position(logEntry.target);
-
-            logEntry.target_position = logEntry.target;
-            delete logEntry.target;
-        }
-        catch(err) {
-            logEntry.target_player = logEntry.target;
-            delete logEntry.target;
-        }
-    }
 
     if(logEntry.target_position !== undefined) {
         logEntry.target_position = buildPosition(new Position(logEntry.target_position));

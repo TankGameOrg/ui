@@ -137,6 +137,9 @@ export function loadFromRaw(fileData) {
 
     const helpers = {
         updatedContent() {
+            // Avoid log spam for mass updates
+            if(fileDataUpdated) return;
+
             logger.debug({ msg: "File data update requested", key: this.getKey() });
             fileDataUpdated = true;
         },
