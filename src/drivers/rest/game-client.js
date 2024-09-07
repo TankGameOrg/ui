@@ -1,3 +1,4 @@
+/* globals console */
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { fetchHelper } from "./fetch-helper.js";
 
@@ -146,6 +147,7 @@ export function useGameClient(game, handler, dependencies=[], { possibleActionsU
                 .catch(err => {
                     setResult(undefined);
                     setError(err);
+                    console.error(err);
                 });
         }
     }, [setResult, setError, client, wrappedHandler]);

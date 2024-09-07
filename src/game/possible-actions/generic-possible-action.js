@@ -53,7 +53,9 @@ export class GenericPossibleAction {
     getParameterSpec(logEntry) {
         const nestedSpecs = Object.keys(logEntry)
             .filter(key => this._nestedSpecs.has(key))
-            .flatMap(key => this._nestedSpecs.get(key).get(logEntry[key]));
+            .flatMap(key => this._nestedSpecs.get(key).get(logEntry[key]))
+            // We may not have subspecs for all log entry values, remove the unused ones
+            .filter(spec => spec !== undefined);
 
         return this._fieldSpecs.concat(nestedSpecs);
     }
@@ -67,17 +69,12 @@ export class GenericPossibleAction {
         }
         else {
             const msg = `Could not find dice for ${fieldName}`;
-            logger.error({ msg, spec });
+            logger.error({ msg, spec, allSpecs: this.getParameterSpec(rawLogEntry) });
             throw new Error(msg);
         }
     }
 
     finalizeLogEntry(rawLogEntry) {
-        if(rawLogEntry.hit_roll?.roll?.length > 0) {
-            // If any dice hit the shot hits
-            rawLogEntry.hit = !!rawLogEntry.hit_roll.roll.find(hit => hit);
-        }
-
         if(rawLogEntry.damage_roll?.roll?.length > 0) {
             rawLogEntry.damage = rawLogEntry.damage_roll.roll.reduce((total, die) => total + die, 0);
         }

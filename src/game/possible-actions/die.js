@@ -1,6 +1,6 @@
 import { deserializer } from "../../deserialization.js";
 
-class Die {
+export class Die {
     constructor({ name, namePlural, sides }) {
         this.name = name;
         this.namePlural = namePlural || name + "s";
@@ -16,6 +16,18 @@ class Die {
             this._displayToRaw[display] = value;
             this._rawToDisplay[value] = { display, icon: side.icon };
         }
+    }
+
+    static deserialize(rawDie) {
+        return new Die(rawDie);
+    }
+
+    serialize() {
+        return {
+            name: this.name,
+            namePlural: this.namePlural,
+            sides: this.sides,
+        };
     }
 
     roll() {
@@ -35,12 +47,9 @@ class Die {
 
 
 export class Dice {
-    constructor(count, dieName) {
+    constructor(count, die) {
         this.count = count;
-        this.die = commonDice[dieName];
-        if(this.die === undefined) {
-            throw new Error(`No die named ${dieName}`);
-        }
+        this.die = overrideDice[die.name] || die;
     }
 
     static expandAll(dice) {
@@ -54,7 +63,7 @@ export class Dice {
     serialize() {
         return {
             count: this.count,
-            die: this.die.name,
+            die: this.die,
         };
     }
 
@@ -72,35 +81,18 @@ export class Dice {
     }
 }
 
+deserializer.registerClass("die", Die);
 deserializer.registerClass("dice", Dice);
 
-const commonDice = {
+// If we are given a die by the same name it will be replaced with the override dice which
+// have extra UI information (like icons)
+const overrideDice = {
     "hit die": new Die({
         name: "hit die",
         namePlural: "hit dice",
         sides: [
             { display: "hit", value: true, icon: "hit" },
             { display: "miss", value: false, icon: "" },
-        ]
-    }),
-    "d4": new Die({
-        name: "d4",
-        sides: [
-            1,
-            2,
-            3,
-            4,
-        ]
-    }),
-    "d6": new Die({
-        name: "d6",
-        sides: [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
         ]
     }),
 };

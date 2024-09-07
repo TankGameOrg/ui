@@ -3,6 +3,8 @@ import { LogFieldSpec } from "../../game/possible-actions/log-field-spec.js";
 import { Position } from "../../game/state/board/position.js";
 import { ActionError } from "../../game/possible-actions/action-error.js";
 import { logger } from "#platform/logging.js";
+import { Dice, Die } from "../../game/possible-actions/die.js";
+import { DiceLogFieldSpec } from "../../game/possible-actions/dice-log-field-spec.js";
 
 export class JavaEngineSource {
     constructor({ actionsToSkip = [] } = {}) {
@@ -61,6 +63,22 @@ export class JavaEngineSource {
                 }
 
                 return spec;
+            }
+
+            if(field.dice !== undefined) {
+                const dice = field.dice.map((diceSet) => {
+                    const die = new Die({
+                        name: diceSet.die.name,
+                        sides: diceSet.die.sides,
+                    });
+
+                    return new Dice(diceSet.num_dice, die);
+                });
+
+                return new DiceLogFieldSpec({
+                    name: field.field_name,
+                    dice,
+                });
             }
 
             throw new Error("Engine gave us an invalid LogFieldSpec");

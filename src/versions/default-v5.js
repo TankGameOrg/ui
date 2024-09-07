@@ -4,13 +4,21 @@ import { DestructibleFloor } from "./shared/destructible-floor.js";
 import { HealthPoolDescriptor } from "./shared/health-pool.js";
 import { UnwalkableFloor } from "./shared/unwalkable-floor.js";
 import { ShootActionSource } from "../game/possible-actions/shoot.js";
-import { Dice } from "../game/possible-actions/die.js";
+import { Dice, Die } from "../game/possible-actions/die.js";
 import { LavaDescriptor } from "./shared/lava.js";
 import { LootBoxDescriptor } from "./shared/loot-box.js";
 
 
 function getDiceForShot() {
-    return [new Dice(1, "d4")];
+    return [new Dice(1, new Die({
+        name: "d4",
+        sides: [
+            1,
+            2,
+            3,
+            4,
+        ]
+    }))];
 }
 
 function actionFactory(engine) {

@@ -48,11 +48,19 @@ function convertToEngineEntry(logEntry) {
         };
     }
 
+    for(const key of Object.keys(logEntry)) {
+        if(logEntry[key].type == "die-roll") {
+            logEntry[key] = {
+                ...logEntry[key],
+                type: undefined,
+                class: "DieRollResult"
+            };
+        }
+    }
+
     return {
         ...logEntry,
         subject,
-        hit_roll: undefined,
-        damage_roll: undefined,
     };
 }
 
