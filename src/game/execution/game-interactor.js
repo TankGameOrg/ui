@@ -124,18 +124,7 @@ export class GameInteractor {
             throw new Error(`Logbook length and states length should be identical (log book = ${this._gameData.logBook.getLength()}, states = ${this._gameStates.length})`);
         }
 
-        await this._sendPreviousState();
-
-        let success = false;
-        try {
-            await this._engine.processAction(entry);
-            success = true;
-        }
-        catch(err) {}  // eslint-disable-line no-unused-vars, no-empty
-
-        await this._sendPreviousState();
-
-        return success;
+        return await this._engine.canProcessAction(entry);
     }
 
     async _finalizeEntry(entry) {

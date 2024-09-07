@@ -119,8 +119,9 @@ export async function testPossibleActions(engineFactory, possibleActionsPath) {
                         // It's possible that a possible action could fail due to players not having
                         // enough resouces so we can rettry until one passes.  We just care that
                         // it can generate at least one valid action
-                        assert.ok(await interactor.canProcessAction(finalizedBuilder.logBookEntry),
-                            `Processing ${JSON.stringify(finalizedBuilder.logBookEntry, null, 4)}`);
+                        const errors = await interactor.canProcessAction(finalizedBuilder.logBookEntry);
+                        assert.ok(errors.length === 0,
+                            `Processing ${JSON.stringify(finalizedBuilder.logBookEntry, null, 4)} error: ${JSON.stringify(errors, null, 4)}`);
                     }
                     else {
                         logger.warn({

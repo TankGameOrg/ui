@@ -95,6 +95,15 @@ class TankGameEngine {
         return this.getBoardState();
     }
 
+    async canProcessAction(action) {
+        const result = await this._comm.sendRequestAndWait({
+            type: "can_ingest_action",
+            ...convertLogEntry(action),
+        });
+
+        return result.errors;
+    }
+
     async setGameVersion(version) {
         await this._comm.sendRequestAndWait({
             type: "version",
