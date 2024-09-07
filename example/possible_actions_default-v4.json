@@ -10,7 +10,7 @@
             {
                 "day": 1,
                 "timestamp": 1200,
-                "class": "log-entry-v1"
+                "class": "log-entry-v2"
             }
         ],
         "class": "log-book-v1"
