@@ -45,22 +45,28 @@ export class GameInteractor {
             // Format log entry with previous state
             const previousState = this._gameStates[this._gameStates.length - 1] || this._gameData.initialGameState;
 
-            logEntry.updateMessageWithBoardState({
-                logEntryFormatter: this._logEntryFormatter,
-                previousState,
-                actions: await this._getActions(logEntry.rawLogEntry.subject, {
-                    entryId: entryId,
-                }),
-            });
+            try {
+                logEntry.updateMessageWithBoardState({
+                    logEntryFormatter: this._logEntryFormatter,
+                    previousState,
+                    actions: await this._getActions(logEntry.rawLogEntry.subject, {
+                        entryId: entryId,
+                    }),
+                });
 
-            // Process the action
-            const state = await this._engine.processAction(logEntry);
-            this._previousState = state;
-            const {gameState, victoryInfo} = this._engine.getGameStateFromEngineState(state);
-            this._gameStates.push(gameState);
+                // Process the action
+                const state = await this._engine.processAction(logEntry);
+                this._previousState = state;
+                const {gameState, victoryInfo} = this._engine.getGameStateFromEngineState(state);
+                this._gameStates.push(gameState);
 
-            if(this._onGameOver && victoryInfo !== undefined) {
-                this._onGameOver(victoryInfo);
+                if(this._onGameOver && victoryInfo !== undefined) {
+                    this._onGameOver(victoryInfo);
+                }
+            }
+            catch(err) {
+                logger.warn({ msg: "Encountered an error while processing existing actions", err, entryId, logEntry });
+                throw err;
             }
         }
     }
