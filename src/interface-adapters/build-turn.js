@@ -156,6 +156,7 @@ export function buildTurnReducer(state, invocation) {
             lastRollEntry: state.lastRollEntry,
             actions: Array.from(invocation.possibleActions || []).map(factory => ({
                 name: factory.getActionName(),
+                description: factory.getDescription(),
                 errors: factory.getErrors(),
             })),
         };

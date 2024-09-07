@@ -6,8 +6,9 @@ import "./log-field-spec.js";
 
 
 export class GenericPossibleAction {
-    constructor({ actionName, fieldSpecs, errors }) {
+    constructor({ actionName, fieldSpecs, description, errors }) {
         this._actionName = actionName;
+        this._description = description;
         this._fieldSpecs = fieldSpecs;
         this._errors = errors || [];
 
@@ -25,6 +26,10 @@ export class GenericPossibleAction {
         return this._actionName;
     }
 
+    getDescription() {
+        return this._description;
+    }
+
     static deserialize(rawGenericPossibleAction) {
         return new GenericPossibleAction({
             ...rawGenericPossibleAction,
@@ -37,6 +42,7 @@ export class GenericPossibleAction {
             actionName: this._actionName,
             fieldSpecs: this._fieldSpecs,
             errors: this._errors,
+            description: this._description,
         };
     }
 

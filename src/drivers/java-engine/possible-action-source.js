@@ -28,6 +28,7 @@ export class JavaEngineSource {
             errors = errors.concat(possibleAction.errors.map(error => new ActionError(error)));
 
             return new GenericPossibleAction({
+                description: possibleAction.description,
                 errors,
                 subject: playerName,
                 actionName: actionName,
@@ -65,6 +66,7 @@ export class JavaEngineSource {
 
                 return new DiceLogFieldSpec({
                     name: field.field_name,
+                    description: field.description,
                     dice,
                 });
             }
@@ -165,6 +167,7 @@ export class JavaEngineSource {
         return {
             spec: new LogFieldSpec({
                 name: field.field_name,
+                description: field.description,
                 type,
                 options,
                 nestedSpecsByValue,

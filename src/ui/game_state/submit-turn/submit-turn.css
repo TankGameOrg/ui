@@ -113,6 +113,11 @@
     color: #a00;
 }
 
-.select-action-errors-row {
+.select-action-info-row {
+    padding: 7px 0px;
     padding-left: 10px;
+}
+
+.action-error-message {
+    color: #a00;
 }

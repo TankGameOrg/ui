@@ -158,6 +158,7 @@ function SubmissionForm({ builtTurnState, buildTurnDispatch, allowManualRolls })
                 if(Element) {
                     return (
                         <LabelElement key={fieldSpec.name} name={fieldSpec.display}>
+                            {fieldSpec.description?.length > 0 ? <p>{fieldSpec.description}</p> : undefined}
                             <Element
                                 type={fieldSpec.type}
                                 builtTurnState={builtTurnState}

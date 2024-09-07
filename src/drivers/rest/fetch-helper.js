@@ -5,6 +5,7 @@ import "../../game/open-hours/index.js";
 import "../../game/state/game-state.js";
 import "../../game/state/log-book/log-entry.js";
 import "../../game/possible-actions/action-error.js";
+import "../../game/possible-actions/index.js";
 
 
 export class ServerError extends Error {

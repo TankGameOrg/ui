@@ -92,6 +92,7 @@ const possibleActions = [
     }),
     new GenericPossibleAction({
         actionName: "make-team",
+        description: "It can make a team",
         fieldSpecs: [
             new LogFieldSpec({
                 name: "team",
@@ -101,6 +102,7 @@ const possibleActions = [
     }),
     new GenericPossibleAction({
         actionName: "multiply",
+        description: "It can multiply things",
         fieldSpecs: mutliplyFieldSpecs,
         errors: [
             new ActionError({ category: "FOO", message: "bar" }),
@@ -129,10 +131,10 @@ function compareState(state, expected) {
 }
 
 const actions = [
-    { name: "shoot", errors: [] },
-    { name: "make-team", errors: [] },
-    { name: "multiply", errors: [ new ActionError({ category: "FOO", message: "bar" }) ] },
-    { name: "swapper", errors: [] },
+    { name: "shoot", errors: [], description: undefined },
+    { name: "make-team", errors: [], description: "It can make a team" },
+    { name: "multiply", errors: [ new ActionError({ category: "FOO", message: "bar" }) ], description: "It can multiply things" },
+    { name: "swapper", errors: [], description: undefined },
 ];
 
 describe("BuildTurn", () => {
