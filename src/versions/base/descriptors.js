@@ -36,7 +36,7 @@ export class EntityDescriptor {
     getTileStyle() {
         return new TileStyle({
             textColor: "#000",
-            background: "#fff",
+            background: imageBackground("unknown-unit"),
         });
     }
 
@@ -90,11 +90,7 @@ export class FloorTileDescriptor {
     // Get the background to display for this floor tile
     // returns: string
     getBackground() {
-        // If this floor tile has an icon and use that
-        const icon = this.floorTile.icon;
-        if(icon) return imageBackground(icon);
-
-        return "#aaa";
+        return imageBackground(this.floorTile.icon || "unknown-floor");
     }
 
     // Get a human readable string for when this floor tile is referenced in a log entry

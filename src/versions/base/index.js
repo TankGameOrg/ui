@@ -1,14 +1,14 @@
-import { PossibleActionSourceSet } from "../../game/possible-actions/index.js";
 import { AttributeDescriptor, EntityDescriptor, FloorTileDescriptor } from "./descriptors.js";
+import { LogEntryFormatter } from "./log-entry-formatter.js";
 
 export class GameVersion {
-    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, attributeDescriptors, findCooldowns }) {
-        this._logFormatter = logFormatter;
-        this._entityDescriptors = entityDescriptors;
-        this._floorTileDescriptors = floorTileDescriptors;
-        this._councilPlayerTypes = councilPlayerTypes;
+    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, attributeDescriptors, findCooldowns } = {}) {
+        this._logFormatter = logFormatter || new LogEntryFormatter();
+        this._entityDescriptors = entityDescriptors || {};
+        this._floorTileDescriptors = floorTileDescriptors || {};
+        this._councilPlayerTypes = councilPlayerTypes || [];
         this._manualPath = manualPath;
-        this._attributeDescriptors = attributeDescriptors;
+        this._attributeDescriptors = attributeDescriptors || {};
         this.findCooldowns = findCooldowns || (() => []);
     }
 

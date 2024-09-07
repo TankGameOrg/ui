@@ -134,12 +134,6 @@ export function createEmptyFileData({gameVersion, width, height, metaEntities = 
 
 class FileData {
     constructor({ gameVersion, openHours, logBook, gameSettings, initialGameState, gameStateInitializer }) {
-        // Make sure we have the config required to load this game.  This
-        // does not check if the engine supports this game version.
-        if(!getGameVersion(gameVersion)) {
-            throw new Error(`Game version ${gameVersion} is not supported`);
-        }
-
         this.gameVersion = gameVersion;
         this.openHours = openHours === undefined ? new OpenHours([]) : openHours;
         this.logBook = logBook === undefined ? new LogBook([]) : logBook;

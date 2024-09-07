@@ -1,15 +1,17 @@
+import { logger } from "#platform/logging.js";
 import { Position } from "../../game/state/board/position.js";
 import { prettyifyName } from "../../utils.js";
 
 export class LogEntryFormatter {
-    constructor(formatFunctions) {
+    constructor(formatFunctions = {}) {
         this._formatFunctions = formatFunctions;
     }
 
     format(logEntry, gameState, version) {
         const formatFunction = this._formatFunctions[logEntry.type];
         if(!formatFunction) {
-            throw new Error(`Log entry type ${logEntry.type} is not supported`);
+            logger.warn({ msg: `Missing formatter for ${logEntry.type}`, logEntry });
+            return `Log entry type ${logEntry.type} is not supported`;
         }
 
         return formatFunction(logEntry.rawLogEntry, new FormatingHelpers(gameState, version, logEntry));
