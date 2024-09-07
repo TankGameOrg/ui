@@ -10,15 +10,7 @@ import { getAllFileNames, getAllFilePaths, getLatestFileName, getLatestFilePath 
 const TEST_FILES = "test/unit/drivers/test-files";
 
 
-class MockGameVersion {
-    getActionFactories() {
-        return {
-            getActionFactoriesForPlayer() {
-                return [];
-            },
-        };
-    }
-}
+class MockGameVersion {}
 
 function validateLogBook(logBook) {
     assert.equal(logBook.getMaxDay(), 2);

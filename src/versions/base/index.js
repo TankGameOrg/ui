@@ -2,13 +2,12 @@ import { PossibleActionSourceSet } from "../../game/possible-actions/index.js";
 import { AttributeDescriptor, EntityDescriptor, FloorTileDescriptor } from "./descriptors.js";
 
 export class GameVersion {
-    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, actionFactory, attributeDescriptors, findCooldowns }) {
+    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, attributeDescriptors, findCooldowns }) {
         this._logFormatter = logFormatter;
         this._entityDescriptors = entityDescriptors;
         this._floorTileDescriptors = floorTileDescriptors;
         this._councilPlayerTypes = councilPlayerTypes;
         this._manualPath = manualPath;
-        this._actionFactory = actionFactory;
         this._attributeDescriptors = attributeDescriptors;
         this.findCooldowns = findCooldowns || (() => []);
     }
@@ -33,10 +32,6 @@ export class GameVersion {
 
     getManual() {
         return this._manualPath;
-    }
-
-    getActionFactories(engine) {
-        return new PossibleActionSourceSet(this._actionFactory(engine));
     }
 
     getAttributeDescriptor(name, attribute) {

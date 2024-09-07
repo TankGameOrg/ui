@@ -2,6 +2,7 @@ import { logger } from "#platform/logging.js";
 import { prettyifyName } from "../../utils.js";
 import { getGameVersion as defaultGetGameVersion } from "../../versions/index.js";
 import { AutomaticStartOfDay } from "../open-hours/automatic-start-of-day.js";
+import { PossibleActionSourceSet } from "../possible-actions/index.js";
 import { StartOfDaySource } from "../possible-actions/start-of-day-source.js";
 import { GameInteractor } from "./game-interactor.js";
 
@@ -62,7 +63,8 @@ export class Game {
 
             const gameVersion = this._factories.getGameVersion(this._gameData.gameVersion);
             const engine = this._getEngineFactory().createEngine();
-            let actionFactories = gameVersion.getActionFactories(engine);
+            let actionFactories = new PossibleActionSourceSet(
+                engine.getEngineSpecificSource ? [engine.getEngineSpecificSource()] : []);
 
             // If we don't automate the start of day process let users submit it as an action
             if(!this.hasAutomaticStartOfDay()) {

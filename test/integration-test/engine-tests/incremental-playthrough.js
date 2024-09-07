@@ -7,6 +7,12 @@ import { OpenHours } from "../../../src/game/open-hours/index.js";
 import { getGameVersion } from "../../../src/versions/index.js";
 import { stripPlayerIds } from "../../unit/helpers.js";
 import { LogEntry } from "../../../src/game/state/log-book/log-entry.js";
+import { PossibleActionSourceSet } from "../../../src/game/possible-actions/index.js";
+
+function makePossibleActions(engine) {
+    return new PossibleActionSourceSet(
+        engine.getEngineSpecificSource ? [engine.getEngineSpecificSource()] : []);
+}
 
 export async function incrementalPlaythrough(engineFactory, testGamePath) {
     let { gameVersion, logBook, initialGameState } = await load(testGamePath);
@@ -18,8 +24,8 @@ export async function incrementalPlaythrough(engineFactory, testGamePath) {
 
     let fullEngine = engineFactory.createEngine();
     let incrementalEngine = engineFactory.createEngine();
-    const fullFactories = versionConfig.getActionFactories(fullEngine);
-    const incrementalFactories = versionConfig.getActionFactories(incrementalEngine);
+    const fullFactories = makePossibleActions(fullEngine);
+    const incrementalFactories = makePossibleActions(incrementalEngine);
     try {
         // Create one instance that starts with the log book full
         // This triggers a set version, set state, and a series of process actions

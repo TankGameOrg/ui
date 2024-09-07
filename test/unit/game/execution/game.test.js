@@ -16,12 +16,7 @@ class MockInteractor {
     }
 }
 
-class MockVersionConfig {
-    getActionFactories(opts) {
-        this.opts = opts;
-        return new PossibleActionSourceSet([]);
-    }
-}
+class MockVersionConfig {}
 
 class MockLogEntryFormatter {
     formatLogEntry(logEntry) {
