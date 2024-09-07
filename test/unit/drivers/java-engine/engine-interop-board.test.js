@@ -1,8 +1,7 @@
 /* global URL */
 import assert from "node:assert";
 import path from "node:path";
-import * as boardStateMain from "../../../../src/drivers/java-engine/board-state-main.js";
-import * as boardStateStable from "../../../../src/drivers/java-engine/board-state-stable.js";
+import * as boardState from "../../../../src/drivers/java-engine/board-state.js";
 import { load } from "../../../../src/drivers/game-file.js";
 import { stripPlayerIds } from "../../helpers.js";
 import { getLatestFilePath } from "../test-file-helper.js";
@@ -10,8 +9,7 @@ import { getLatestFilePath } from "../test-file-helper.js";
 const SAMPLE_STATE = getLatestFilePath();
 
 const BOARD_STATE_VERSIONS = [
-    ["stable", boardStateStable],
-    ["main", boardStateMain],
+    ["main", boardState],
 ];
 
 describe("EngineInterop", () => {

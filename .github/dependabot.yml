@@ -9,12 +9,12 @@ updates:
  - package-ecosystem: "devcontainers"
    directory: "/"
    schedule:
-     interval: weekly
+     interval: monthly
      day: "saturday"
  - package-ecosystem: "npm"
    directory: "/"
    schedule:
-     interval: weekly
+     interval: monthly
      day: "saturday"
    ignore:
     # eslint-plugin-react and eslint-plugin-react-hooks don't support recent versions of eslint
@@ -23,5 +23,5 @@ updates:
  - package-ecosystem: "gitsubmodule"
    directory: "/engine/"
    schedule:
-     interval: weekly
+     interval: monthly
      day: "saturday"

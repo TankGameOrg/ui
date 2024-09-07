@@ -3,8 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {spawnSync} from "node:child_process";
 import { logger } from "#platform/logging.js";
-import * as boardStateMain from "./board-state-main.js";
-import * as boardStateStable from "./board-state-stable.js";
+import { gameStateToRawState, gameStateFromRawState } from "./board-state.js";
 import { JavaEngineSource } from "./possible-action-source.js";
 import { JsonCommunicationChannel } from "../json-communication-channel.js";
 import { convertLogEntry } from "./log-translator.js";
@@ -28,16 +27,13 @@ function determineEngineVersion(command) {
 let uniqueIdCounter = 0;
 
 class TankGameEngine {
-    constructor(command, timeout, engineVersion) {
+    constructor(command, timeout) {
         if(!Array.isArray(command) || command.length <= 0) {
             throw new Error(`Expected an array in the form ["command", ...args] but got ${command}`);
         }
 
         this._id = `java-${++uniqueIdCounter}`;
         this._comm = new JsonCommunicationChannel(command, timeout, this._id);
-
-        // Hacky way to detect if we're using an engine from the main or stable branch
-        this._isMainBranch = engineVersion != "0.0.2";
     }
 
     _runCommand(command, data) {
@@ -65,21 +61,11 @@ class TankGameEngine {
     }
 
     getGameStateFromEngineState(state) {
-        if(this._isMainBranch) {
-            return boardStateMain.gameStateFromRawState(state);
-        }
-        else {
-            return boardStateStable.gameStateFromRawState(state);
-        }
+        return gameStateFromRawState(state);
     }
 
     getEngineStateFromGameState(state, gameVersion) {
-        if(this._isMainBranch) {
-            return boardStateMain.gameStateToRawState(state, gameVersion);
-        }
-        else {
-            return boardStateStable.gameStateToRawState(state);
-        }
+        return gameStateToRawState(state, gameVersion);
     }
 
     async getBoardState() {
@@ -103,16 +89,13 @@ class TankGameEngine {
     async processAction(action) {
         await this._comm.sendRequestAndWait({
             type: "action",
-            ...convertLogEntry(action, this._isMainBranch),
+            ...convertLogEntry(action),
         });
 
         return this.getBoardState();
     }
 
     async setGameVersion(version) {
-        // Support stable using versions like 3 instead of default-v3
-        if(version.startsWith("default-v") && !this._isMainBranch) version = version.slice(9);
-
         await this._comm.sendRequestAndWait({
             type: "version",
             version,
@@ -175,7 +158,7 @@ class EngineFactory {
     }
 
     createEngine() {
-        return new TankGameEngine(this._engineCommand, TANK_GAME_TIMEOUT, this._versionInfo.version);
+        return new TankGameEngine(this._engineCommand, TANK_GAME_TIMEOUT);
     }
 
     getEngineVersion() {

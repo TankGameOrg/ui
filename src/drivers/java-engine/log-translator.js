@@ -1,14 +1,6 @@
 import { Position } from "../../game/state/board/position.js";
-import { buildPosition } from "./board-state-main.js";
+import { buildPosition } from "./board-state.js";
 
-const COUNCIL_ACTIONS = ["bounty", "grant_life", "stimulus"];
-
-function convertSubject(logEntry) {
-    return {
-        ...logEntry.rawLogEntry,
-        subject: COUNCIL_ACTIONS.includes(logEntry.type) ? "Council" : logEntry.rawLogEntry.subject,
-    };
-}
 
 function convertToEngineEntry(logEntry) {
     logEntry = Object.assign({}, logEntry);
@@ -48,15 +40,7 @@ function convertToEngineEntry(logEntry) {
     };
 }
 
-export function convertLogEntry(logEntry, isMainBranch) {
+export function convertLogEntry(logEntry) {
     logEntry = logEntry.withoutStateInfo();
-
-    if(isMainBranch) {
-        logEntry = convertToEngineEntry(logEntry.rawLogEntry);
-    }
-    else {
-        logEntry = convertSubject(logEntry);
-    }
-
-    return logEntry;
+    return convertToEngineEntry(logEntry.rawLogEntry);
 }

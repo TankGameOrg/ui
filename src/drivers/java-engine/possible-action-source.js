@@ -15,15 +15,7 @@ export class JavaEngineSource {
         const player = gameState.players.getPlayerByName(playerName);
         if(!player) return [];
 
-        let playerToRequest = playerName;
-        if(!engine._isMainBranch) {
-            const isCouncil = ["senator", "councilor"].includes(player.type);
-            if(isCouncil) {
-                playerToRequest = "Council";
-            }
-        }
-
-        const possibleActions = await engine.getPossibleActions(playerToRequest);
+        const possibleActions = await engine.getPossibleActions(playerName);
 
         return possibleActions.map(possibleAction => {
             const actionName = possibleAction.rule;
@@ -45,10 +37,6 @@ export class JavaEngineSource {
 
         // Remove any actions that can never be taken
         .filter(possibleAction => possibleAction !== undefined);
-    }
-
-    _getPositionFromJava(tank) {
-        return new Position(tank.$POSITION !== undefined ? tank.$POSITION : tank.position);
     }
 
     _buildFieldSpecs(fields, gameState) {
