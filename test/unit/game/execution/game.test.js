@@ -35,7 +35,7 @@ function addDayTwo(game) {
     });
 }
 
-async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForLoad = true, gameSettings = {} } = {}) {
+async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForLoad = true, gameSettings = {}, gameVersion = "default-v1" } = {}) {
     const createAutoStartOfDay = autoStartOfDay ?
         () => ({ start() {}, }) :
         () => { throw new Error("Auto start of day should not be construced"); };
@@ -49,11 +49,12 @@ async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForL
     });
 
     let game = new Game({
-        engineManager,
+        engineManager: createEngineManager(gameVersion),
         createInteractor,
         getGameVersion,
         createAutoStartOfDay,
         gameDataPromise: Promise.resolve({
+            gameVersion,
             gameSettings,
             logBook,
             openHours: {
@@ -68,11 +69,20 @@ async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForL
     return game;
 }
 
-const engineManager = {
-    getEngineFactory: () => ({
-        createEngine: () => new MockEngine(),
-    }),
-};
+function createEngineManager(expectedRuleset) {
+    return {
+        getEngineFactory: (rulset) => {
+            assert.equal(rulset, expectedRuleset);
+
+            return {
+                createEngine: (rulset) => {
+                    assert.equal(rulset, expectedRuleset);
+                    return new MockEngine();
+                },
+            };
+        },
+    };
+}
 
 const createInteractor = opts => new MockInteractor(opts);
 const getGameVersion = () => new MockVersionConfig();

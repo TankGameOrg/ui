@@ -236,6 +236,6 @@ export class Game {
     }
 
     getEngineVersionInfo() {
-        return this._getEngineFactory()?.getEngineVersion?.() || "No engine available";
+        return this._getEngineFactory(this._gameData.gameVersion)?.getEngineVersion?.() || "No engine available";
     }
 }
