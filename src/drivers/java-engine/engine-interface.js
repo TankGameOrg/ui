@@ -9,19 +9,6 @@ import { JsonCommunicationChannel } from "../json-communication-channel.js";
 import { convertLogEntry } from "./log-translator.js";
 
 const TANK_GAME_TIMEOUT = 3; // seconds
-const ENGINE_NAME_EXPR = /TankGame-(.+?).jar$/;
-
-function determineEngineVersion(command) {
-    const fileName = command
-            .map(arg => ENGINE_NAME_EXPR.exec(arg))
-            .filter(arg => arg);
-
-    if(fileName.length !== 1) {
-        throw new Error("Failed to detect engine version");
-    }
-
-    return fileName[0][1];
-}
 
 // Put ids on the engines so we can differentiate them in logs
 let uniqueIdCounter = 0;
@@ -36,20 +23,11 @@ class TankGameEngine {
         this._comm = new JsonCommunicationChannel(command, timeout, this._id);
     }
 
-    _runCommand(command, data) {
-        if(!data) data = {};
-
-        data["type"] = "command";
-        data["command"] = command;
-
-        return this._comm.sendRequestAndWait(data);
-    }
-
     async shutdown() {
         try {
             await this._comm.sendRequestAndWait({
-                "type": "command",
-                "command": "exit",
+                "method": "exit",
+                instance: "default",
             });
 
             logger.info({ msg: "Exited", id: this._id });
@@ -69,26 +47,32 @@ class TankGameEngine {
     }
 
     async getBoardState() {
-        return await this._runCommand("display");
+        return (await this._comm.sendRequestAndWait({
+            method: "getState",
+            instance: "default",
+        }));
     }
 
     async getPossibleActions(player) {
         return (await this._comm.sendRequestAndWait({
-            type: "possible_actions",
+            method: "getPossibleActions",
+            instance: "default",
             player,
         })).actions;
     }
 
     setBoardState(state) {
         return this._comm.sendRequestAndWait({
-            type: "state",
+            method: "setState",
+            instance: "default",
             ...state,
         });
     }
 
     async processAction(action) {
         await this._comm.sendRequestAndWait({
-            type: "action",
+            method: "ingestAction",
+            instance: "default",
             ...convertLogEntry(action),
         });
 
@@ -97,37 +81,24 @@ class TankGameEngine {
 
     async canProcessAction(action) {
         const result = await this._comm.sendRequestAndWait({
-            type: "can_ingest_action",
+            method: "canIngestAction",
+            instance: "default",
             ...convertLogEntry(action),
         });
 
         return result.errors;
     }
 
-    async setGameVersion(version) {
+    async setGameVersion(ruleset) {
         await this._comm.sendRequestAndWait({
-            type: "version",
-            version,
+            method: "createInstance",
+            instance: "default",
+            ruleset,
         });
     }
 
     getEngineSpecificSource(opts) {
         return new JavaEngineSource(opts);
-    }
-
-    async getLineOfSightFor(player) {
-        const actions = await this.getPossibleActions(player);
-        const shootAction = actions.find(action => action.rule == "shoot");
-        if(!shootAction) {
-            throw new Error("Failed to find shoot action");
-        }
-
-        const targets = shootAction.fields.find(field => field.field_name == "target_position");
-        if(!targets) {
-            return [];
-        }
-
-        return targets.options.map(option => option.value);
     }
 }
 
@@ -147,23 +118,8 @@ class EngineFactory {
     }
 
     _collectVersionInfo() {
-        try {
-            const proc = spawnSync(this._engineCommand[0], this._engineCommand.slice(1).concat(["--version"]));
-            this._versionInfo = JSON.parse(proc.stdout.toString());
-        }
-        catch(err) {
-            logger.warn({ msg: "Failed to dynamically determine engine version", err });
-
-            const version = determineEngineVersion(this._engineCommand);
-
-            // Support legacy engines
-            this._versionInfo = {
-                version,
-                pretty_version: `Engine ${version}`,
-                // All versions that don't support --version support versions 3 and 4
-                supported_rulesets: ["default-v3", "default-v4"],
-            };
-        }
+        const proc = spawnSync(this._engineCommand[0], this._engineCommand.slice(1).concat(["--version"]));
+        this._versionInfo = JSON.parse(proc.stdout.toString());
     }
 
     createEngine() {
