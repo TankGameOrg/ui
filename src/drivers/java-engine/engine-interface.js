@@ -13,29 +13,27 @@ const TANK_GAME_TIMEOUT = 3; // seconds
 // Put ids on the engines so we can differentiate them in logs
 let uniqueIdCounter = 0;
 
-class TankGameEngine {
-    constructor(command, timeout) {
-        if(!Array.isArray(command) || command.length <= 0) {
-            throw new Error(`Expected an array in the form ["command", ...args] but got ${command}`);
-        }
+class TankGameApi {
+    constructor(comm, ruleset, instanceName, shutdownCallback) {
+        this._comm = comm;
+        this._instance = instanceName;
+        this._shutdownCallback = shutdownCallback;
 
-        this._id = `java-${++uniqueIdCounter}`;
-        this._comm = new JsonCommunicationChannel(command, timeout, this._id);
+        this._comm.sendRequestAndWait({
+            method: "createInstance",
+            instance: this._instance,
+            ruleset,
+        });
     }
 
     async shutdown() {
-        try {
-            await this._comm.sendRequestAndWait({
-                "method": "exit",
-                instance: "default",
-            });
+        await this._comm.sendRequestAndWait({
+            "method": "destroyInstance",
+            instance: this._instance,
+        });
 
-            logger.info({ msg: "Exited", id: this._id });
-        }
-        catch(err) {
-            logger.warn({ msg: "Exit command failed", err, id: this._id });
-            this._comm.kill();
-        }
+        logger.info({ msg: "Destroyed", instance: this._instance });
+        this._shutdownCallback();
     }
 
     getGameStateFromEngineState(state) {
@@ -49,14 +47,14 @@ class TankGameEngine {
     async getBoardState() {
         return (await this._comm.sendRequestAndWait({
             method: "getState",
-            instance: "default",
+            instance: this._instance,
         }));
     }
 
     async getPossibleActions(player) {
         return (await this._comm.sendRequestAndWait({
             method: "getPossibleActions",
-            instance: "default",
+            instance: this._instance,
             player,
         })).actions;
     }
@@ -64,7 +62,7 @@ class TankGameEngine {
     setBoardState(state) {
         return this._comm.sendRequestAndWait({
             method: "setState",
-            instance: "default",
+            instance: this._instance,
             ...state,
         });
     }
@@ -72,7 +70,7 @@ class TankGameEngine {
     async processAction(action) {
         await this._comm.sendRequestAndWait({
             method: "ingestAction",
-            instance: "default",
+            instance: this._instance,
             ...convertLogEntry(action),
         });
 
@@ -82,19 +80,11 @@ class TankGameEngine {
     async canProcessAction(action) {
         const result = await this._comm.sendRequestAndWait({
             method: "canIngestAction",
-            instance: "default",
+            instance: this._instance,
             ...convertLogEntry(action),
         });
 
         return result.errors;
-    }
-
-    async setGameVersion(ruleset) {
-        await this._comm.sendRequestAndWait({
-            method: "createInstance",
-            instance: "default",
-            ruleset,
-        });
     }
 
     getEngineSpecificSource(opts) {
@@ -113,6 +103,7 @@ export function getAllEngineFactories() {
 
 class EngineFactory {
     constructor(engineCommand) {
+        this._instances = new Set();
         this._engineCommand = engineCommand;
         this._collectVersionInfo();
     }
@@ -122,8 +113,24 @@ class EngineFactory {
         this._versionInfo = JSON.parse(proc.stdout.toString());
     }
 
-    createEngine() {
-        return new TankGameEngine(this._engineCommand, TANK_GAME_TIMEOUT);
+    createEngine(ruleset) {
+        if(!this._comm) {
+            this._comm = new JsonCommunicationChannel(this._engineCommand, TANK_GAME_TIMEOUT, "java-engine");
+        }
+
+        const instanceName = `${ruleset}--${++uniqueIdCounter}`;
+        this._instances.add(instanceName);
+        return new TankGameApi(this._comm, ruleset, instanceName, () => {
+            this._instances.delete(instanceName);
+
+            if(this._instances.size === 0) {
+                this._comm.sendRequestAndWait({
+                    "method": "exit",
+                });
+
+                this._comm = undefined;
+            }
+        });
     }
 
     getEngineVersion() {

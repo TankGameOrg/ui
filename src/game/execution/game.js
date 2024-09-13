@@ -62,7 +62,7 @@ export class Game {
             if(this._hasBeenShutDown) return;
 
             const gameVersion = this._factories.getGameVersion(this._gameData.gameVersion);
-            const engine = this._getEngineFactory().createEngine();
+            const engine = this._getEngineFactory().createEngine(this._gameData.gameVersion);
             let actionFactories = new PossibleActionSourceSet(
                 engine.getEngineSpecificSource ? [engine.getEngineSpecificSource()] : []);
 

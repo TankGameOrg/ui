@@ -72,7 +72,6 @@ export class GameInteractor {
     }
 
     async _sendPreviousState() {
-        await this._engine.setGameVersion(this._gameData.gameVersion);
         await this._engine.setBoardState(this._previousState);
     }
 

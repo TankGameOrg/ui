@@ -22,8 +22,8 @@ export async function incrementalPlaythrough(engineFactory, testGamePath) {
     const versionConfig = getGameVersion(gameVersion);
     let emptyLogBook = new LogBook([]);
 
-    let fullEngine = engineFactory.createEngine();
-    let incrementalEngine = engineFactory.createEngine();
+    let fullEngine = engineFactory.createEngine(gameVersion);
+    let incrementalEngine = engineFactory.createEngine(gameVersion);
     const fullFactories = makePossibleActions(fullEngine);
     const incrementalFactories = makePossibleActions(incrementalEngine);
     try {
