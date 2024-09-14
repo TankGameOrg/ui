@@ -43,8 +43,8 @@ export default class Board {
     _verifyPositon(position, entitiesObject, type) {
         const {humanReadable} = position;
 
-        if(entitiesObject[humanReadable] != undefined && entitiesObject[humanReadable].position.humanReadable != humanReadable) {
-            throw new Error(`${type} at ${humanReadable} thinks it should be at ${entitiesObject[humanReadable].position.humanReadable}`);
+        if(entitiesObject[humanReadable] != undefined && entitiesObject[humanReadable].attributes.position.humanReadable != humanReadable) {
+            throw new Error(`${type} at ${humanReadable} thinks it should be at ${entitiesObject[humanReadable].attributes.position.humanReadable}`);
         }
     }
 
@@ -58,15 +58,15 @@ export default class Board {
     }
 
     setEntity(entity) {
-        if(!this.isInBounds(entity.position)) {
+        if(!this.isInBounds(entity.attributes.position)) {
             throw new Error(`Can not set entity ${entity.type} to position ${entity.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
         }
 
         if(entity.type == "empty") {
-            delete this._entities[entity.position.humanReadable];
+            delete this._entities[entity.attributes.position.humanReadable];
         }
         else {
-            this._entities[entity.position.humanReadable] = entity;
+            this._entities[entity.attributes.position.humanReadable] = entity;
         }
     }
 
@@ -76,15 +76,15 @@ export default class Board {
     }
 
     setFloorTile(tile) {
-        if(!this.isInBounds(tile.position)) {
-            throw new Error(`Can not set floor tile ${tile.type} to position ${tile.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
+        if(!this.isInBounds(tile.attributes.position)) {
+            throw new Error(`Can not set floor tile ${tile.type} to position ${tile.attributes.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
         }
 
         if(tile.type == "empty") {
-            delete this._floor[tile.position.humanReadable];
+            delete this._floor[tile.attributes.position.humanReadable];
         }
         else {
-            this._floor[tile.position.humanReadable] = tile;
+            this._floor[tile.attributes.position.humanReadable] = tile;
         }
     }
 
@@ -104,12 +104,12 @@ export default class Board {
 
         for(const [targetType, targets] of boardLayers) {
             for(const entity of Object.values(targets)) {
-                const newX = entity.position.x + left;
-                const newY = entity.position.y + top;
+                const newX = entity.attributes.position.x + left;
+                const newY = entity.attributes.position.y + top;
 
                 if(0 <= newX && newX < newWidth && 0 <= newY && newY < newHeight) {
                     let newEntity = entity.clone();
-                    newEntity.position = new Position(newX, newY);
+                    newEntity.attributes.position = new Position(newX, newY);
 
                     if(targetType == "entity") {
                         newBoard.setEntity(newEntity);

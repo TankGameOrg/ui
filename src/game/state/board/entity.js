@@ -1,6 +1,4 @@
-import { logger } from "#platform/logging.js";
 import { deserializer } from "../../../deserialization.js";
-import { deepClone } from "../../../utils.js";
 
 /**
  * An entity which could be on the board, a floor tile, or a meta entity (i.e. council)
@@ -19,14 +17,6 @@ export default class Entity {
         for(const player of players) {
             this.addPlayer(player);
         }
-    }
-
-    get position() {
-        return this.attributes.position;
-    }
-
-    set position(newPosition) {
-        this.attributes.position = newPosition;
     }
 
     /**

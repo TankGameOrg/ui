@@ -42,11 +42,11 @@ export function gameStateFromRawState(rawGameState) {
     const playersByName = buildUserLists(rawGameState);
 
     let board = convertBoard(undefined, rawGameState.$BOARD.unit_board, (newBoard, rawEntity, position) => {
-        newBoard.setEntity(entityFromBoard(rawEntity, position, playersByName));
+        newBoard.setEntity(entityFromBoard(rawEntity, playersByName));
     });
 
     board = convertBoard(board, rawGameState.$BOARD.floor_board, (newBoard, space, position) => {
-        newBoard.setFloorTile(entityFromBoard(space, position));
+        newBoard.setFloorTile(entityFromBoard(space));
     });
 
     let gameState = new GameState(
@@ -178,7 +178,7 @@ function convertCouncil(rawCouncil, playersByName) {
     return new Entity({ type: "council", attributes, players });
 }
 
-function entityFromBoard(rawEntity, position, playersByName) {
+function entityFromBoard(rawEntity, playersByName) {
     const type = mapClassToType(rawEntity.class);
     let attributes = decodeAttributes(rawEntity);
 
@@ -292,7 +292,7 @@ function buildUnit(position, board, boardType, gameState) {
         attributes["$" + attributeName.toUpperCase()] = value;
     }
 
-    attributes.$POSITION = buildPosition(entity.position);
+    attributes.$POSITION = buildPosition(entity.attributes.position);
 
     if(entity.getPlayerRefs().length > 0) {
         attributes.$PLAYER_REF = buildPlayerRef(entity.getPlayerRefs()[0].getPlayer(gameState));
