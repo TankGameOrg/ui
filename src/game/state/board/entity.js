@@ -1,3 +1,4 @@
+import { logger } from "#platform/logging.js";
 import { deserializer } from "../../../deserialization.js";
 import { deepClone } from "../../../utils.js";
 
@@ -8,18 +9,24 @@ export default class Entity {
     /**
      * Construct an entity
      * @param {*} type The type of the entity
-     * @param {*} position The position of the entity (optional)
      * @param {*} attributes The attributes of the entity
      * @param {*} players The players or PlayerRefs that control this entity
      */
-    constructor({ type, position, attributes = {}, players = [] }) {
+    constructor({ type, attributes = {}, players = [] }) {
         this.type = type;
-        this.position = position;
         this._playerRefs = [];
         this.attributes = attributes;
         for(const player of players) {
             this.addPlayer(player);
         }
+    }
+
+    get position() {
+        return this.attributes.position;
+    }
+
+    set position(newPosition) {
+        this.attributes.position = newPosition;
     }
 
     /**
@@ -46,9 +53,8 @@ export default class Entity {
     clone({ removePlayers = false } = {}) {
         return new Entity({
             type: this.type,
-            position: this.position,
             players: removePlayers ? [] : this._playerRefs.slice(0),
-            attributes: deepClone(this.attributes),
+            attributes: Object.assign({}, this.attributes),
         });
     }
 
@@ -58,16 +64,14 @@ export default class Entity {
      * @returns
      */
     static deserialize(rawEntity) {
-        let attributes = deepClone(rawEntity);
+        let attributes = Object.assign({}, rawEntity);
         delete attributes.type;
         delete attributes.players;
-        delete attributes.position;
 
         return new Entity({
             type: rawEntity.type,
             attributes,
             players: rawEntity.players,
-            position: rawEntity.position,
         });
     }
 
@@ -79,7 +83,6 @@ export default class Entity {
         return {
             ...this.attributes,
             type: this.type,
-            position: this.position,
             players: this._playerRefs.length === 0 ?
                 undefined : // Don't include a players field if it's empty
                 this._playerRefs,

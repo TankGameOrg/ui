@@ -7,10 +7,10 @@ import Players from "../../../../../src/game/state/players/players.js";
 
 let board = new Board(7, 5);
 
-const tank1 = new Entity({ type: "tank", position: new Position("A1") });
-const destroyedTank = new Entity({ type: "dead-tank", position: new Position("C4") });
-let tank2 = new Entity({ type: "tank", position: new Position("G5") });
-const baloon = new Entity({ type: "baloon", position: new Position("B2") });
+const tank1 = new Entity({ type: "tank", attributes: { position: new Position("A1") } });
+const destroyedTank = new Entity({ type: "dead-tank", attributes: { position: new Position("C4") } });
+let tank2 = new Entity({ type: "tank", attributes: { position: new Position("G5") } });
+const baloon = new Entity({ type: "baloon", attributes: { position: new Position("B2") } });
 
 let josh = new Player({ name: "Josh", type: "tank" });
 tank2.addPlayer(josh);
@@ -20,15 +20,15 @@ board.setEntity(destroyedTank);
 board.setEntity(tank2);
 board.setEntity(baloon);
 
-const goldMine1 = new Entity({ type: "gold_mine", position: new Position("E5") });
-const goldMine2 = new Entity({ type: "gold_mine", position: new Position("B4") });
-const base = new Entity({ type: "base", position: new Position("C4") });
+const goldMine1 = new Entity({ type: "gold_mine", attributes: { position: new Position("E5") } });
+const goldMine2 = new Entity({ type: "gold_mine", attributes: { position: new Position("B4") } });
+const base = new Entity({ type: "base", attributes: { position: new Position("C4") } });
 board.setFloorTile(goldMine1);
 board.setFloorTile(goldMine2);
 board.setFloorTile(base);
 
-const empty = new Entity({ type: "empty", position: new Position("D3") });
-const emptyTile = new Entity({ type: "empty", position: new Position("G5") });
+const empty = new Entity({ type: "empty", attributes: { position: new Position("D3") } });
+const emptyTile = new Entity({ type: "empty", attributes: { position: new Position("G5") } });
 
 
 describe("Board", () => {

@@ -10,6 +10,7 @@ import Entity from "../../game/state/board/entity.js";
 import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
+import { logger } from "#platform/logging.js";
 
 function mapTypeToClass(type, boardType) {
     if(type == "empty") {
@@ -96,7 +97,7 @@ function getAttributeName(name) {
 function shouldKeepAttribute(attributeName) {
     if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
 
-    if(["$POSITION", "$PLAYER_REF"].includes(attributeName)) {
+    if(["$PLAYER_REF"].includes(attributeName)) {
         return false;
     }
 
@@ -114,6 +115,10 @@ function decodeAttributes(rawAttributes) {
 
         if(actualName == "only_lootable_by") {
             attributes[actualName] = attributes[actualName].name;
+        }
+
+        if(attributes[actualName]?.class == "Position") {
+            attributes[actualName] = new Position(attributes[actualName]);
         }
 
         const maxAttributeName = "$MAX_" + attributeName.replace("$", "");
@@ -179,7 +184,6 @@ function entityFromBoard(rawEntity, position, playersByName) {
 
     let entity = new Entity({
         type,
-        position,
         attributes,
     });
 

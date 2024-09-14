@@ -13,8 +13,8 @@ describe("GameState", () => {
         ];
 
         let board = new Board(2, 2);
-        board.setEntity(new Entity({ type: "tank", position: new Position("A1"), players: [players[0] /* Ted */] }));
-        board.setEntity(new Entity({ type: "tank", position: new Position("A2"), players: [players[1] /* Bella */] }));
+        board.setEntity(new Entity({ type: "tank", attributes: { position: new Position("A1") }, players: [players[0] /* Ted */] }));
+        board.setEntity(new Entity({ type: "tank", attributes: { position: new Position("A2") }, players: [players[1] /* Bella */] }));
 
         const gameState = new GameState(
             players,
