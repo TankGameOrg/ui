@@ -99,11 +99,10 @@ deserializer.registerDeserializer("entity", (rawEntity) => {
             }
         }
 
-        // if(attributes.$DURABILITY === undefined) {
-        //     attributes.$MAX_DURABILITY = attributes.$MAX_HEALTH;
-        //     attributes.$DURABILITY = attributes.$HEALTH;
-        //     delete attributes.$HEALTH;
-        // }
+        if(rawEntity.durability === undefined) {
+            rawEntity.durability = rawEntity.health;
+            delete rawEntity.health;
+        }
     }
 
     return Entity.deserialize(rawEntity);

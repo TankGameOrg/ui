@@ -9,9 +9,8 @@ const TANK_TEAMS_WITH_ICONS = new Set([
 
 export class TankDescriptor extends EntityDescriptor {
     getFeaturedAttribute() {
-        const {health, durability} = this.entity.attributes;
-        const stat = health || durability;
-        return stat?.value !== undefined ? stat.value : stat;
+        const {durability} = this.entity.attributes;
+        return durability?.value !== undefined ? durability.value : durability;
     }
 
     getTileStyle() {

@@ -102,10 +102,6 @@ function getAttributeName(name, type, rawAttributes) {
         name = name.slice(1);
     }
 
-    if(type == "tank" && !rawAttributes.$DEAD && name == "durability") {
-        return "health";
-    }
-
     return name;
 }
 
@@ -302,14 +298,6 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
         }
 
         attributes["$" + attributeName.toUpperCase()] = value;
-    }
-
-    if(entity.type == "tank") {
-        if(attributes.$DURABILITY === undefined) {
-            attributes.$MAX_DURABILITY = attributes.$MAX_HEALTH;
-            attributes.$DURABILITY = attributes.$HEALTH;
-            delete attributes.$HEALTH;
-        }
     }
 
     attributes.$POSITION = buildPosition(entity.position);

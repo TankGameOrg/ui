@@ -5,7 +5,6 @@ export const commonAttributeDescriptors = {
     gold: AttributeDescriptor.make({ category: "resources" }),
     actions: AttributeDescriptor.make({ category: "resources" }),
     power: AttributeDescriptor.make({ category: "resources" }),
-    health: AttributeDescriptor.make({ category: "stats" }),
     durability: AttributeDescriptor.make({ category: "stats" }),
     range: AttributeDescriptor.make({ category: "stats" }),
     speed: AttributeDescriptor.make({ category: "stats" }),
