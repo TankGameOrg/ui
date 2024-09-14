@@ -1,18 +1,22 @@
 import "./submit-turn.css";
-import { submitTurn, usePossibleActionFactories } from "../../../drivers/rest/fetcher.js";
 import { ErrorMessage } from "../../error_message.jsx";
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 import { resetPossibleActions, selectActionType, setActionSpecificField, setLastError, setLastRollEntry, setPossibleActions, setSubject } from "../../../interface-adapters/build-turn.js";
-import { prettyifyName } from "../../../utils.js";
 import { LabelElement } from "./base.jsx";
 import { Select, SelectPosition } from "./select.jsx";
 import { Input } from "./input.jsx";
 import { DieRollResults, RollDice } from "./roll-dice.jsx";
+import { SelectAction } from "./select-action.jsx";
+import { getGameClient, useGameClient } from "../../../drivers/rest/game-client.js";
 
-export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, game, debug, entryId, builtTurnState, buildTurnDispatch, allowManualRolls }) {
-    // Set this to undefined so we don't send a request for anthing other than the last turn
-    const possibleActionsEntryId = canSubmitAction && isLatestEntry ? entryId : undefined;
-    const [actionFactories, error] = usePossibleActionFactories(game, builtTurnState.subject, possibleActionsEntryId);
+export function SubmitTurn({ isLatestEntry, canSubmitAction, game, debug, builtTurnState, buildTurnDispatch, allowManualRolls }) {
+    const [actionFactories, error] = useGameClient(game, client => {
+        // Don't send a request for anthing other than the last turn
+        if(canSubmitAction && isLatestEntry && builtTurnState.subject) {
+            return client.getPossibleActions(builtTurnState.subject);
+        }
+    }, [builtTurnState.subject, canSubmitAction, isLatestEntry], { possibleActionsUser: builtTurnState.subject });
+
     const [status, setStatus] = useState();
 
     useEffect(() => {
@@ -26,10 +30,9 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
             buildTurnDispatch(setLastError(undefined));
 
             try {
-                const lastEntry = await submitTurn(game, builtTurnState.logBookEntry);
+                const lastEntry = await getGameClient(game).submitTurn(builtTurnState.logBookEntry);
 
                 // Reset the form
-                refreshGameInfo();
                 buildTurnDispatch(resetPossibleActions());
                 buildTurnDispatch(setLastRollEntry(lastEntry));
             }
@@ -39,30 +42,10 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
 
             setStatus(undefined);
         }
-    }, [builtTurnState, buildTurnDispatch, refreshGameInfo, setStatus, game]);
-
-    // Reuse the select widget for choosing an action
-    const possibleActions = useMemo(() => {
-        let prettyToInternal = {};
-        let internalToPretty = {};
-        let options = [];
-
-        for(const action of builtTurnState.actions) {
-            const pretty = prettyifyName(action.name);
-            options.push(pretty);
-            prettyToInternal[pretty] = action.name;
-            internalToPretty[action.name] = pretty;
-        }
-
-        return {
-            options,
-            prettyToInternal,
-            internalToPretty,
-        };
-    }, [builtTurnState]);
+    }, [builtTurnState, buildTurnDispatch, setStatus, game]);
 
     const selectAction = actionName => {
-        return buildTurnDispatch(selectActionType(possibleActions.prettyToInternal[actionName]));
+        return buildTurnDispatch(selectActionType(actionName));
     };
 
     if(builtTurnState.lastRollEntry) {
@@ -96,10 +79,10 @@ export function SubmitTurn({ isLatestEntry, canSubmitAction, refreshGameInfo, ga
     const actionSubmissionForm = builtTurnState.actions.length > 0 ? (
         <>
             <LabelElement name="Action">
-                <Select
-                    spec={possibleActions}
-                    value={possibleActions.internalToPretty[builtTurnState.currentActionName]}
-                    setValue={selectAction}></Select>
+                <SelectAction
+                    actions={builtTurnState?.actions}
+                    value={builtTurnState.currentActionName}
+                    setValue={selectAction}></SelectAction>
             </LabelElement>
             <SubmissionForm
                 builtTurnState={builtTurnState}
@@ -175,6 +158,7 @@ function SubmissionForm({ builtTurnState, buildTurnDispatch, allowManualRolls })
                 if(Element) {
                     return (
                         <LabelElement key={fieldSpec.name} name={fieldSpec.display}>
+                            {fieldSpec.description?.length > 0 ? <p>{fieldSpec.description}</p> : undefined}
                             <Element
                                 type={fieldSpec.type}
                                 builtTurnState={builtTurnState}

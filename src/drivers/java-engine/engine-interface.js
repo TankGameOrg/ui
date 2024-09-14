@@ -3,139 +3,92 @@ import fs from "node:fs";
 import path from "node:path";
 import {spawnSync} from "node:child_process";
 import { logger } from "#platform/logging.js";
-import * as boardStateMain from "./board-state-main.js";
-import * as boardStateStable from "./board-state-stable.js";
+import { gameStateToRawState, gameStateFromRawState } from "./board-state.js";
 import { JavaEngineSource } from "./possible-action-source.js";
 import { JsonCommunicationChannel } from "../json-communication-channel.js";
 import { convertLogEntry } from "./log-translator.js";
 
 const TANK_GAME_TIMEOUT = 3; // seconds
-const ENGINE_NAME_EXPR = /TankGame-(.+?).jar$/;
-
-function determineEngineVersion(command) {
-    const fileName = command
-            .map(arg => ENGINE_NAME_EXPR.exec(arg))
-            .filter(arg => arg);
-
-    if(fileName.length !== 1) {
-        throw new Error("Failed to detect engine version");
-    }
-
-    return fileName[0][1];
-}
 
 // Put ids on the engines so we can differentiate them in logs
 let uniqueIdCounter = 0;
 
-class TankGameEngine {
-    constructor(command, timeout, engineVersion) {
-        if(!Array.isArray(command) || command.length <= 0) {
-            throw new Error(`Expected an array in the form ["command", ...args] but got ${command}`);
-        }
+class TankGameApi {
+    constructor(comm, ruleset, instanceName, shutdownCallback) {
+        this._comm = comm;
+        this._instance = instanceName;
+        this._shutdownCallback = shutdownCallback;
 
-        this._id = `java-${++uniqueIdCounter}`;
-        this._comm = new JsonCommunicationChannel(command, timeout, this._id);
-
-        // Hacky way to detect if we're using an engine from the main or stable branch
-        this._isMainBranch = engineVersion != "0.0.2";
-    }
-
-    _runCommand(command, data) {
-        if(!data) data = {};
-
-        data["type"] = "command";
-        data["command"] = command;
-
-        return this._comm.sendRequestAndWait(data);
+        this._comm.sendRequestAndWait({
+            method: "createInstance",
+            instance: this._instance,
+            ruleset,
+        });
     }
 
     async shutdown() {
-        try {
-            await this._comm.sendRequestAndWait({
-                "type": "command",
-                "command": "exit",
-            });
+        await this._comm.sendRequestAndWait({
+            "method": "destroyInstance",
+            instance: this._instance,
+        });
 
-            logger.info({ msg: "Exited", id: this._id });
-        }
-        catch(err) {
-            logger.warn({ msg: "Exit command failed", err, id: this._id });
-            this._comm.kill();
-        }
+        logger.info({ msg: "Destroyed", instance: this._instance });
+        this._shutdownCallback();
     }
 
     getGameStateFromEngineState(state) {
-        if(this._isMainBranch) {
-            return boardStateMain.gameStateFromRawState(state);
-        }
-        else {
-            return boardStateStable.gameStateFromRawState(state);
-        }
+        return gameStateFromRawState(state);
     }
 
     getEngineStateFromGameState(state, gameVersion) {
-        if(this._isMainBranch) {
-            return boardStateMain.gameStateToRawState(state, gameVersion);
-        }
-        else {
-            return boardStateStable.gameStateToRawState(state);
-        }
+        return gameStateToRawState(state, gameVersion);
     }
 
     async getBoardState() {
-        return await this._runCommand("display");
+        return (await this._comm.sendRequestAndWait({
+            method: "getState",
+            instance: this._instance,
+        }));
     }
 
     async getPossibleActions(player) {
         return (await this._comm.sendRequestAndWait({
-            type: "possible_actions",
+            method: "getPossibleActions",
+            instance: this._instance,
             player,
         })).actions;
     }
 
     setBoardState(state) {
         return this._comm.sendRequestAndWait({
-            type: "state",
+            method: "setState",
+            instance: this._instance,
             ...state,
         });
     }
 
     async processAction(action) {
         await this._comm.sendRequestAndWait({
-            type: "action",
-            ...convertLogEntry(action, this._isMainBranch),
+            method: "ingestAction",
+            instance: this._instance,
+            ...convertLogEntry(action),
         });
 
         return this.getBoardState();
     }
 
-    async setGameVersion(version) {
-        // Support stable using versions like 3 instead of default-v3
-        if(version.startsWith("default-v") && !this._isMainBranch) version = version.slice(9);
-
-        await this._comm.sendRequestAndWait({
-            type: "version",
-            version,
+    async canProcessAction(action) {
+        const result = await this._comm.sendRequestAndWait({
+            method: "canIngestAction",
+            instance: this._instance,
+            ...convertLogEntry(action),
         });
+
+        return result.errors;
     }
 
     getEngineSpecificSource(opts) {
         return new JavaEngineSource(opts);
-    }
-
-    async getLineOfSightFor(player) {
-        const actions = await this.getPossibleActions(player);
-        const shootAction = actions.find(action => action.rule == "shoot");
-        if(!shootAction) {
-            throw new Error("Failed to find shoot action");
-        }
-
-        const targets = shootAction.fields.find(field => field.name == "target");
-        if(!targets) {
-            return [];
-        }
-
-        return targets.range;
     }
 }
 
@@ -150,32 +103,34 @@ export function getAllEngineFactories() {
 
 class EngineFactory {
     constructor(engineCommand) {
+        this._instances = new Set();
         this._engineCommand = engineCommand;
         this._collectVersionInfo();
     }
 
     _collectVersionInfo() {
-        try {
-            const proc = spawnSync(this._engineCommand[0], this._engineCommand.slice(1).concat(["--version"]));
-            this._versionInfo = JSON.parse(proc.stdout.toString());
-        }
-        catch(err) {
-            logger.warn({ msg: "Failed to dynamically determine engine version", err });
-
-            const version = determineEngineVersion(this._engineCommand);
-
-            // Support legacy engines
-            this._versionInfo = {
-                version,
-                pretty_version: `Engine ${version}`,
-                // All versions that don't support --version support versions 3 and 4
-                supported_rulesets: ["default-v3", "default-v4"],
-            };
-        }
+        const proc = spawnSync(this._engineCommand[0], this._engineCommand.slice(1).concat(["--version"]));
+        this._versionInfo = JSON.parse(proc.stdout.toString());
     }
 
-    createEngine() {
-        return new TankGameEngine(this._engineCommand, TANK_GAME_TIMEOUT, this._versionInfo.version);
+    createEngine(ruleset) {
+        if(!this._comm) {
+            this._comm = new JsonCommunicationChannel(this._engineCommand, TANK_GAME_TIMEOUT, "java-engine");
+        }
+
+        const instanceName = `${ruleset}--${++uniqueIdCounter}`;
+        this._instances.add(instanceName);
+        return new TankGameApi(this._comm, ruleset, instanceName, () => {
+            this._instances.delete(instanceName);
+
+            if(this._instances.size === 0) {
+                this._comm.sendRequestAndWait({
+                    "method": "exit",
+                });
+
+                this._comm = undefined;
+            }
+        });
     }
 
     getEngineVersion() {

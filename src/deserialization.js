@@ -1,3 +1,5 @@
+import { logger } from "#platform/logging.js";
+
 export const SERIALIZER_KEY = Symbol("serializer");
 export const DESERIALIZER_KEY = "class";
 
@@ -121,7 +123,9 @@ export class Deserializer {
 
         const transformer = this._deserializers.get(className);
         if(transformer === undefined) {
-            throw new Error(`Could not find a deserializer for ${value[DESERIALIZER_KEY]}`);
+            const msg = `Could not find a deserializer for ${className}`;
+            logger.error({ msg, value, key });
+            throw new Error(msg);
         }
 
         helpers.getKey = () => key;

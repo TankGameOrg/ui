@@ -21,7 +21,7 @@ function makeMockActionSet() {
         {
             getActionName: () => "shoot",
             getDiceFor: () => {
-                return [new Dice(3, "hit die")];
+                return [new Dice(3, { name: "hit die" })];
             }
         }
     ];

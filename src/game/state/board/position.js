@@ -33,7 +33,7 @@ export class Position {
         }
 
         if(typeof x != "number" || typeof y != "number" || x < 0 || y < 0) {
-            throw new Error(`Invalid position (${x}, ${y})`);
+            throw new Error(`Invalid position (${JSON.stringify(x)}, ${JSON.stringify(y)})`);
         }
 
         this.x = x;

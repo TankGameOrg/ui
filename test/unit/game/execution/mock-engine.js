@@ -67,9 +67,4 @@ export class MockEngine {
         await this._delayOp();
         this.operations.push({ operation: "set-state",  state });
     }
-
-    async setGameVersion(version) {
-        await this._delayOp();
-        this.operations.push({ operation: "set-version", version });
-    }
 }

@@ -1,7 +1,8 @@
 /* global history */
 import { useState } from "preact/hooks";
-import { reloadAllGames, selectEngineForVersion, useAvilableEngines } from "../drivers/rest/fetcher.js";
+import { selectEngineForVersion, useAvilableEngines } from "../drivers/rest/fetcher.js";
 import { AppContent } from "./app-content.jsx";
+import { reloadAllGames } from "../drivers/rest/game-client.js";
 
 export function Backstage({ debug }) {
     const toolbar = (

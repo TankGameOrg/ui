@@ -107,3 +107,17 @@
 .die-box:last-child {
     margin-right: 0px;
 }
+
+.unavailable-action {
+    text-decoration: line-through;
+    color: #a00;
+}
+
+.select-action-info-row {
+    padding: 7px 0px;
+    padding-left: 10px;
+}
+
+.action-error-message {
+    color: #a00;
+}

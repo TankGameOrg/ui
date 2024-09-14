@@ -111,7 +111,6 @@ describe("GameInteractor", () => {
         const { interactor, mockEngine, initialGameState } = await configureInteractor(logEntries, { versionConfig });
 
         assert.deepEqual(mockEngine.operations, [
-            { operation: "set-version", version: GAME_VERSION },
             { operation: "set-state", state: initialGameState },
             { operation: "process-action", logEntry: logEntries[0] },
             { operation: "process-action", logEntry: logEntries[1] },
@@ -154,7 +153,6 @@ describe("GameInteractor", () => {
         await interactor.addLogBookEntry(rawEntry);
 
         assert.deepEqual(mockEngine.operations, [
-            { operation: "set-version", version: GAME_VERSION },
             { operation: "set-state", state: { stateNo: 2 } },
             { operation: "process-action", logEntry: newEntry },
         ]);
@@ -249,10 +247,10 @@ describe("GameInteractor", () => {
         const { interactor, mockEngine, logBook, initialGameState } = await configureInteractor(logEntries, {
             waitForLoaded: false,
             processingDelays: [
-                initialDelay, initialDelay, // Set state + version
+                initialDelay, // Set state
                 initialDelay, initialDelay, initialDelay, // process initial log book
-                firstAddActionDelay, firstAddActionDelay, firstAddActionDelay, // set state + version then process action
-                secondAddActionDelay, secondAddActionDelay, secondAddActionDelay, // set state + version then process action
+                firstAddActionDelay, firstAddActionDelay, // set state then process action
+                secondAddActionDelay, secondAddActionDelay, // set state then process action
             ],
             versionConfig,
         });
@@ -278,15 +276,12 @@ describe("GameInteractor", () => {
         assert.ok(mockEngine.wereAllDelaysApplied(), `Expected time to be close to ${expectedTime} but it was ${totalTime}`);
 
         assert.deepEqual(mockEngine.operations, [
-            { operation: "set-version", version: GAME_VERSION },
             { operation: "set-state", state: initialGameState },
             { operation: "process-action", logEntry: logEntries[0] },
             { operation: "process-action", logEntry: logEntries[1] },
             { operation: "process-action", logEntry: logEntries[2] },
-            { operation: "set-version", version: GAME_VERSION },
             { operation: "set-state", state: { stateNo: 4 } },
             { operation: "process-action", logEntry: newEntry },
-            { operation: "set-version", version: GAME_VERSION },
             { operation: "set-state", state: { stateNo: 5 } },
             { operation: "process-action", logEntry: newEntry2 },
         ]);

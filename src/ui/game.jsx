@@ -1,6 +1,5 @@
 import { GameBoard } from "./game_state/board.jsx";
-import { useCallback, useMemo, useState } from "preact/hooks";
-import { reloadGame, useGameInfo, useGameState } from "../drivers/rest/fetcher.js";
+import { useMemo } from "preact/hooks";
 import { LogEntrySelector } from "./game_state/log_entry_selector.jsx"
 import { SubmitTurn } from "./game_state/submit-turn/submit-turn.jsx";
 import { Council } from "./game_state/council.jsx";
@@ -13,20 +12,16 @@ import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface
 import { getGameVersion } from "../versions/index.js";
 import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
+import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
 
 
 export function Game({ game, navigate, debug }) {
-    // We want to be able to force refresh out game info after submitting an action
-    // so we create this state that game info depends on so when change it game info
-    // gets refreshed
-    const [gameInfoTrigger, setGameInfoTrigger] = useState();
-    const [gameInfo, infoError] = useGameInfo(game, gameInfoTrigger);
-    const refreshGameInfo = useCallback(() => {
-        setGameInfoTrigger(!gameInfoTrigger);
-    }, [gameInfoTrigger, setGameInfoTrigger]);
+    usePollingFor(game, 2 /* refresh every 2 seconds */);
+    const [gameInfo, infoError] = useGameClient(game, client => client.getGameInfo());
 
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
-    const [gameState, stateError] = useGameState(game, currentTurnMgrState.entryId);
+    const [gameState, stateError] = useGameClient(game,
+            client => client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId])
 
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
@@ -49,7 +44,7 @@ export function Game({ game, navigate, debug }) {
     const debugButtons = (
         <>
             <button onClick={() => navigate("backstage")}>Backstage</button>
-            <button onClick={() => reloadGame(game)}>Reload game</button>
+            <button onClick={() => getGameClient(game).reloadGame()}>Reload game</button>
         </>
     );
 
@@ -128,9 +123,7 @@ export function Game({ game, navigate, debug }) {
                             builtTurnState={builtTurnState}
                             buildTurnDispatch={buildTurnDispatch}
                             canSubmitAction={canSubmitAction}
-                            refreshGameInfo={refreshGameInfo}
                             debug={debug}
-                            entryId={currentTurnMgrState.entryId}
                             isLatestEntry={currentTurnMgrState.isLatestEntry}
                             allowManualRolls={gameInfo?.gameSettings?.allowManualRolls}></SubmitTurn> : undefined}
                     </div>

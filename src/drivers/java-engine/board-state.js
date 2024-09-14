@@ -28,7 +28,7 @@ function mapTypeToClass(type, boardType, gameVersion) {
         unwalkable_floor: "UnwalkableFloor",
     }[type];
 
-    if(className === undefined) className = type;//throw new Error(`Could not find class name for ${type}`);
+    if(className === undefined) className = type;
 
     return className;
 }

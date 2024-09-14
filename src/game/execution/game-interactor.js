@@ -45,28 +45,33 @@ export class GameInteractor {
             // Format log entry with previous state
             const previousState = this._gameStates[this._gameStates.length - 1] || this._gameData.initialGameState;
 
-            logEntry.updateMessageWithBoardState({
-                logEntryFormatter: this._logEntryFormatter,
-                previousState,
-                actions: await this._getActions(logEntry.rawLogEntry.subject, {
-                    entryId: entryId,
-                }),
-            });
+            try {
+                logEntry.updateMessageWithBoardState({
+                    logEntryFormatter: this._logEntryFormatter,
+                    previousState,
+                    actions: await this._getActions(logEntry.rawLogEntry.subject, {
+                        entryId: entryId,
+                    }),
+                });
 
-            // Process the action
-            const state = await this._engine.processAction(logEntry);
-            this._previousState = state;
-            const {gameState, victoryInfo} = this._engine.getGameStateFromEngineState(state);
-            this._gameStates.push(gameState);
+                // Process the action
+                const state = await this._engine.processAction(logEntry);
+                this._previousState = state;
+                const {gameState, victoryInfo} = this._engine.getGameStateFromEngineState(state);
+                this._gameStates.push(gameState);
 
-            if(this._onGameOver && victoryInfo !== undefined) {
-                this._onGameOver(victoryInfo);
+                if(this._onGameOver && victoryInfo !== undefined) {
+                    this._onGameOver(victoryInfo);
+                }
+            }
+            catch(err) {
+                logger.warn({ msg: "Encountered an error while processing existing actions", err, entryId, logEntry });
+                throw err;
             }
         }
     }
 
     async _sendPreviousState() {
-        await this._engine.setGameVersion(this._gameData.gameVersion);
         await this._engine.setBoardState(this._previousState);
     }
 
@@ -118,18 +123,7 @@ export class GameInteractor {
             throw new Error(`Logbook length and states length should be identical (log book = ${this._gameData.logBook.getLength()}, states = ${this._gameStates.length})`);
         }
 
-        await this._sendPreviousState();
-
-        let success = false;
-        try {
-            await this._engine.processAction(entry);
-            success = true;
-        }
-        catch(err) {}  // eslint-disable-line no-unused-vars, no-empty
-
-        await this._sendPreviousState();
-
-        return success;
+        return await this._engine.canProcessAction(entry);
     }
 
     async _finalizeEntry(entry) {

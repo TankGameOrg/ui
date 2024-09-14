@@ -1,5 +1,4 @@
 import "./generic-possible-action.js";
-import  "./shoot.js";
 import  "./start-of-day-source.js";
 
 export class PossibleActionSourceSet {

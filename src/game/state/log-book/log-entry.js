@@ -1,5 +1,6 @@
 import { deserializer } from "../../../deserialization.js";
 import { Dice } from "../../possible-actions/die.js";
+import { Position } from "../board/position.js";
 
 export class LogEntry {
     constructor(rawLogEntry, message, dieRolls) {
@@ -69,12 +70,15 @@ export class LogEntry {
             .filter(field => field.value?.type == "die-roll");
 
         for(const rollField of rollFields) {
-            const dice = actions.find(action => action.getActionName() == this.type).getDiceFor(rollField.key, {
-                rawLogEntry: this.rawLogEntry,
-            });
+            const action = actions.find(action => action.getActionName() == this.type);
+            if(action) {
+                const dice = action.getDiceFor(rollField.key, {
+                    rawLogEntry: this.rawLogEntry,
+                });
 
-            this.dieRolls[rollField.key] = Dice.expandAll(dice)
-                .map((die, idx) => die.getSideFromValue(rollField.value.roll[idx]));
+                this.dieRolls[rollField.key] = Dice.expandAll(dice)
+                    .map((die, idx) => die.getSideFromValue(rollField.value.roll[idx]));
+            }
         }
 
         this.message = logEntryFormatter.formatLogEntry(this, previousState);
@@ -105,4 +109,25 @@ export class LogEntry {
     }
 }
 
-deserializer.registerClass("log-entry-v1", LogEntry);
+deserializer.registerDeserializer("log-entry-v1", (rawLogEntry, helpers) => {
+    helpers.updatedContent();
+
+    // Attempt to parse a target as a position and then switch to a player ref
+    if(rawLogEntry.target !== undefined) {
+        try {
+            // Check if this is a valid position
+            new Position(rawLogEntry.target);
+
+            rawLogEntry.target_position = rawLogEntry.target;
+            delete rawLogEntry.target;
+        }
+        catch(err) {
+            rawLogEntry.target_player = rawLogEntry.target;
+            delete rawLogEntry.target;
+        }
+    }
+
+    return LogEntry.deserialize(rawLogEntry);
+});
+
+deserializer.registerClass("log-entry-v2", LogEntry);

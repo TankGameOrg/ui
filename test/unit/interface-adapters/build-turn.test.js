@@ -2,6 +2,7 @@ import assert from "node:assert";
 import { GenericPossibleAction } from "../../../src/game/possible-actions/generic-possible-action.js";
 import { LogFieldSpec } from "../../../src/game/possible-actions/log-field-spec.js";
 import { buildTurnReducer, makeInitalState, resetPossibleActions, selectActionType, selectLocation, setActionSpecificField, setLastError, setLastRollEntry, setPossibleActions, setSubject } from "../../../src/interface-adapters/build-turn.js";
+import { ActionError } from "../../../src/game/possible-actions/action-error.js";
 
 const swappingBaseSpec = new LogFieldSpec({
     name: "pick",
@@ -91,6 +92,7 @@ const possibleActions = [
     }),
     new GenericPossibleAction({
         actionName: "make-team",
+        description: "It can make a team",
         fieldSpecs: [
             new LogFieldSpec({
                 name: "team",
@@ -100,7 +102,11 @@ const possibleActions = [
     }),
     new GenericPossibleAction({
         actionName: "multiply",
+        description: "It can multiply things",
         fieldSpecs: mutliplyFieldSpecs,
+        errors: [
+            new ActionError({ category: "FOO", message: "bar" }),
+        ]
     }),
     new SwappingPossibleAction(),
 ];
@@ -125,10 +131,10 @@ function compareState(state, expected) {
 }
 
 const actions = [
-    { name: "shoot" },
-    { name: "make-team" },
-    { name: "multiply" },
-    { name: "swapper" },
+    { name: "shoot", errors: [], description: undefined },
+    { name: "make-team", errors: [], description: "It can make a team" },
+    { name: "multiply", errors: [ new ActionError({ category: "FOO", message: "bar" }) ], description: "It can multiply things" },
+    { name: "swapper", errors: [], description: undefined },
 ];
 
 describe("BuildTurn", () => {

@@ -7,7 +7,7 @@ export function findGlobalCooldowns(gameState) {
         .filter(player => player.attributes.global_cooldown_end_time >= now)
         .map(player => {
             const playerName = player.name;
-            const timeRemaining = (player.attributes.global_cooldown_end_time - now) + 1;
+            const timeRemaining = player.attributes.global_cooldown_end_time - now;
 
             return {
                 playerName,

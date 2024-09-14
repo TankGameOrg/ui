@@ -1,25 +1,18 @@
 import { Position } from "../../game/state/board/position.js";
-import { buildPosition } from "./board-state-main.js";
+import { buildPosition } from "./board-state.js";
 
-const COUNCIL_ACTIONS = ["bounty", "grant_life", "stimulus"];
-
-function convertSubject(logEntry) {
-    return {
-        ...logEntry.rawLogEntry,
-        subject: COUNCIL_ACTIONS.includes(logEntry.type) ? "Council" : logEntry.rawLogEntry.subject,
-    };
-}
 
 function convertToEngineEntry(logEntry) {
-    // Attempt to parse a target as a position and then switch to a player ref
-    let target;
-    try {
-        target = buildPosition(new Position(logEntry.target));
+    logEntry = Object.assign({}, logEntry);
+
+    if(logEntry.target_position !== undefined) {
+        logEntry.target_position = buildPosition(new Position(logEntry.target_position));
     }
-    catch(err) {
-        target = {
+
+    if(logEntry.target_player !== undefined) {
+        logEntry.target_player = {
             "class": "PlayerRef",
-            "name": logEntry.target,
+            "name": logEntry.target_player,
         };
     }
 
@@ -31,19 +24,23 @@ function convertToEngineEntry(logEntry) {
         };
     }
 
+    for(const key of Object.keys(logEntry)) {
+        if(logEntry[key].type == "die-roll") {
+            logEntry[key] = {
+                ...logEntry[key],
+                type: undefined,
+                class: "DieRollResult"
+            };
+        }
+    }
+
     return {
         ...logEntry,
-        target,
         subject,
     };
 }
 
-export function convertLogEntry(logEntry, isMainBranch) {
-    logEntry = convertSubject(logEntry);
-
-    if(isMainBranch) {
-        logEntry = convertToEngineEntry(logEntry);
-    }
-
-    return logEntry;
+export function convertLogEntry(logEntry) {
+    logEntry = logEntry.withoutStateInfo();
+    return convertToEngineEntry(logEntry.rawLogEntry);
 }
