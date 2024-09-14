@@ -17,12 +17,7 @@ function mapTypeToClass(type, boardType, gameVersion) {
     }
 
     let className = {
-        tank: "GenericTank",
-        wall: "Wall",
-        gold_mine: "GoldMine",
-        health_pool: "HealthPool",
-        destructible_floor: "DestructibleFloor",
-        unwalkable_floor: "UnwalkableFloor",
+        Tank: "GenericTank",
     }[type];
 
     if(className === undefined) className = type;
@@ -32,22 +27,15 @@ function mapTypeToClass(type, boardType, gameVersion) {
 
 function mapClassToType(className) {
     let type = {
-        Wall: "wall",
-        GoldMine: "gold_mine",
-        GenericTank: "tank",
+        GenericTank: "Tank",
         EmptyUnit: "empty",
         WalkableFloor: "empty",
-        GlobalCooldownTank: "tank",
-        HealthPool: "health_pool",
-        DestructibleFloor: "destructible_floor",
-        UnwalkableFloor: "unwalkable_floor",
     }[className];
 
     if(type === undefined) type = className; // throw new Error(`Could not find type for ${className}`);
 
     return type;
 }
-
 
 export function gameStateFromRawState(rawGameState) {
     const playersByName = buildUserLists(rawGameState);

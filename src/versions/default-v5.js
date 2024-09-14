@@ -14,9 +14,9 @@ export const rawV5Config = {
     },
     floorTileDescriptors: {
         ...rawV4Config.floorTileDescriptors,
-        health_pool: HealthPoolDescriptor,
-        unwalkable_floor: UnwalkableFloor,
-        destructible_floor: DestructibleFloor,
+        HealthPool: HealthPoolDescriptor,
+        UnwalkableFloor,
+        DestructibleFloor,
         Lava: LavaDescriptor,
     },
     manualPath: undefined,

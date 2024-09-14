@@ -8,11 +8,11 @@ import { Wall } from "./shared/wall.js";
 export const rawV3Config = {
     logFormatter: new LogEntryFormatter(baseEntryFunctions),
     entityDescriptors: {
-        tank: TankDescriptor,
-        wall: Wall,
+        Tank: TankDescriptor,
+        Wall,
     },
     floorTileDescriptors: {
-        gold_mine: GoldMineDescriptor,
+        GoldMine: GoldMineDescriptor,
     },
     councilPlayerTypes: [
         "councilor",

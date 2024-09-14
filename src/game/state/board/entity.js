@@ -89,8 +89,20 @@ export default class Entity {
 
 deserializer.registerClass("entity-v2", Entity);
 
+// Mappings from the legacy type names to the new ones
+const TYPE_MAPPINGS = {
+    tank: "Tank",
+    wall: "Wall",
+    gold_mine: "GoldMine",
+    health_pool: "HealthPool",
+    destructible_floor: "DestructibleFloor",
+    unwalkable_floor: "UnwalkableFloor",
+};
+
 deserializer.registerDeserializer("entity", (rawEntity) => {
-    if(rawEntity.type == "tank") {
+    rawEntity.type = TYPE_MAPPINGS[rawEntity.type] || rawEntity.type;
+
+    if(rawEntity.type == "Tank") {
         rawEntity.dead = rawEntity.durability !== undefined;
 
         for(const removedAttibute of ["actions", "range", "bounty"]) {
