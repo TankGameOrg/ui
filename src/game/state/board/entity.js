@@ -87,4 +87,24 @@ export default class Entity {
     }
 }
 
-deserializer.registerClass("entity", Entity);
+deserializer.registerClass("entity-v2", Entity);
+
+deserializer.registerDeserializer("entity", (rawEntity) => {
+    if(rawEntity.type == "tank") {
+        rawEntity.dead = rawEntity.durability !== undefined;
+
+        for(const removedAttibute of ["actions", "range", "bounty"]) {
+            if(rawEntity[removedAttibute] === undefined) {
+                rawEntity[removedAttibute] = 0;
+            }
+        }
+
+        // if(attributes.$DURABILITY === undefined) {
+        //     attributes.$MAX_DURABILITY = attributes.$MAX_HEALTH;
+        //     attributes.$DURABILITY = attributes.$HEALTH;
+        //     delete attributes.$HEALTH;
+        // }
+    }
+
+    return Entity.deserialize(rawEntity);
+});

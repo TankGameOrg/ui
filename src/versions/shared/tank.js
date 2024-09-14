@@ -15,7 +15,7 @@ export class TankDescriptor extends EntityDescriptor {
     }
 
     getTileStyle() {
-        const isDead = this.entity.attributes.durability !== undefined;
+        const isDead = this.entity.attributes.dead;
 
         let icon = isDead ? "DeadTank" : "Tank"
 
@@ -73,7 +73,7 @@ export class TankDescriptor extends EntityDescriptor {
     formatForLogEntry() {
         let formatted = this.getName();
 
-        if(this.entity.attributes.durability !== undefined) {
+        if(this.entity.attributes.dead) {
             formatted += " [dead]";
         }
 

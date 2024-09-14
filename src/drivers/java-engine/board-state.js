@@ -11,9 +11,6 @@ import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
 
-
-const deadTankAttributesToRemove = ["$ACTIONS", "$RANGE", "$BOUNTY"];
-
 function mapTypeToClass(type, boardType, gameVersion) {
     if(type == "empty") {
         return boardType == "entity" ? "EmptyUnit" : "WalkableFloor";
@@ -115,12 +112,8 @@ function getAttributeName(name, type, rawAttributes) {
 function shouldKeepAttribute(attributeName, rawAttributes) {
     if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
 
-    if(["$DEAD", "$POSITION", "$PLAYER_REF"].includes(attributeName)) {
+    if(["$POSITION", "$PLAYER_REF"].includes(attributeName)) {
         return false;
-    }
-
-    if(rawAttributes.$DEAD) {
-        return !deadTankAttributesToRemove.includes(attributeName);
     }
 
     return true;
@@ -312,14 +305,6 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
     }
 
     if(entity.type == "tank") {
-        attributes.$DEAD = entity.attributes.durability !== undefined;
-
-        for(const removedAttibute of deadTankAttributesToRemove) {
-            if(attributes[removedAttibute] === undefined) {
-                attributes[removedAttibute] = 0;
-            }
-        }
-
         if(attributes.$DURABILITY === undefined) {
             attributes.$MAX_DURABILITY = attributes.$MAX_HEALTH;
             attributes.$DURABILITY = attributes.$HEALTH;
