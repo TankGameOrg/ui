@@ -11,7 +11,7 @@ import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
 
-function mapTypeToClass(type, boardType, gameVersion) {
+function mapTypeToClass(type, boardType) {
     if(type == "empty") {
         return boardType == "entity" ? "EmptyUnit" : "WalkableFloor";
     }
@@ -83,7 +83,7 @@ export function gameStateFromRawState(rawGameState) {
     };
 }
 
-function getAttributeName(name, type, rawAttributes) {
+function getAttributeName(name) {
     name = name.toLowerCase();
 
     if(name.startsWith("$")) {
@@ -93,7 +93,7 @@ function getAttributeName(name, type, rawAttributes) {
     return name;
 }
 
-function shouldKeepAttribute(attributeName, rawAttributes) {
+function shouldKeepAttribute(attributeName) {
     if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
 
     if(["$POSITION", "$PLAYER_REF"].includes(attributeName)) {
@@ -103,13 +103,13 @@ function shouldKeepAttribute(attributeName, rawAttributes) {
     return true;
 }
 
-function decodeAttributes(type, rawAttributes) {
+function decodeAttributes(rawAttributes) {
     let attributes = {};
 
     for(const attributeName of Object.keys(rawAttributes)) {
-        if(!shouldKeepAttribute(attributeName, rawAttributes)) continue;
+        if(!shouldKeepAttribute(attributeName)) continue;
 
-        const actualName = getAttributeName(attributeName, type, rawAttributes);
+        const actualName = getAttributeName(attributeName);
         attributes[actualName] = rawAttributes[attributeName];
 
         if(actualName == "only_lootable_by") {
@@ -131,7 +131,7 @@ function decodeAttributes(type, rawAttributes) {
 function convertPlayer(rawPlayer) {
     if(rawPlayer.class != "Player") throw new Error(`Expected player but got ${rawPlayer.class}`);
 
-    return new Player(decodeAttributes(undefined, rawPlayer));
+    return new Player(decodeAttributes(rawPlayer));
 }
 
 function getCouncilPlayers(rawCouncil, playersByName) {
@@ -175,7 +175,7 @@ function convertCouncil(rawCouncil, playersByName) {
 
 function entityFromBoard(rawEntity, position, playersByName) {
     const type = mapClassToType(rawEntity.class);
-    let attributes = decodeAttributes(type, rawEntity);
+    let attributes = decodeAttributes(rawEntity);
 
     let entity = new Entity({
         type,
@@ -274,7 +274,7 @@ function buildPlayer(player) {
     };
 }
 
-function buildUnit(position, board, boardType, gameVersion, gameState) {
+function buildUnit(position, board, boardType, gameState) {
     const entity = board[boardType == "entity" ? "getEntityAt" : "getFloorTileAt"](position);
 
     let attributes = {};
@@ -295,7 +295,7 @@ function buildUnit(position, board, boardType, gameVersion, gameState) {
     }
 
     return {
-        class: mapTypeToClass(entity.type, boardType, gameVersion),
+        class: mapTypeToClass(entity.type, boardType),
         ...attributes,
     };
 }
@@ -332,7 +332,7 @@ function makeCouncil(councilEntity, gameState) {
     };
 }
 
-export function gameStateToRawState(gameState, gameVersion) {
+export function gameStateToRawState(gameState) {
     return {
         class: "State",
         // It's assumed that we only interact with the engine when the game is active
@@ -340,8 +340,8 @@ export function gameStateToRawState(gameState, gameVersion) {
         $TICK: 0,
         $BOARD: {
             class: "Board",
-            unit_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, "entity", gameVersion, gameState)),
-            floor_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, "floorTile", gameVersion, gameState)),
+            unit_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, "entity", gameState)),
+            floor_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, "floorTile", gameState)),
         },
         $COUNCIL: makeCouncil(gameState.metaEntities.council, gameState),
         $PLAYERS: {
