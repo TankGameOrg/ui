@@ -4,7 +4,7 @@ import { Council } from "../meta/council.js";
 /**
  * An entity which could be on the board, a floor tile, or a meta entity (i.e. council)
  */
-export default class Entity {
+export default class Element {
     /**
      * Construct an entity
      * @param {*} attributes The attributes of the entity
@@ -19,7 +19,7 @@ export default class Entity {
      * @returns
      */
     clone({ removePlayers = false } = {}) {
-        return new Entity({
+        return new Element({
             ...this,
             playerRef: removePlayers ? undefined : this.playerRef,
         });
@@ -37,7 +37,7 @@ export default class Entity {
             delete attributes.playerRef;
         }
 
-        return new Entity(attributes);
+        return new Element(attributes);
     }
 
     /**
@@ -49,7 +49,7 @@ export default class Entity {
     }
 }
 
-deserializer.registerClass("entity-v2", Entity);
+deserializer.registerClass("element-v1", Element);
 
 // Mappings from the legacy type names to the new ones
 const TYPE_MAPPINGS = {
@@ -105,5 +105,5 @@ deserializer.registerDeserializer("entity", (rawEntity, helpers) => {
         delete rawEntity.players;
     }
 
-    return Entity.deserialize(rawEntity);
+    return Element.deserialize(rawEntity);
 });

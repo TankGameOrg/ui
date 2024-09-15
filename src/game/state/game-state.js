@@ -1,6 +1,6 @@
 import { deserializer } from "../../deserialization.js";
 import "./board/board.js";
-import "./board/entity.js";
+import "./board/element.js";
 import "./players/player.js";
 import Players from "./players/players.js";
 

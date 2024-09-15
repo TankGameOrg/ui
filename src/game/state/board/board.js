@@ -1,5 +1,5 @@
 import { deserializer } from "../../../deserialization.js";
-import Entity from "./entity.js";
+import Element from "./element.js";
 import { Position } from "./position.js";
 
 export default class Board {
@@ -53,8 +53,8 @@ export default class Board {
     }
 
     getEntityAt(position) {
-        this._verifyPositon(position, this._entities, "Entity");
-        return this._entities[position.humanReadable] || (new Entity({ type: "empty",  position }));
+        this._verifyPositon(position, this._entities, "Element");
+        return this._entities[position.humanReadable] || (new Element({ type: "empty",  position }));
     }
 
     setEntity(entity) {
@@ -72,7 +72,7 @@ export default class Board {
 
     getFloorTileAt(position) {
         this._verifyPositon(position, this._floor, "Floor tile");
-        return this._floor[position.humanReadable] || (new Entity({ type: "empty", position }));
+        return this._floor[position.humanReadable] || (new Element({ type: "empty", position }));
     }
 
     setFloorTile(tile) {

@@ -6,7 +6,7 @@
 // This file specifically targets the current main version v0.0.3
 
 import Board from "../../game/state/board/board.js";
-import Entity from "../../game/state/board/entity.js";
+import Element from "../../game/state/board/element.js";
 import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
@@ -168,7 +168,7 @@ function entityFromBoard(rawEntity, playersByName) {
         attributes.playerRef = playersByName[$PLAYER_REF.name].asRef();
     }
 
-    return new Entity({
+    return new Element({
         type,
         ...attributes,
     });
