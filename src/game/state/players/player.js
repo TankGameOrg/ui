@@ -1,5 +1,5 @@
 import { deserializer } from "../../../deserialization.js";
-import { deepClone } from "../../../utils.js";
+import { deepClone, unixNow } from "../../../utils.js";
 
 let idGenerator = 0;
 
@@ -33,7 +33,10 @@ export default class Player {
      * @returns
      */
     static deserialize(rawPlayer) {
-        return new Player(rawPlayer.attributes, rawPlayer.uniqueId);
+        return new Player({
+            ...rawPlayer,
+            uniqueId: undefined,
+        }, rawPlayer.uniqueId);
     }
 
     /**
@@ -66,10 +69,9 @@ deserializer.registerDeserializer("player-v1", function(rawPlayer, helpers) {
 
     return Player.deserialize({
         ...rawPlayer,
-        attributes: {
-            ...rawPlayer.attributes,
-            type: undefined,
-        },
+        attributes: undefined,
+        ...rawPlayer.attributes,
+        type: undefined,
     })
 });
 
