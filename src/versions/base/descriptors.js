@@ -6,6 +6,17 @@ export function imageBackground(url) {
 }
 
 export class EntityDescriptor {
+    static make({ background, backgroundImage }) {
+        return class extends EntityDescriptor {
+            getTileStyle() {
+                return new TileStyle({
+                    textColor: "#000",
+                    background: background || imageBackground(backgroundImage),
+                });
+            }
+        }
+    }
+
     constructor(entity, gameState) {
         this.entity = entity;
         this.gameState = gameState;
@@ -83,6 +94,14 @@ export class TileStyle {
 
 
 export class FloorTileDescriptor {
+    static make({ background, backgroundImage }) {
+        return class extends EntityDescriptor {
+            getBackground() {
+                return background || imageBackground(backgroundImage);
+            }
+        }
+    }
+
     constructor(floorTile) {
         this.floorTile = floorTile;
     }
