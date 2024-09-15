@@ -43,8 +43,8 @@ export default class Board {
     _verifyPositon(position, entitiesObject, type) {
         const {humanReadable} = position;
 
-        if(entitiesObject[humanReadable] != undefined && entitiesObject[humanReadable].attributes.position.humanReadable != humanReadable) {
-            throw new Error(`${type} at ${humanReadable} thinks it should be at ${entitiesObject[humanReadable].attributes.position.humanReadable}`);
+        if(entitiesObject[humanReadable] != undefined && entitiesObject[humanReadable].position.humanReadable != humanReadable) {
+            throw new Error(`${type} at ${humanReadable} thinks it should be at ${entitiesObject[humanReadable].position.humanReadable}`);
         }
     }
 
@@ -54,37 +54,37 @@ export default class Board {
 
     getEntityAt(position) {
         this._verifyPositon(position, this._entities, "Entity");
-        return this._entities[position.humanReadable] || (new Entity({ type: "empty", attributes: { position } }));
+        return this._entities[position.humanReadable] || (new Entity({ type: "empty",  position }));
     }
 
     setEntity(entity) {
-        if(!this.isInBounds(entity.attributes.position)) {
+        if(!this.isInBounds(entity.position)) {
             throw new Error(`Can not set entity ${entity.type} to position ${entity.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
         }
 
         if(entity.type == "empty") {
-            delete this._entities[entity.attributes.position.humanReadable];
+            delete this._entities[entity.position.humanReadable];
         }
         else {
-            this._entities[entity.attributes.position.humanReadable] = entity;
+            this._entities[entity.position.humanReadable] = entity;
         }
     }
 
     getFloorTileAt(position) {
         this._verifyPositon(position, this._floor, "Floor tile");
-        return this._floor[position.humanReadable] || (new Entity({ type: "empty", attributes: { position } }));
+        return this._floor[position.humanReadable] || (new Entity({ type: "empty", position }));
     }
 
     setFloorTile(tile) {
-        if(!this.isInBounds(tile.attributes.position)) {
-            throw new Error(`Can not set floor tile ${tile.type} to position ${tile.attributes.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
+        if(!this.isInBounds(tile.position)) {
+            throw new Error(`Can not set floor tile ${tile.type} to position ${tile.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
         }
 
         if(tile.type == "empty") {
-            delete this._floor[tile.attributes.position.humanReadable];
+            delete this._floor[tile.position.humanReadable];
         }
         else {
-            this._floor[tile.attributes.position.humanReadable] = tile;
+            this._floor[tile.position.humanReadable] = tile;
         }
     }
 
@@ -104,12 +104,12 @@ export default class Board {
 
         for(const [targetType, targets] of boardLayers) {
             for(const entity of Object.values(targets)) {
-                const newX = entity.attributes.position.x + left;
-                const newY = entity.attributes.position.y + top;
+                const newX = entity.position.x + left;
+                const newY = entity.position.y + top;
 
                 if(0 <= newX && newX < newWidth && 0 <= newY && newY < newHeight) {
                     let newEntity = entity.clone();
-                    newEntity.attributes.position = new Position(newX, newY);
+                    newEntity.position = new Position(newX, newY);
 
                     if(targetType == "entity") {
                         newBoard.setEntity(newEntity);

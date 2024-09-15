@@ -44,7 +44,7 @@ function Section({ name, users, setSelectedUser, canSubmitAction, gameState }) {
                 {users.map(userRef => {
                     const user = userRef.getPlayer(gameState);
                     const entities = gameState.getEntitiesByPlayer(user);
-                    const hasEntitiesOnBoard = entities.find(entity => entity.attributes.position !== undefined);
+                    const hasEntitiesOnBoard = entities.find(entity => entity.position !== undefined);
                     const actionButton = !hasEntitiesOnBoard && canSubmitAction ? (
                         <button onClick={() => setSelectedUser(user.name)} className="council-action-button">
                             Take Action

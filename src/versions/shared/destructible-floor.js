@@ -5,10 +5,10 @@ const NUM_DESTRUCTIBLE_FLOOR_STAGES = 5;
 
 export class DestructibleFloor extends FloorTileDescriptor {
     getBackground() {
-        const durability = this.floorTile.attributes.durability;
+        const durability = this.floorTile.durability;
 
         let status = "";
-        if(this.floorTile.attributes.destroyed) {
+        if(this.floorTile.destroyed) {
             status = "destroyed";
         }
         else if(durability.max !== undefined) {

@@ -67,7 +67,7 @@ export function gameStateFromRawState(rawGameState) {
         if(rawGameState.$WINNER == "Council") {
             victoryType = "armistice_vote";
             const {councilors, senators} = gameState.metaEntities.council;
-            winners = councilors.concat(senators).map(ref => ref.getPlayer(gameState).attributes.name);
+            winners = councilors.concat(senators).map(ref => ref.getPlayer(gameState).name);
         }
         else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
             victoryType = "last_tank_standing";
@@ -170,7 +170,7 @@ function entityFromBoard(rawEntity, playersByName) {
 
     return new Entity({
         type,
-        attributes,
+        ...attributes,
     });
 }
 
@@ -246,8 +246,8 @@ function buildPlayerRef(player) {
 function buildPlayer(player) {
     let attributes = {};
 
-    for(const attributeName of Object.keys(player.attributes)) {
-        attributes["$" + attributeName.toUpperCase()] = player.attributes[attributeName];
+    for(const attributeName of Object.keys(player)) {
+        attributes["$" + attributeName.toUpperCase()] = player[attributeName];
     }
 
     return {
@@ -260,8 +260,8 @@ function buildUnit(position, board, boardType, gameState) {
     const entity = board[boardType == "entity" ? "getEntityAt" : "getFloorTileAt"](position);
 
     let attributes = {};
-    for(const attributeName of Object.keys(entity.attributes)) {
-        let value = entity.attributes[attributeName];
+    for(const attributeName of Object.keys(entity)) {
+        let value = entity[attributeName];
         if(value.max !== undefined) {
             attributes["$MAX_" + attributeName.toUpperCase()] = value.max;
             value = value.value;
@@ -270,10 +270,10 @@ function buildUnit(position, board, boardType, gameState) {
         attributes["$" + attributeName.toUpperCase()] = value;
     }
 
-    attributes.$POSITION = buildPosition(entity.attributes.position);
+    attributes.$POSITION = buildPosition(entity.position);
 
-    if(entity.attributes.playerRef !== undefined) {
-        attributes.$PLAYER_REF = buildPlayerRef(entity.attributes.playerRef.getPlayer(gameState));
+    if(entity.playerRef !== undefined) {
+        attributes.$PLAYER_REF = buildPlayerRef(entity.playerRef.getPlayer(gameState));
         delete attributes.$PLAYERREF;
     }
 

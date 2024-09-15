@@ -10,13 +10,8 @@ export default class Player {
      * @param {*} attributes The player's attributes
      */
     constructor(attributes = {}) {
-        this.attributes = attributes;
+        Object.assign(this, attributes);
     }
-
-    /**
-     * Get the name of this player
-     */
-    get name() { return this.attributes.name; }
 
     /**
      * Construct a player from a json serialized object
@@ -32,7 +27,7 @@ export default class Player {
      * @returns
      */
     serialize() {
-        return this.attributes;
+        return this;
     }
 
     /**
@@ -40,7 +35,7 @@ export default class Player {
      * @returns
      */
     clone() {
-        return new Player(deepClone(this.attributes));
+        return new Player(deepClone(this));
     }
 
     /**

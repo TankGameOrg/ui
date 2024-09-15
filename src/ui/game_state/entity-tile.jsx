@@ -14,8 +14,8 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
     };
 
     let takeActionButtons;
-    if(canSubmitAction && entity.attributes.playerRef) {
-        const player = entity.attributes.playerRef.getPlayer(gameState);
+    if(canSubmitAction && entity.playerRef) {
+        const player = entity.playerRef.getPlayer(gameState);
 
         takeActionButtons =  (
             <div className="entity-details-take-action centered" key={player.name}>
@@ -25,11 +25,11 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
     }
 
     const attributes = useMemo(() => {
-        let allAttributes = entity.attributes;
+        let allAttributes = entity;
 
-        if(entity.attributes.playerRef) {
-            const player = entity.attributes.playerRef.getPlayer(gameState);
-            allAttributes = Object.assign({}, allAttributes, player.attributes)
+        if(entity.playerRef) {
+            const player = entity.playerRef.getPlayer(gameState);
+            allAttributes = Object.assign({}, allAttributes, player);
         }
 
         return allAttributes;

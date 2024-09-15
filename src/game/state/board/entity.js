@@ -7,13 +7,10 @@ import { Council } from "../meta/council.js";
 export default class Entity {
     /**
      * Construct an entity
-     * @param {*} type The type of the entity
      * @param {*} attributes The attributes of the entity
-     * @param {*} players The players or PlayerRefs that control this entity
      */
-    constructor({ type, attributes = {} }) {
-        this.type = type;
-        this.attributes = attributes;
+    constructor(attributes = {}) {
+        Object.assign(this, attributes);
     }
 
     /**
@@ -23,10 +20,8 @@ export default class Entity {
      */
     clone({ removePlayers = false } = {}) {
         return new Entity({
-            type: this.type,
-            attributes: Object.assign({
-                playerRef: removePlayers ? undefined : this.attributes.playerRef,
-            }, this.attributes),
+            ...this,
+            playerRef: removePlayers ? undefined : this.playerRef,
         });
     }
 
@@ -37,16 +32,12 @@ export default class Entity {
      */
     static deserialize(rawEntity) {
         let attributes = Object.assign({}, rawEntity);
-        delete attributes.type;
 
         if(attributes.playerRef === undefined) {
             delete attributes.playerRef;
         }
 
-        return new Entity({
-            type: rawEntity.type,
-            attributes,
-        });
+        return new Entity(attributes);
     }
 
     /**
@@ -54,10 +45,7 @@ export default class Entity {
      * @returns
      */
     serialize() {
-        return {
-            ...this.attributes,
-            type: this.type,
-        };
+        return this;
     }
 }
 

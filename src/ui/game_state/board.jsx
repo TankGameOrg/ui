@@ -152,7 +152,7 @@ function Tile({ className = "", children, floorTile, disabled, onClick, selected
                 <div className="entity-details-title-wrapper">
                     <h2>{prettyifyName(floorTile?.type)}</h2>
                 </div>
-                <AttributeList attributes={floorTile?.attributes} versionConfig={config}></AttributeList>
+                <AttributeList attributes={floorTile} versionConfig={config}></AttributeList>
             </Popup>
         </>
     );

@@ -42,7 +42,7 @@ export class GameState {
 
     getEntitiesByPlayer(player) {
         return this._getAllEntities()
-            .filter(entity => !!entity.attributes.playerRef?.isFor?.(player));
+            .filter(entity => !!entity.playerRef?.isFor?.(player));
     }
 }
 

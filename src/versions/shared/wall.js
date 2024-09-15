@@ -4,7 +4,7 @@ const NUM_WALL_STAGES = 6;
 
 export class Wall extends EntityDescriptor {
     getTileStyle() {
-        const durability = this.entity.attributes.durability;
+        const durability = this.entity.durability;
 
         let status = "";
         if(durability.max !== undefined) {

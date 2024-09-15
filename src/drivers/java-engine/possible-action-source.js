@@ -110,11 +110,11 @@ export class JavaEngineSource {
                     }
 
                     const entities = gameState.getEntitiesByPlayer(player)
-                        .filter(entity => entity.attributes.position !== undefined);
+                        .filter(entity => entity.position !== undefined);
 
                     if(entities.length > 0) {
                         return {
-                            position: entities[0].attributes.position.humanReadable,
+                            position: entities[0].position.humanReadable,
                             value: player.name,
                         };
                     }
