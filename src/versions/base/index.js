@@ -2,11 +2,10 @@ import { AttributeDescriptor, EntityDescriptor, FloorTileDescriptor } from "./de
 import { LogEntryFormatter } from "./log-entry-formatter.js";
 
 export class GameVersion {
-    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, councilPlayerTypes, manualPath, attributeDescriptors, findCooldowns } = {}) {
+    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, manualPath, attributeDescriptors, findCooldowns } = {}) {
         this._logFormatter = logFormatter || new LogEntryFormatter();
         this._entityDescriptors = entityDescriptors || {};
         this._floorTileDescriptors = floorTileDescriptors || {};
-        this._councilPlayerTypes = councilPlayerTypes || [];
         this._manualPath = manualPath;
         this._attributeDescriptors = attributeDescriptors || {};
         this.findCooldowns = findCooldowns || (() => []);
@@ -24,10 +23,6 @@ export class GameVersion {
     getFloorTileDescriptor(floorTile) {
         const Descriptor = this._floorTileDescriptors[floorTile.type] || FloorTileDescriptor;
         return new Descriptor(floorTile);
-    }
-
-    getCouncilPlayerTypes() {
-        return this._councilPlayerTypes || [];
     }
 
     getManual() {

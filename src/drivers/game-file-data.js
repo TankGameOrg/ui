@@ -101,8 +101,12 @@ export function loadFromRaw(fileData) {
 
     const helpers = {
         // Helper for convering council from an entity
-        getPlayers() {
-            return new Players(deserializer.deserialize(fileData.initialGameState.players));
+        getPlayerTypes() {
+            let types = {};
+            for(const player of fileData.initialGameState.players) {
+                types[player.uniqueId] = player.attributes.type;
+            }
+            return types;
         },
 
         updatedContent() {

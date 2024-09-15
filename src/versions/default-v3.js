@@ -14,10 +14,6 @@ export const rawV3Config = {
     floorTileDescriptors: {
         GoldMine: GoldMineDescriptor,
     },
-    councilPlayerTypes: [
-        "councilor",
-        "senator",
-    ],
     attributeDescriptors: commonAttributeDescriptors,
     manualPath: "/manuals/default-v3.html",
 };

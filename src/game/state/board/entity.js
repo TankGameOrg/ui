@@ -100,12 +100,12 @@ deserializer.registerDeserializer("entity", (rawEntity, helpers) => {
     }
 
     if(rawEntity.type == "council") {
-        const players = helpers.getPlayers();
+        const playerTypes = helpers.getPlayerTypes();
 
         let councilAttrs = {
             coffer: rawEntity.coffer,
-            councilors: (rawEntity.players || []).filter(ref => ref.getPlayer({players}).type == "councilor"),
-            senators: (rawEntity.players || []).filter(ref => ref.getPlayer({players}).type == "senator"),
+            councilors: (rawEntity.players || []).filter(ref => playerTypes[ref._playerId] == "councilor"),
+            senators: (rawEntity.players || []).filter(ref => playerTypes[ref._playerId] == "senator"),
         };
 
         if(rawEntity.armistice !== undefined) {

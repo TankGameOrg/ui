@@ -5,19 +5,10 @@ export default class Players {
     constructor(players) {
         this._playersById = {};
         this._playersByName = {};
-        this._playersByType = {};
 
         for(const player of players) {
             this._playersById[player.uniqueId] = player;
             this._playersByName[player.name] = player;
-
-            if(player.type !== undefined) {
-                if(!this._playersByType[player.type]) {
-                    this._playersByType[player.type] = [];
-                }
-
-                this._playersByType[player.type].push(player);
-            }
         }
     }
 
@@ -27,14 +18,6 @@ export default class Players {
      */
     getAllPlayers() {
         return Object.values(this._playersByName);
-    }
-
-    /**
-     * Get an array of player types (string) held by this instance
-     * @returns
-     */
-    getAllPlayerTypes() {
-        return Object.keys(this._playersByType);
     }
 
     /**
@@ -53,14 +36,5 @@ export default class Players {
      */
     getPlayerByName(name) {
         return this._playersByName[name];
-    }
-
-    /**
-     * Return an array of players of a given type
-     * @param {*} userType
-     * @returns
-     */
-    getPlayersByType(userType) {
-        return this._playersByType[userType] || [];
     }
 }

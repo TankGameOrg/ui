@@ -15,7 +15,7 @@ export default class Player {
     constructor(attributes = {}, uniqueId) {
         // Make sure the next ID we generate doesn't overlap with an existing ID
         if(!isNaN(+uniqueId)) {
-            idGenerator = Math.max(idGenerator, uniqueId + 1);
+            idGenerator = Math.max(idGenerator, (+uniqueId) + 1);
         }
 
         this.uniqueId = uniqueId || (++idGenerator + "");
@@ -26,12 +26,6 @@ export default class Player {
      * Get the name of this player
      */
     get name() { return this.attributes.name; }
-
-    /**
-     * Get the type of this player
-     */
-    get type() { return this.attributes.type; }
-
 
     /**
      * Construct a player from a json serialized object
@@ -67,7 +61,14 @@ export default class Player {
     }
 }
 
-deserializer.registerClass("player-v1", Player);
+deserializer.registerDeserializer("player-v1", function(rawPlayer) {
+    return Player.deserialize({
+        ...rawPlayer,
+        type: undefined,
+    })
+});
+
+deserializer.registerClass("player-v2", Player);
 
 /**
  * A handle to a player

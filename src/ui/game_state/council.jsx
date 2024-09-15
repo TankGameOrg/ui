@@ -14,21 +14,20 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
             <ArmisticeClock armistice={gameState.metaEntities.council.armistice}></ArmisticeClock>
             <AttributeList attributes={gameState.metaEntities.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
             <div className="user-list">
-                {config.getCouncilPlayerTypes().map(playerType => {
-                    const players = gameState.players.getPlayersByType(playerType);
-
-                    if(players.length === 0) return;
-
-                    return (
-                        <Section
-                            key={playerType}
-                            name={playerType}
-                            users={players}
-                            canSubmitAction={canSubmitAction}
-                            setSelectedUser={setSelectedUser}
-                            gameState={gameState}></Section>
-                    );
-                })}
+                <Section
+                    key="councilors"
+                    name="Councilors"
+                    users={gameState.metaEntities.council.councilors}
+                    canSubmitAction={canSubmitAction}
+                    setSelectedUser={setSelectedUser}
+                    gameState={gameState}></Section>
+                <Section
+                    key="senators"
+                    name="Senators"
+                    users={gameState.metaEntities.council.senators}
+                    canSubmitAction={canSubmitAction}
+                    setSelectedUser={setSelectedUser}
+                    gameState={gameState}></Section>
             </div>
         </>
     )
@@ -36,11 +35,14 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
 
 
 function Section({ name, users, setSelectedUser, canSubmitAction, gameState }) {
+    if(users === undefined || users.length === 0) return;
+
     return (
         <>
-            <h3>{prettyifyName(name)}s</h3>
+            <h3>{prettyifyName(name)}</h3>
             <ul>
-                {users.map(user => {
+                {users.map(userRef => {
+                    const user = userRef.getPlayer(gameState);
                     const entities = gameState.getEntitiesByPlayer(user);
                     const hasEntitiesOnBoard = entities.find(entity => entity.attributes.position !== undefined);
                     const actionButton = !hasEntitiesOnBoard && canSubmitAction ? (
