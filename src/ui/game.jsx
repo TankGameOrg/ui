@@ -28,11 +28,6 @@ export function Game({ game, navigate, debug }) {
     const versionConfig = gameInfo?.game?.gameVersion !== undefined ?
         getGameVersion(gameInfo.game.gameVersion) : undefined;
 
-    const possibleActionsContext = useMemo(() => ({
-        gameState,
-        versionConfig,
-    }), [gameState, versionConfig]);
-
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";
 
@@ -118,7 +113,6 @@ export function Game({ game, navigate, debug }) {
                 <div className="centered">
                     <div>
                         {canSubmitAction ? <SubmitTurn
-                            context={possibleActionsContext}
                             game={game}
                             builtTurnState={builtTurnState}
                             buildTurnDispatch={buildTurnDispatch}
