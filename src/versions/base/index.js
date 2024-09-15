@@ -1,10 +1,10 @@
-import { AttributeDescriptor, EntityDescriptor, FloorTileDescriptor } from "./descriptors.js";
+import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./descriptors.js";
 import { LogEntryFormatter } from "./log-entry-formatter.js";
 
 export class GameVersion {
-    constructor({ logFormatter, entityDescriptors, floorTileDescriptors, manualPath, attributeDescriptors, findCooldowns } = {}) {
+    constructor({ logFormatter, unitDescriptors, floorTileDescriptors, manualPath, attributeDescriptors, findCooldowns } = {}) {
         this._logFormatter = logFormatter || new LogEntryFormatter();
-        this._entityDescriptors = entityDescriptors || {};
+        this._unitDescriptors = unitDescriptors || {};
         this._floorTileDescriptors = floorTileDescriptors || {};
         this._manualPath = manualPath;
         this._attributeDescriptors = attributeDescriptors || {};
@@ -15,9 +15,9 @@ export class GameVersion {
         return this._logFormatter.format(logEntry, gameState, this);
     }
 
-    getEntityDescriptor(entity, gameState) {
-        const Descriptor = this._entityDescriptors[entity.type] || EntityDescriptor;
-        return new Descriptor(entity, gameState);
+    getUnitDescriptor(unit, gameState) {
+        const Descriptor = this._unitDescriptors[unit.type] || UnitDescriptor;
+        return new Descriptor(unit, gameState);
     }
 
     getFloorTileDescriptor(floorTile) {

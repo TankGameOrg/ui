@@ -1,6 +1,6 @@
 import "./board.css";
 import { Position } from "../../game/state/board/position.js";
-import { EntityTile } from "./entity-tile.jsx";
+import { UnitTile } from "./unit-tile.jsx";
 import { useRef, useState } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
@@ -63,7 +63,7 @@ export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAct
 
             renderedRow.push(
                 <Space
-                    entity={board.getEntityAt(position)}
+                    unit={board.getUnitAt(position)}
                     floorTile={board.getFloorTileAt(position)}
                     onClick={onClick}
                     disabled={disabled}
@@ -84,18 +84,18 @@ export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAct
     )
 }
 
-function Space({ entity, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState }) {
+function Space({ unit, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState }) {
     let tile = null;
 
-    // Try to place an entity in this space
-    if(entity && entity.type != "empty") {
-        tile = <EntityTile
-            entity={entity}
+    // Try to place an unit in this space
+    if(unit && unit.type != "empty") {
+        tile = <UnitTile
+            unit={unit}
             showPopupOnClick={!(onClick || disabled)}
             config={config}
             canSubmitAction={canSubmitAction}
             setSelectedUser={setSelectedUser}
-            gameState={gameState}></EntityTile>;
+            gameState={gameState}></UnitTile>;
     }
 
     return (
@@ -149,7 +149,7 @@ function Tile({ className = "", children, floorTile, disabled, onClick, selected
                     </div>
             </div>
             <Popup opened={popupOpen} anchorRef={anchorRef} onClose={() => setPopupOpen(false)}>
-                <div className="entity-details-title-wrapper">
+                <div className="unit-details-title-wrapper">
                     <h2>{prettyifyName(floorTile?.type)}</h2>
                 </div>
                 <AttributeList attributes={floorTile} versionConfig={config}></AttributeList>

@@ -19,9 +19,9 @@ export class LogEntryFormatter {
 }
 
 class FormatingHelpers {
-    static ENTRY_ONLY = { entry: true, floor: false }
-    static FLOOR_ONLY = { entry: false, floor: true }
-    static ENTRY_AND_FLOOR = { entry: true, floor: true }
+    static UNIT_ONLY = { unit: true, floor: false }
+    static FLOOR_ONLY = { unit: false, floor: true }
+    static UNIT_AND_FLOOR = { unit: true, floor: true }
 
     constructor(gameState, version, logEntry) {
         this._gameState = gameState;
@@ -29,7 +29,7 @@ class FormatingHelpers {
         this._logEntry = logEntry;
     }
 
-    describeLocation({ location, entity = true, floor = false } = {}) {
+    describeLocation({ location, unit = true, floor = false } = {}) {
         if(location === undefined) {
             location = this._logEntry.rawLogEntry.target_position;
         }
@@ -38,11 +38,11 @@ class FormatingHelpers {
         const position = new Position(location);
 
         let info;
-        if(entity) {
-            const entityAtLocation = this._gameState.board.getEntityAt(position);
+        if(unit) {
+            const unitAtLocation = this._gameState.board.getUnitAt(position);
             // Don't set info for empty entities so players can see the floor
-            if(entityAtLocation && entityAtLocation.type != "empty") {
-                const descriptor = this._version.getEntityDescriptor(entityAtLocation, this._gameState);
+            if(unitAtLocation && unitAtLocation.type != "empty") {
+                const descriptor = this._version.getUnitDescriptor(unitAtLocation, this._gameState);
                 info = descriptor.formatForLogEntry();
             }
         }

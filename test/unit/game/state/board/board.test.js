@@ -13,10 +13,10 @@ let josh = new Player({ name: "Josh", type: "tank" });
 let tank2 = new Element({ type: "tank", position: new Position("G5"), playerRef: josh.asRef() });
 const baloon = new Element({ type: "baloon", position: new Position("B2") });
 
-board.setEntity(tank1);
-board.setEntity(destroyedTank);
-board.setEntity(tank2);
-board.setEntity(baloon);
+board.setUnit(tank1);
+board.setUnit(destroyedTank);
+board.setUnit(tank2);
+board.setUnit(baloon);
 
 const goldMine1 = new Element({ type: "gold_mine", position: new Position("E5") });
 const goldMine2 = new Element({ type: "gold_mine", position: new Position("B4") });
@@ -30,10 +30,10 @@ const emptyTile = new Element({ type: "empty", position: new Position("G5") });
 
 
 describe("Board", () => {
-    it("can find the entity at a space", () => {
-        assert.deepEqual(board.getEntityAt(new Position("A1")), tank1);
-        assert.deepEqual(board.getEntityAt(new Position("C4")), destroyedTank);
-        assert.deepEqual(board.getEntityAt(new Position("D3")), empty);
+    it("can find the unit at a space", () => {
+        assert.deepEqual(board.getUnitAt(new Position("A1")), tank1);
+        assert.deepEqual(board.getUnitAt(new Position("C4")), destroyedTank);
+        assert.deepEqual(board.getUnitAt(new Position("D3")), empty);
     });
 
     it("can find the floor tile at a space", () => {
@@ -59,13 +59,13 @@ describe("Board", () => {
         const leftShrunkBoard = board.cloneAndResize({ left: -1, bottom: -1 });
         assert.equal(leftShrunkBoard.width, 6);
         assert.equal(leftShrunkBoard.height, 4);
-        assert.equal(leftShrunkBoard.getEntityAt(new Position("A1")).type, "empty");
-        assert.equal(leftShrunkBoard.getEntityAt(new Position("A2")).type, "baloon");
+        assert.equal(leftShrunkBoard.getUnitAt(new Position("A1")).type, "empty");
+        assert.equal(leftShrunkBoard.getUnitAt(new Position("A2")).type, "baloon");
 
         const shrunkBoard = board.cloneAndResize({ left: -2, bottom: -1, top: -3, right: -4 });
         assert.equal(shrunkBoard.width, 1);
         assert.equal(shrunkBoard.height, 1);
-        assert.equal(shrunkBoard.getEntityAt(new Position("A1")).type, "dead-tank");
+        assert.equal(shrunkBoard.getUnitAt(new Position("A1")).type, "dead-tank");
         assert.equal(shrunkBoard.getFloorTileAt(new Position("A1")).type, "base");
     });
 
@@ -73,8 +73,8 @@ describe("Board", () => {
         const grownBoard = board.cloneAndResize({ left: 1, bottom: 4, top: 2, right: 3 });
         assert.equal(grownBoard.width, 11);
         assert.equal(grownBoard.height, 11);
-        assert.equal(grownBoard.getEntityAt(new Position("B3")).type, "tank");
-        assert.equal(grownBoard.getEntityAt(new Position("D6")).type, "dead-tank");
+        assert.equal(grownBoard.getUnitAt(new Position("B3")).type, "tank");
+        assert.equal(grownBoard.getUnitAt(new Position("D6")).type, "dead-tank");
         assert.equal(grownBoard.getFloorTileAt(new Position("F7")).type, "gold_mine");
     });
 
@@ -82,8 +82,8 @@ describe("Board", () => {
         const shiftedBoard = board.cloneAndResize({ left: -1, bottom: 2, top: -2, right: 1 });
         assert.equal(shiftedBoard.width, 7);
         assert.equal(shiftedBoard.height, 5);
-        assert.equal(shiftedBoard.getEntityAt(new Position("B2")).type, "dead-tank");
-        assert.equal(shiftedBoard.getEntityAt(new Position("F3")).type, "tank");
+        assert.equal(shiftedBoard.getUnitAt(new Position("B2")).type, "dead-tank");
+        assert.equal(shiftedBoard.getUnitAt(new Position("F3")).type, "tank");
         assert.equal(shiftedBoard.getFloorTileAt(new Position("D3")).type, "gold_mine");
     });
 });

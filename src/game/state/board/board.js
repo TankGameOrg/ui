@@ -6,15 +6,15 @@ export default class Board {
     constructor(width, height) {
         this.width = width;
         this.height = height;
-        this._entities = {};
+        this._units = {};
         this._floor = {};
     }
 
     static deserialize(rawBoard) {
         let board = new Board(rawBoard.width, rawBoard.height);
 
-        for(const entity of rawBoard.entities) {
-            board.setEntity(entity);
+        for(const unit of rawBoard.entities) {
+            board.setUnit(unit);
         }
 
         for(const floorTile of rawBoard.floor) {
@@ -28,14 +28,14 @@ export default class Board {
         return {
             width: this.width,
             height: this.height,
-            entities: Object.values(this._entities),
+            entities: Object.values(this._units),
             floor: Object.values(this._floor),
         };
     }
 
     clone() {
         let clone = new Board(this.width, this.height);
-        Object.assign(clone._entities, this._entities);
+        Object.assign(clone._units, this._units);
         Object.assign(clone._floor, this._floor);
         return clone;
     }
@@ -49,24 +49,24 @@ export default class Board {
     }
 
     getAllEntities() {
-        return Object.values(this._entities);
+        return Object.values(this._units);
     }
 
-    getEntityAt(position) {
-        this._verifyPositon(position, this._entities, "Element");
-        return this._entities[position.humanReadable] || (new Element({ type: "empty",  position }));
+    getUnitAt(position) {
+        this._verifyPositon(position, this._units, "Element");
+        return this._units[position.humanReadable] || (new Element({ type: "empty",  position }));
     }
 
-    setEntity(entity) {
-        if(!this.isInBounds(entity.position)) {
-            throw new Error(`Can not set entity ${entity.type} to position ${entity.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
+    setUnit(unit) {
+        if(!this.isInBounds(unit.position)) {
+            throw new Error(`Can not set unit ${unit.type} to position ${unit.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
         }
 
-        if(entity.type == "empty") {
-            delete this._entities[entity.position.humanReadable];
+        if(unit.type == "empty") {
+            delete this._units[unit.position.humanReadable];
         }
         else {
-            this._entities[entity.position.humanReadable] = entity;
+            this._units[unit.position.humanReadable] = unit;
         }
     }
 
@@ -98,24 +98,24 @@ export default class Board {
         let newBoard = new Board(newWidth, newHeight);
 
         const boardLayers = [
-            ["entity", this._entities],
+            ["unit", this._units],
             ["floorTile", this._floor],
         ];
 
         for(const [targetType, targets] of boardLayers) {
-            for(const entity of Object.values(targets)) {
-                const newX = entity.position.x + left;
-                const newY = entity.position.y + top;
+            for(const element of Object.values(targets)) {
+                const newX = element.position.x + left;
+                const newY = element.position.y + top;
 
                 if(0 <= newX && newX < newWidth && 0 <= newY && newY < newHeight) {
-                    let newEntity = entity.clone();
-                    newEntity.position = new Position(newX, newY);
+                    let newElement = element.clone();
+                    newElement.position = new Position(newX, newY);
 
-                    if(targetType == "entity") {
-                        newBoard.setEntity(newEntity);
+                    if(targetType == "unit") {
+                        newBoard.setUnit(newElement);
                     }
                     else {
-                        newBoard.setFloorTile(newEntity);
+                        newBoard.setFloorTile(newElement);
                     }
                 }
             }

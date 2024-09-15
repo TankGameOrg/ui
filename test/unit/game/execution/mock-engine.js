@@ -2,7 +2,7 @@ export function makeMockState(obj) {
     let state = Object.create({
         board: {
             getFloorTileAt() {},
-            getEntityAt() {},
+            getUnitAt() {},
         },
     });
 

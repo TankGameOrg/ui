@@ -3,7 +3,7 @@ import { TankDescriptor } from "./shared/tank.js";
 import { Wall } from "./shared/wall.js";
 import { DestructibleFloor } from "./shared/destructible-floor.js";
 import { findGlobalCooldowns } from "./shared/global-cooldown.js";
-import { AttributeDescriptor, EntityDescriptor, FloorTileDescriptor } from "./base/descriptors.js";
+import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./base/descriptors.js";
 import { prettyifyName } from "../utils.js";
 
 
@@ -36,7 +36,7 @@ const commonLogEntryFormatters = {
     slow: entry => `${entry.subject} slowed ${entry.target || entry.target_player}`,
     hasten: entry => `${entry.subject} hastened ${entry.target || entry.target_player}`,
     move: (entry, formatter) =>`${entry.subject} moved to ${formatter.describeLocation(LogEntryFormatter.FLOOR_ONLY)}`,
-    loot: (entry, formatter) => `${entry.subject} looted ${formatter.describeLocation(LogEntryFormatter.FLOOR_ONLY)}`,
+    loot: (entry, formatter) => `${entry.subject} looted ${formatter.describeLocation(LogEntryFormatter.UNIT_ONLY)}`,
 };
 
 const commonAttributeDescriptors = {
@@ -73,10 +73,10 @@ export const commonVersionConfig = {
     findCooldowns: findGlobalCooldowns,
     attributeDescriptors: commonAttributeDescriptors,
     logFormatter: new LogEntryFormatter(commonLogEntryFormatters),
-    entityDescriptors: {
+    unitDescriptors: {
         Tank: TankDescriptor,
         Wall,
-        LootBox: EntityDescriptor.make({ backgroundImage: "loot-box", }),
+        LootBox: UnitDescriptor.make({ backgroundImage: "loot-box", }),
     },
     floorTileDescriptors: {
         GoldMine: FloorTileDescriptor.make({ background: "#fd0" }),

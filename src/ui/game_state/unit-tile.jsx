@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useRef, useState } from "preact/hooks";
-import "./entity-tile.css";
+import "./unit-tile.css";
 import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
 import { AttributeList } from "./attribute-list.jsx";
 
 
-function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, closePopup, versionConfig, gameState }) {
-    const title = prettyifyName(descriptor.getName() || entity.type);
+function UnitDetails({ descriptor, unit, setSelectedUser, canSubmitAction, closePopup, versionConfig, gameState }) {
+    const title = prettyifyName(descriptor.getName() || unit.type);
 
     const takeActionHandler = (player) => {
         setSelectedUser(player.name);
@@ -14,30 +14,30 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
     };
 
     let takeActionButtons;
-    if(canSubmitAction && entity.playerRef) {
-        const player = entity.playerRef.getPlayer(gameState);
+    if(canSubmitAction && unit.playerRef) {
+        const player = unit.playerRef.getPlayer(gameState);
 
         takeActionButtons =  (
-            <div className="entity-details-take-action centered" key={player.name}>
+            <div className="unit-details-take-action centered" key={player.name}>
                 <button onClick={takeActionHandler.bind(undefined, player)}>Take Action</button>
             </div>
         );
     }
 
     const attributes = useMemo(() => {
-        let allAttributes = entity;
+        let allAttributes = unit;
 
-        if(entity.playerRef) {
-            const player = entity.playerRef.getPlayer(gameState);
+        if(unit.playerRef) {
+            const player = unit.playerRef.getPlayer(gameState);
             allAttributes = Object.assign({}, allAttributes, player);
         }
 
         return allAttributes;
-    }, [entity, gameState]);
+    }, [unit, gameState]);
 
     return (
         <>
-            <div className="entity-details-title-wrapper">
+            <div className="unit-details-title-wrapper">
                 <h2>{title}</h2>
             </div>
             <AttributeList attributes={attributes} versionConfig={versionConfig}></AttributeList>
@@ -47,11 +47,11 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
 }
 
 
-function getBadgesForEntity(descriptor) {
+function getBadgesForUnit(descriptor) {
     const badgeAttribute = descriptor.getBadge();
 
     const rightBadge = badgeAttribute !== undefined ? (
-        <div className="board-space-entity-badge right-badge" style={badgeAttribute.style}>
+        <div className="board-space-unit-badge right-badge" style={badgeAttribute.style}>
             {badgeAttribute.text}
         </div>
     ): undefined;
@@ -60,38 +60,38 @@ function getBadgesForEntity(descriptor) {
         .map(indicator => <span key={indicator.symbol} style={indicator.style}>{indicator.symbol}</span>);
 
     const leftBadge = indicators.length > 0 ? (
-        <div className="board-space-entity-badge left-badge" style={{ background: descriptor.getIndicatorBackground() }}>
+        <div className="board-space-unit-badge left-badge" style={{ background: descriptor.getIndicatorBackground() }}>
             {indicators}
         </div>
     ): undefined;
 
-    return <div className="board-space-entity-badges">{leftBadge}<div className="separator"></div>{rightBadge}</div>;
+    return <div className="board-space-unit-badges">{leftBadge}<div className="separator"></div>{rightBadge}</div>;
 }
 
 
-export function EntityTile({ entity, showPopupOnClick, config, setSelectedUser, canSubmitAction, gameState }) {
+export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canSubmitAction, gameState }) {
     const cardRef = useRef();
     const [opened, setOpened] = useState(false);
 
     const close = useCallback(() => setOpened(false), [setOpened]);
 
-    const descriptor = config && config.getEntityDescriptor(entity, gameState);
+    const descriptor = config && config.getUnitDescriptor(unit, gameState);
     if(!descriptor) return;
 
     const tileStyles = descriptor.getTileStyle().style;
-    const badges = getBadgesForEntity(descriptor);
+    const badges = getBadgesForUnit(descriptor);
 
     const label = descriptor.getName() !== undefined ? (
-        <div className="board-space-entity-title board-space-centered">
-            <div className="board-space-entity-title-inner">{prettyifyName(descriptor.getName())}</div>
+        <div className="board-space-unit-title board-space-centered">
+            <div className="board-space-unit-title-inner">{prettyifyName(descriptor.getName())}</div>
         </div>
     ) : (
-        <div className="board-space-entity-title-placeholder"></div>
+        <div className="board-space-unit-title-placeholder"></div>
     );
 
     return (
-        <div className="board-space-entity-wrapper">
-            <div className="board-space-entity" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
+        <div className="board-space-unit-wrapper">
+            <div className="board-space-unit" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
                 {label}
                 <div className="board-space-centered board-space-attribute-featured">
                     {descriptor.getFeaturedAttribute()}
@@ -99,14 +99,14 @@ export function EntityTile({ entity, showPopupOnClick, config, setSelectedUser, 
                 {badges}
             </div>
             <Popup opened={opened} anchorRef={cardRef} onClose={close}>
-                <EntityDetails
+                <UnitDetails
                     versionConfig={config}
                     descriptor={descriptor}
-                    entity={entity}
+                    unit={unit}
                     canSubmitAction={canSubmitAction}
                     setSelectedUser={setSelectedUser}
                     closePopup={() => setOpened(false)}
-                    gameState={gameState}></EntityDetails>
+                    gameState={gameState}></UnitDetails>
             </Popup>
         </div>
     );

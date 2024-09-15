@@ -13,8 +13,8 @@ describe("GameState", () => {
         ];
 
         let board = new Board(2, 2);
-        board.setEntity(new Element({ type: "tank", position: new Position("A1"), playerRef: players[0].asRef() /* Ted */ }));
-        board.setEntity(new Element({ type: "tank", position: new Position("A2"), playerRef: players[1].asRef() /* Bella */ }));
+        board.setUnit(new Element({ type: "tank", position: new Position("A1"), playerRef: players[0].asRef() /* Ted */ }));
+        board.setUnit(new Element({ type: "tank", position: new Position("A2"), playerRef: players[1].asRef() /* Bella */ }));
 
         const gameState = new GameState(
             players,
@@ -28,14 +28,14 @@ describe("GameState", () => {
             gameState.getEntitiesByPlayer(gameState.players.getPlayerByName("Ted")),
             [
                 gameState.metaEntities.council,
-                board.getEntityAt(new Position("A1")),
+                board.getUnitAt(new Position("A1")),
             ],
         );
 
         assert.deepEqual(
             gameState.getEntitiesByPlayer(gameState.players.getPlayerByName("Bella")),
             [
-                board.getEntityAt(new Position("A2")),
+                board.getUnitAt(new Position("A2")),
             ],
         );
     });

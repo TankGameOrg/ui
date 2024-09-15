@@ -1,4 +1,4 @@
-import { Badge, EntityDescriptor, Indicator, TileStyle, imageBackground } from "../base/descriptors.js";
+import { Badge, UnitDescriptor, Indicator, TileStyle, imageBackground } from "../base/descriptors.js";
 
 const TANK_TEAMS_WITH_ICONS = new Set([
     "abrams",
@@ -7,14 +7,14 @@ const TANK_TEAMS_WITH_ICONS = new Set([
     "olifant",
 ]);
 
-export class TankDescriptor extends EntityDescriptor {
+export class TankDescriptor extends UnitDescriptor {
     getFeaturedAttribute() {
-        const {durability} = this.entity;
+        const {durability} = this.unit;
         return durability?.value !== undefined ? durability.value : durability;
     }
 
     getTileStyle() {
-        const isDead = this.entity.dead;
+        const isDead = this.unit.dead;
 
         let icon = isDead ? "DeadTank" : "Tank"
 
@@ -30,7 +30,7 @@ export class TankDescriptor extends EntityDescriptor {
     }
 
     getBadge() {
-        let {actions} = this.entity;
+        let {actions} = this.unit;
         if(actions === undefined) return;
 
         if(actions?.value !== undefined) {
@@ -45,7 +45,7 @@ export class TankDescriptor extends EntityDescriptor {
     }
 
     getIndicators() {
-        const bounty = this.entity.bounty;
+        const bounty = this.unit.bounty;
         if(bounty !== undefined && bounty > 0) {
             return [
                 new Indicator({
@@ -59,8 +59,8 @@ export class TankDescriptor extends EntityDescriptor {
     }
 
     _getPlayer() {
-        if(this.entity.playerRef) {
-            return this.entity.playerRef.getPlayer(this.gameState);
+        if(this.unit.playerRef) {
+            return this.unit.playerRef.getPlayer(this.gameState);
         }
     }
 
@@ -71,7 +71,7 @@ export class TankDescriptor extends EntityDescriptor {
     formatForLogEntry() {
         let formatted = this.getName();
 
-        if(this.entity.dead) {
+        if(this.unit.dead) {
             formatted += " [dead]";
         }
 

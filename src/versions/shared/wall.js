@@ -1,10 +1,10 @@
-import { EntityDescriptor, TileStyle, imageBackground } from "../base/descriptors.js";
+import { UnitDescriptor, TileStyle, imageBackground } from "../base/descriptors.js";
 
 const NUM_WALL_STAGES = 6;
 
-export class Wall extends EntityDescriptor {
+export class Wall extends UnitDescriptor {
     getTileStyle() {
-        const durability = this.entity.durability;
+        const durability = this.unit.durability;
 
         let status = "";
         if(durability.max !== undefined) {

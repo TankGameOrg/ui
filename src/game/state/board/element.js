@@ -2,20 +2,20 @@ import { deserializer } from "../../../deserialization.js";
 import { Council } from "../meta/council.js";
 
 /**
- * An entity which could be on the board, a floor tile, or a meta entity (i.e. council)
+ * An element which could be on the board, a floor tile, or a meta element (i.e. council)
  */
 export default class Element {
     /**
-     * Construct an entity
-     * @param {*} attributes The attributes of the entity
+     * Construct an element
+     * @param {*} attributes The attributes of the element
      */
     constructor(attributes = {}) {
         Object.assign(this, attributes);
     }
 
     /**
-     * Clone this entity (PlayerRefs are shallow copied)
-     * @param {*} removePlayers Don't copy players to the cloned entity
+     * Clone this element (PlayerRefs are shallow copied)
+     * @param {*} removePlayers Don't copy players to the cloned element
      * @returns
      */
     clone({ removePlayers = false } = {}) {
@@ -26,12 +26,12 @@ export default class Element {
     }
 
     /**
-     * Load an entity from a json serialized object
-     * @param {*} rawEntity the json serialized object to load
+     * Load an element from a json serialized object
+     * @param {*} rawElement the json serialized object to load
      * @returns
      */
-    static deserialize(rawEntity) {
-        let attributes = Object.assign({}, rawEntity);
+    static deserialize(rawElement) {
+        let attributes = Object.assign({}, rawElement);
 
         if(attributes.playerRef === undefined) {
             delete attributes.playerRef;
@@ -41,7 +41,7 @@ export default class Element {
     }
 
     /**
-     * Serialize this entity to a json object
+     * Serialize this element to a json object
      * @returns
      */
     serialize() {
@@ -61,49 +61,49 @@ const TYPE_MAPPINGS = {
     unwalkable_floor: "UnwalkableFloor",
 };
 
-deserializer.registerDeserializer("entity", (rawEntity, helpers) => {
+deserializer.registerDeserializer("entity", (rawElement, helpers) => {
     // helpers.updatedContent(); // TODO: Uncomment
 
-    rawEntity.type = TYPE_MAPPINGS[rawEntity.type] || rawEntity.type;
+    rawElement.type = TYPE_MAPPINGS[rawElement.type] || rawElement.type;
 
-    if(rawEntity.type == "Tank") {
-        rawEntity.dead = rawEntity.durability !== undefined;
+    if(rawElement.type == "Tank") {
+        rawElement.dead = rawElement.durability !== undefined;
 
         for(const removedAttibute of ["actions", "range", "bounty"]) {
-            if(rawEntity[removedAttibute] === undefined) {
-                rawEntity[removedAttibute] = 0;
+            if(rawElement[removedAttibute] === undefined) {
+                rawElement[removedAttibute] = 0;
             }
         }
 
-        if(rawEntity.durability === undefined) {
-            rawEntity.durability = rawEntity.health;
-            delete rawEntity.health;
+        if(rawElement.durability === undefined) {
+            rawElement.durability = rawElement.health;
+            delete rawElement.health;
         }
     }
 
-    if(rawEntity.type == "council") {
+    if(rawElement.type == "council") {
         const playerTypes = helpers.getPlayerTypes();
 
         let councilAttrs = {
-            coffer: rawEntity.coffer,
-            councilors: (rawEntity.players || []).filter(ref => playerTypes[ref._playerName] == "councilor"),
-            senators: (rawEntity.players || []).filter(ref => playerTypes[ref._playerName] == "senator"),
+            coffer: rawElement.coffer,
+            councilors: (rawElement.players || []).filter(ref => playerTypes[ref._playerName] == "councilor"),
+            senators: (rawElement.players || []).filter(ref => playerTypes[ref._playerName] == "senator"),
         };
 
-        if(rawEntity.armistice !== undefined) {
-            councilAttrs.armistice = rawEntity.armistice;
+        if(rawElement.armistice !== undefined) {
+            councilAttrs.armistice = rawElement.armistice;
         }
 
         return new Council(councilAttrs);
     }
 
-    if(rawEntity.players) {
-        rawEntity.playerRef = rawEntity.players[0];
+    if(rawElement.players) {
+        rawElement.playerRef = rawElement.players[0];
     }
 
-    if(Object.prototype.hasOwnProperty.call(rawEntity, "players")) {
-        delete rawEntity.players;
+    if(Object.prototype.hasOwnProperty.call(rawElement, "players")) {
+        delete rawElement.players;
     }
 
-    return Element.deserialize(rawEntity);
+    return Element.deserialize(rawElement);
 });
