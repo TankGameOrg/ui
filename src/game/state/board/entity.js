@@ -82,6 +82,8 @@ const TYPE_MAPPINGS = {
 };
 
 deserializer.registerDeserializer("entity", (rawEntity, helpers) => {
+    // helpers.updatedContent(); // TODO: Uncomment
+
     rawEntity.type = TYPE_MAPPINGS[rawEntity.type] || rawEntity.type;
 
     if(rawEntity.type == "Tank") {

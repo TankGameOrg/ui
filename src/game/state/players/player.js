@@ -61,10 +61,15 @@ export default class Player {
     }
 }
 
-deserializer.registerDeserializer("player-v1", function(rawPlayer) {
+deserializer.registerDeserializer("player-v1", function(rawPlayer, helpers) {
+    // helpers.updatedContent(); // TODO: Uncomment
+
     return Player.deserialize({
         ...rawPlayer,
-        type: undefined,
+        attributes: {
+            ...rawPlayer.attributes,
+            type: undefined,
+        },
     })
 });
 
