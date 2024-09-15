@@ -13,7 +13,7 @@ export default class Board {
     static deserialize(rawBoard) {
         let board = new Board(rawBoard.width, rawBoard.height);
 
-        for(const unit of rawBoard.entities) {
+        for(const unit of rawBoard.units) {
             board.setUnit(unit);
         }
 
@@ -28,7 +28,7 @@ export default class Board {
         return {
             width: this.width,
             height: this.height,
-            entities: Object.values(this._units),
+            units: Object.values(this._units),
             floor: Object.values(this._floor),
         };
     }
@@ -40,15 +40,15 @@ export default class Board {
         return clone;
     }
 
-    _verifyPositon(position, entitiesObject, type) {
+    _verifyPositon(position, elementsObject, type) {
         const {humanReadable} = position;
 
-        if(entitiesObject[humanReadable] != undefined && entitiesObject[humanReadable].position.humanReadable != humanReadable) {
-            throw new Error(`${type} at ${humanReadable} thinks it should be at ${entitiesObject[humanReadable].position.humanReadable}`);
+        if(elementsObject[humanReadable] != undefined && elementsObject[humanReadable].position.humanReadable != humanReadable) {
+            throw new Error(`${type} at ${humanReadable} thinks it should be at ${elementsObject[humanReadable].position.humanReadable}`);
         }
     }
 
-    getAllEntities() {
+    getAllUnits() {
         return Object.values(this._units);
     }
 
@@ -125,4 +125,14 @@ export default class Board {
     }
 }
 
-deserializer.registerClass("board-v1", Board);
+deserializer.registerDeserializer("board-v1", (rawBoard) => {
+    rawBoard = {
+        ...rawBoard,
+        units: rawBoard.entities,
+        entities: undefined,
+    };
+
+    return Board.deserialize(rawBoard);
+});
+
+deserializer.registerClass("board-v2", Board);

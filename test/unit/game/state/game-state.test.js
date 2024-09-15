@@ -25,7 +25,7 @@ describe("GameState", () => {
         );
 
         assert.deepEqual(
-            gameState.getEntitiesByPlayer(gameState.players.getPlayerByName("Ted")),
+            gameState.getElementsByPlayer(gameState.players.getPlayerByName("Ted")),
             [
                 gameState.metaEntities.council,
                 board.getUnitAt(new Position("A1")),
@@ -33,7 +33,7 @@ describe("GameState", () => {
         );
 
         assert.deepEqual(
-            gameState.getEntitiesByPlayer(gameState.players.getPlayerByName("Bella")),
+            gameState.getElementsByPlayer(gameState.players.getPlayerByName("Bella")),
             [
                 board.getUnitAt(new Position("A2")),
             ],

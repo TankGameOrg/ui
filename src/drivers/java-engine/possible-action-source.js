@@ -109,12 +109,12 @@ export class JavaEngineSource {
                         throw new Error(`${option.value.name} is not the name of a known player`);
                     }
 
-                    const entities = gameState.getEntitiesByPlayer(player)
+                    const elements = gameState.getElementsByPlayer(player)
                         .filter(element => element.position !== undefined);
 
-                    if(entities.length > 0) {
+                    if(elements.length > 0) {
                         return {
-                            position: entities[0].position.humanReadable,
+                            position: elements[0].position.humanReadable,
                             value: player.name,
                         };
                     }

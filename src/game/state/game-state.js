@@ -36,11 +36,11 @@ export class GameState {
 
     _getAllEntities() {
         let allEntities = Object.values(this.metaEntities);
-        allEntities = allEntities.concat(this.board.getAllEntities());
+        allEntities = allEntities.concat(this.board.getAllUnits());
         return allEntities;
     }
 
-    getEntitiesByPlayer(player) {
+    getElementsByPlayer(player) {
         return this._getAllEntities()
             .filter(element => !!element.playerRef?.isFor?.(player));
     }
