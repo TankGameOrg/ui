@@ -13,10 +13,6 @@ export class Council {
     serialize() {
         return this;
     }
-
-    getPlayerRefs() {
-        return this.councilors.concat(this.senators);
-    }
 }
 
 deserializer.registerClass("council", Council);

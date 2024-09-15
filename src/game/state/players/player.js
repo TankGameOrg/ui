@@ -44,7 +44,10 @@ export default class Player {
      * @returns
      */
     serialize() {
-        return this;
+        return {
+            ...this.attributes,
+            uniqueId: this.uniqueId,
+        };
     }
 
     /**

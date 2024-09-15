@@ -66,8 +66,8 @@ export function gameStateFromRawState(rawGameState) {
 
         if(rawGameState.$WINNER == "Council") {
             victoryType = "armistice_vote";
-            winners = gameState.metaEntities.council.getPlayerRefs()
-                .map(ref => ref.getPlayer(gameState).attributes.name);
+            const {councilors, senators} = gameState.metaEntities.council;
+            winners = councilors.concat(senators).map(ref => ref.getPlayer(gameState).attributes.name);
         }
         else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
             victoryType = "last_tank_standing";
@@ -272,8 +272,8 @@ function buildUnit(position, board, boardType, gameState) {
 
     attributes.$POSITION = buildPosition(entity.attributes.position);
 
-    if(entity.getPlayerRefs().length > 0) {
-        attributes.$PLAYER_REF = buildPlayerRef(entity.getPlayerRefs()[0].getPlayer(gameState));
+    if(entity.attributes.playerRef !== undefined) {
+        attributes.$PLAYER_REF = buildPlayerRef(entity.attributes.playerRef.getPlayer(gameState));
         delete attributes.$PLAYERREF;
     }
 

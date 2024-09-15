@@ -59,9 +59,8 @@ export class TankDescriptor extends EntityDescriptor {
     }
 
     _getPlayer() {
-        const playerRef = this.entity.getPlayerRefs()[0];
-        if(playerRef) {
-            return playerRef.getPlayer(this.gameState);
+        if(this.entity.attributes.playerRef) {
+            return this.entity.attributes.playerRef.getPlayer(this.gameState);
         }
     }
 

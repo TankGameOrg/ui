@@ -17,14 +17,6 @@ export default class Entity {
     }
 
     /**
-     * Get the PlayerRefs for all of the players that control this entity
-     * @returns
-     */
-    getPlayerRefs() {
-        return this.attributes.playerRef !== undefined ? [this.attributes.playerRef] : [];
-    }
-
-    /**
      * Clone this entity (PlayerRefs are shallow copied)
      * @param {*} removePlayers Don't copy players to the cloned entity
      * @returns

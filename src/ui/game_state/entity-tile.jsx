@@ -13,32 +13,27 @@ function EntityDetails({ descriptor, entity, setSelectedUser, canSubmitAction, c
         closePopup();
     };
 
-    const takeActionButtons = canSubmitAction ? entity.getPlayerRefs().map(playerRef => {
-        const player = playerRef.getPlayer(gameState);
+    let takeActionButtons;
+    if(canSubmitAction && entity.attributes.playerRef) {
+        const player = entity.attributes.playerRef.getPlayer(gameState);
 
-        const buttonMessage = entity.getPlayerRefs().length === 1 ?
-            "Take Action" :
-            `Take Action as ${player.name}`;
-
-        return (
+        takeActionButtons =  (
             <div className="entity-details-take-action centered" key={player.name}>
-                <button onClick={takeActionHandler.bind(undefined, player)}>{buttonMessage}</button>
+                <button onClick={takeActionHandler.bind(undefined, player)}>Take Action</button>
             </div>
         );
-    }) : undefined;
+    }
 
-    const entityPlayerRefs = entity.getPlayerRefs();
     const attributes = useMemo(() => {
         let allAttributes = entity.attributes;
 
-        entityPlayerRefs
-            .map(playerRef => playerRef.getPlayer(gameState))
-            .map(player => {
-                allAttributes = Object.assign({}, allAttributes, player.attributes);
-            });
+        if(entity.attributes.playerRef) {
+            const player = entity.attributes.playerRef.getPlayer(gameState);
+            allAttributes = Object.assign({}, allAttributes, player.attributes)
+        }
 
         return allAttributes;
-    }, [entity, entityPlayerRefs, gameState]);
+    }, [entity, gameState]);
 
     return (
         <>
