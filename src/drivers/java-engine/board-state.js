@@ -12,6 +12,7 @@ import Player, { PlayerRef } from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
 import { logger } from "#platform/logging.js";
 import { Council } from "../../game/state/meta/council.js";
+import { camelToSnake, snakeToCamel } from "../../utils.js";
 
 function mapTypeToClass(type, boardType) {
     if(type == "empty") {
@@ -85,29 +86,15 @@ export function gameStateFromRawState(rawGameState) {
     };
 }
 
-function getAttributeName(name) {
-    name = name.toLowerCase();
-
-    if(name.startsWith("$")) {
-        name = name.slice(1);
-    }
-
-    return name;
-}
-
-function shouldKeepAttribute(attributeName) {
-    if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
-
-    return true;
-}
-
 function decodeAttributes(rawAttributes) {
     let attributes = {};
 
     for(const attributeName of Object.keys(rawAttributes)) {
-        if(!shouldKeepAttribute(attributeName)) continue;
+        if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) continue;
 
-        const actualName = getAttributeName(attributeName);
+        // slice(1) to remove the leading $
+        const actualName = snakeToCamel(attributeName.toLowerCase().slice(1));
+
         attributes[actualName] = rawAttributes[attributeName];
 
         if(actualName == "only_lootable_by") {
@@ -248,7 +235,7 @@ function encodeAttributes(object) {
     for(const attributeName of Object.keys(object)) {
         let value = object[attributeName];
         if(value?.max !== undefined) {
-            attributes["$MAX_" + attributeName.toUpperCase()] = value.max;
+            attributes["$MAX_" + camelToSnake(attributeName).toUpperCase()] = value.max;
             value = value.value;
         }
 
@@ -260,7 +247,7 @@ function encodeAttributes(object) {
             value = buildPlayerRef(value);
         }
 
-        attributes["$" + attributeName.toUpperCase()] = value;
+        attributes["$" + camelToSnake(attributeName).toUpperCase()] = value;
     }
 
     return attributes;
@@ -274,16 +261,9 @@ function buildPlayer(player) {
 }
 
 function buildElement(element, boardType) {
-    let attributes = encodeAttributes(element);
-
-    if(element.playerRef !== undefined) {
-        attributes.$PLAYER_REF = buildPlayerRef(element.playerRef);
-        delete attributes.$PLAYERREF;
-    }
-
     return {
         class: mapTypeToClass(element.type, boardType),
-        ...attributes,
+        ...encodeAttributes(element),
     };
 }
 

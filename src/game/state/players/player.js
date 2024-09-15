@@ -93,6 +93,10 @@ export class PlayerRef {
     isFor(player) {
         return this._playerName == player.name;
     }
+
+    toString() {
+        return this._playerName;
+    }
 }
 
 deserializer.registerDeserializer("player-ref-v1", (rawPlayerRef, helpers) => {

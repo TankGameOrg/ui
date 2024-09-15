@@ -57,9 +57,9 @@ const commonAttributeDescriptors = {
     power: AttributeDescriptor.make({ category: "resources" }),
 
     ////////// Internal attributes //////////
-    global_cooldown_end_time: AttributeDescriptor.make({ displayAs: "hidden" }),
+    globalCooldownEndTime: AttributeDescriptor.make({ displayAs: "hidden" }),
     type: AttributeDescriptor.make({ displayAs: "hidden" }),
-    previous_speed: AttributeDescriptor.make({ displayAs: "hidden" }),
+    previousSpeed: AttributeDescriptor.make({ displayAs: "hidden" }),
     councilors: AttributeDescriptor.make({ displayAs: "hidden" }),
     senators: AttributeDescriptor.make({ displayAs: "hidden" }),
     playerRef: AttributeDescriptor.make({ displayAs: "hidden" }),

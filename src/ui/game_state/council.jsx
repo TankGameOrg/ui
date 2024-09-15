@@ -9,6 +9,8 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
         return "Loading...";
     }
 
+    if(gameState.metaEntities.council === undefined) return;
+
     return (
         <>
             <ArmisticeClock armistice={gameState.metaEntities.council.armistice}></ArmisticeClock>

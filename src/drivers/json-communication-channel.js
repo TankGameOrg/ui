@@ -46,17 +46,17 @@ export class JsonCommunicationChannel {
         });
     }
 
-    _sendRequest(request_data) {
+    _sendRequest(requestData) {
         this._startTankGame();
 
         logger.trace({
-            request_data,
+            requestData,
             msg: "Send data to tank game engine",
             id: this._id,
         });
 
         return new Promise((resolve, reject) => {
-            this._proc.stdin.write(JSON.stringify(request_data) + "\n", "utf-8", err => {
+            this._proc.stdin.write(JSON.stringify(requestData) + "\n", "utf-8", err => {
                 if(err) reject(err);
                 else resolve();
             });
@@ -99,7 +99,7 @@ export class JsonCommunicationChannel {
 
                     logger.trace({
                         msg: "Recieve data from tank game engine",
-                        response_data: data,
+                        responseData: data,
                         id: this._id,
                     });
 
@@ -150,9 +150,9 @@ export class JsonCommunicationChannel {
         return promise;
     }
 
-    sendRequestAndWait(request_data) {
+    sendRequestAndWait(requestData) {
         return this._lock.use(() => {
-            this._sendRequest(request_data);
+            this._sendRequest(requestData);
             return this._waitForData();
         });
     }

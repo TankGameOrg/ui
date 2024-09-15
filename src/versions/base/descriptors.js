@@ -194,6 +194,6 @@ export class AttributeDescriptor {
             return `${this.attribute.value} / ${this.attribute.max}`;
         }
 
-        return this.attribute;
+        return this.attribute?.toString?.();
     }
 }
