@@ -8,7 +8,7 @@
 import Board from "../../game/state/board/board.js";
 import Element from "../../game/state/board/element.js";
 import { GameState } from "../../game/state/game-state.js";
-import Player from "../../game/state/players/player.js";
+import Player, { PlayerRef } from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
 import { logger } from "#platform/logging.js";
 import { Council } from "../../game/state/meta/council.js";
@@ -98,10 +98,6 @@ function getAttributeName(name) {
 function shouldKeepAttribute(attributeName) {
     if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) return false;
 
-    if(["$PLAYER_REF"].includes(attributeName)) {
-        return false;
-    }
-
     return true;
 }
 
@@ -120,6 +116,10 @@ function decodeAttributes(rawAttributes) {
 
         if(attributes[actualName]?.class == "Position") {
             attributes[actualName] = new Position(attributes[actualName]);
+        }
+
+        if(attributes[actualName]?.class == "PlayerRef") {
+            attributes[actualName] = new PlayerRef(attributes[actualName]);
         }
 
         const maxAttributeName = "$MAX_" + attributeName.replace("$", "");
@@ -236,44 +236,48 @@ function buildBoard(board, elementFn) {
     return rawBoard;
 }
 
-function buildPlayerRef(player) {
+function buildPlayerRef(playerRef) {
     return {
         class: "PlayerRef",
-        name: player.name,
+        name: playerRef._playerName,
     };
 }
 
-function buildPlayer(player) {
+function encodeAttributes(object) {
     let attributes = {};
-
-    for(const attributeName of Object.keys(player)) {
-        attributes["$" + attributeName.toUpperCase()] = player[attributeName];
-    }
-
-    return {
-        class: "Player",
-        ...attributes,
-    };
-}
-
-function buildUnit(position, board, boardType, gameState) {
-    const element = board[boardType == "unit" ? "getUnitAt" : "getFloorTileAt"](position);
-
-    let attributes = {};
-    for(const attributeName of Object.keys(element)) {
-        let value = element[attributeName];
-        if(value.max !== undefined) {
+    for(const attributeName of Object.keys(object)) {
+        let value = object[attributeName];
+        if(value?.max !== undefined) {
             attributes["$MAX_" + attributeName.toUpperCase()] = value.max;
             value = value.value;
+        }
+
+        if(value instanceof Position) {
+            value = buildPosition(value);
+        }
+
+        if(value instanceof PlayerRef) {
+            value = buildPlayerRef(value);
         }
 
         attributes["$" + attributeName.toUpperCase()] = value;
     }
 
-    attributes.$POSITION = buildPosition(element.position);
+    return attributes;
+}
+
+function buildPlayer(player) {
+    return {
+        class: "Player",
+        ...encodeAttributes(player),
+    };
+}
+
+function buildElement(element, boardType) {
+    let attributes = encodeAttributes(element);
 
     if(element.playerRef !== undefined) {
-        attributes.$PLAYER_REF = buildPlayerRef(element.playerRef.getPlayer(gameState));
+        attributes.$PLAYER_REF = buildPlayerRef(element.playerRef);
         delete attributes.$PLAYERREF;
     }
 
@@ -283,10 +287,9 @@ function buildUnit(position, board, boardType, gameState) {
     };
 }
 
-function makeCouncilList(councilList, gameState) {
+function makeCouncilList(councilList) {
     const players = councilList
-        .map(playerRef => playerRef.getPlayer(gameState))
-        .map(player => buildPlayerRef(player));
+        .map(playerRef => buildPlayerRef(playerRef));
 
     return {
         "class": "AttributeList",
@@ -294,7 +297,7 @@ function makeCouncilList(councilList, gameState) {
     }
 }
 
-function makeCouncil(council, gameState) {
+function makeCouncil(council) {
     let additionalAttributes = {};
 
     if(council.armistice !== undefined) {
@@ -309,8 +312,8 @@ function makeCouncil(council, gameState) {
         class: "Council",
         $COFFER: council.coffer,
         ...additionalAttributes,
-        $COUNCILLORS: makeCouncilList(council.councilors, gameState),
-        $SENATORS: makeCouncilList(council.senators, gameState),
+        $COUNCILLORS: makeCouncilList(council.councilors),
+        $SENATORS: makeCouncilList(council.senators),
     };
 }
 
@@ -322,10 +325,10 @@ export function gameStateToRawState(gameState) {
         $TICK: 0,
         $BOARD: {
             class: "Board",
-            unit_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, "unit", gameState)),
-            floor_board: buildBoard(gameState.board, (position, board) => buildUnit(position, board, "floorTile", gameState)),
+            unit_board: buildBoard(gameState.board, (position, board) => buildElement(board.getUnitAt(position), "unit")),
+            floor_board: buildBoard(gameState.board, (position, board) => buildElement(board.getFloorTileAt(position), "floorTile")),
         },
-        $COUNCIL: makeCouncil(gameState.metaEntities.council, gameState),
+        $COUNCIL: makeCouncil(gameState.metaEntities.council),
         $PLAYERS: {
             class: "AttributeList",
             elements: gameState.players.getAllPlayers().map(player => buildPlayer(player)),
