@@ -104,9 +104,18 @@ export function loadFromRaw(fileData) {
         getPlayerTypes() {
             let types = {};
             for(const player of fileData.initialGameState.players) {
-                types[player.uniqueId] = player.attributes.type;
+                types[player.attributes.name] = player.attributes.type;
             }
             return types;
+        },
+
+        // Helper for convering player ref to v2
+        getPlayerNameById(id) {
+            for(const player of fileData.initialGameState.players) {
+                if(player.uniqueId == id) return player.attributes.name;
+            }
+
+            throw new Error(`Player with ID ${id} was not found`);
         },
 
         updatedContent() {

@@ -1,7 +1,5 @@
 import { deserializer } from "../../../deserialization.js";
-import { deepClone, unixNow } from "../../../utils.js";
-
-let idGenerator = 0;
+import { deepClone } from "../../../utils.js";
 
 /**
  * An instance of a player/user
@@ -10,15 +8,8 @@ export default class Player {
     /**
      * Construct a player
      * @param {*} attributes The player's attributes
-     * @param {*} uniqueId The unique ID for this player (optional)
      */
-    constructor(attributes = {}, uniqueId) {
-        // Make sure the next ID we generate doesn't overlap with an existing ID
-        if(!isNaN(+uniqueId)) {
-            idGenerator = Math.max(idGenerator, (+uniqueId) + 1);
-        }
-
-        this.uniqueId = uniqueId || (++idGenerator + "");
+    constructor(attributes = {}) {
         this.attributes = attributes;
     }
 
@@ -33,10 +24,7 @@ export default class Player {
      * @returns
      */
     static deserialize(rawPlayer) {
-        return new Player({
-            ...rawPlayer,
-            uniqueId: undefined,
-        }, rawPlayer.uniqueId);
+        return new Player(rawPlayer);
     }
 
     /**
@@ -44,10 +32,7 @@ export default class Player {
      * @returns
      */
     serialize() {
-        return {
-            ...this.attributes,
-            uniqueId: this.uniqueId,
-        };
+        return this.attributes;
     }
 
     /**
@@ -55,7 +40,7 @@ export default class Player {
      * @returns
      */
     clone() {
-        return new Player(deepClone(this.attributes), this.uniqueId);
+        return new Player(deepClone(this.attributes));
     }
 
     /**
@@ -71,8 +56,6 @@ deserializer.registerDeserializer("player-v1", function(rawPlayer, helpers) {
     // helpers.updatedContent(); // TODO: Uncomment
 
     return Player.deserialize({
-        ...rawPlayer,
-        attributes: undefined,
         ...rawPlayer.attributes,
         type: undefined,
     })
@@ -85,16 +68,16 @@ deserializer.registerClass("player-v2", Player);
  */
 export class PlayerRef {
     constructor(player) {
-        this._playerId = player.uniqueId;
+        this._playerName = player.name;
     }
 
     static deserialize(rawPlayerRef) {
-        return new PlayerRef({ uniqueId: rawPlayerRef.playerId });
+        return new PlayerRef(rawPlayerRef);
     }
 
     serialize() {
         return {
-            playerId: this._playerId,
+            name: this._playerName,
         };
     }
 
@@ -104,7 +87,7 @@ export class PlayerRef {
      * @returns
      */
     getPlayer(gameState) {
-        return gameState.players.getPlayerById(this._playerId);
+        return gameState.players.getPlayerByName(this._playerName);
     }
 
     /**
@@ -113,8 +96,15 @@ export class PlayerRef {
      * @returns
      */
     isFor(player) {
-        return this._playerId == player.uniqueId;
+        return this._playerName == player.name;
     }
 }
 
-deserializer.registerClass("player-ref-v1", PlayerRef);
+deserializer.registerDeserializer("player-ref-v1", (rawPlayerRef, helpers) => {
+    // helpers.updatedContent(); // TODO: Uncomment
+    rawPlayerRef.name = helpers.getPlayerNameById(rawPlayerRef.playerId);
+
+    return PlayerRef.deserialize(rawPlayerRef);
+});
+
+deserializer.registerClass("player-ref-v2", PlayerRef);
