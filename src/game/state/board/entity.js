@@ -1,4 +1,5 @@
 import { deserializer } from "../../../deserialization.js";
+import { Council } from "../meta/council.js";
 
 /**
  * An entity which could be on the board, a floor tile, or a meta entity (i.e. council)
@@ -10,13 +11,11 @@ export default class Entity {
      * @param {*} attributes The attributes of the entity
      * @param {*} players The players or PlayerRefs that control this entity
      */
-    constructor({ type, attributes = {}, players = [] }) {
+    constructor({ type, attributes = {} }) {
         this.type = type;
         this._playerRefs = [];
         this.attributes = attributes;
-        for(const player of players) {
-            this.addPlayer(player);
-        }
+        if(attributes.playerRef) this.addPlayer(attributes.playerRef);
     }
 
     /**
@@ -24,7 +23,8 @@ export default class Entity {
      * @param {*} player the player or PlayerRef to add
      */
     addPlayer(player) {
-        this._playerRefs.push(player.asRef !== undefined ? player.asRef() : player);
+        const ref = player.asRef !== undefined ? player.asRef() : player;
+        this._playerRefs.push(ref);
     }
 
     /**
@@ -43,8 +43,9 @@ export default class Entity {
     clone({ removePlayers = false } = {}) {
         return new Entity({
             type: this.type,
-            players: removePlayers ? [] : this._playerRefs.slice(0),
-            attributes: Object.assign({}, this.attributes),
+            attributes: Object.assign({
+                playerRef: removePlayers ? undefined : this._playerRefs[0],
+            }, this.attributes),
         });
     }
 
@@ -56,12 +57,14 @@ export default class Entity {
     static deserialize(rawEntity) {
         let attributes = Object.assign({}, rawEntity);
         delete attributes.type;
-        delete attributes.players;
+
+        if(attributes.playerRef === undefined) {
+            delete attributes.playerRef;
+        }
 
         return new Entity({
             type: rawEntity.type,
             attributes,
-            players: rawEntity.players,
         });
     }
 
@@ -73,9 +76,9 @@ export default class Entity {
         return {
             ...this.attributes,
             type: this.type,
-            players: this._playerRefs.length === 0 ?
+            playerRef: this._playerRefs.length === 0 ?
                 undefined : // Don't include a players field if it's empty
-                this._playerRefs,
+                this._playerRefs[0],
         };
     }
 }
@@ -92,7 +95,7 @@ const TYPE_MAPPINGS = {
     unwalkable_floor: "UnwalkableFloor",
 };
 
-deserializer.registerDeserializer("entity", (rawEntity) => {
+deserializer.registerDeserializer("entity", (rawEntity, helpers) => {
     rawEntity.type = TYPE_MAPPINGS[rawEntity.type] || rawEntity.type;
 
     if(rawEntity.type == "Tank") {
@@ -108,6 +111,30 @@ deserializer.registerDeserializer("entity", (rawEntity) => {
             rawEntity.durability = rawEntity.health;
             delete rawEntity.health;
         }
+    }
+
+    if(rawEntity.type == "council") {
+        const players = helpers.getPlayers();
+
+        let councilAttrs = {
+            coffer: rawEntity.coffer,
+            councilors: (rawEntity.players || []).filter(ref => ref.getPlayer({players}).type == "councilor"),
+            senators: (rawEntity.players || []).filter(ref => ref.getPlayer({players}).type == "senator"),
+        };
+
+        if(rawEntity.armistice !== undefined) {
+            councilAttrs.armistice = rawEntity.armistice;
+        }
+
+        return new Council(councilAttrs);
+    }
+
+    if(rawEntity.players) {
+        rawEntity.playerRef = rawEntity.players[0];
+    }
+
+    if(Object.prototype.hasOwnProperty.call(rawEntity, "players")) {
+        delete rawEntity.players;
     }
 
     return Entity.deserialize(rawEntity);

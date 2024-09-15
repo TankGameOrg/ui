@@ -11,6 +11,7 @@ import { GameState } from "../../game/state/game-state.js";
 import Player from "../../game/state/players/player.js";
 import { Position } from "../../game/state/board/position.js";
 import { logger } from "#platform/logging.js";
+import { Council } from "../../game/state/meta/council.js";
 
 function mapTypeToClass(type, boardType) {
     if(type == "empty") {
@@ -139,29 +140,6 @@ function convertPlayer(rawPlayer) {
     return new Player(decodeAttributes(rawPlayer));
 }
 
-function getCouncilPlayers(rawCouncil, playersByName) {
-    let councilPlayers = [];
-
-    const councilGroups = [
-        [rawCouncil.$COUNCILLORS.elements, "councilor"],
-        [rawCouncil.$SENATORS.elements, "senator"]
-    ];
-
-    for(const [users, userType] of councilGroups) {
-        for(const playerRef of users) {
-            const {name} = playerRef;
-            if(playersByName[name]) {
-                // Being a councelor overrides the user's previous state
-                playersByName[name].attributes.type = userType;
-            }
-
-            councilPlayers.push(playersByName[name]);
-        }
-    }
-
-    return councilPlayers;
-}
-
 function convertCouncil(rawCouncil, playersByName) {
     let attributes = {
         coffer: rawCouncil.$COFFER,
@@ -174,26 +152,26 @@ function convertCouncil(rawCouncil, playersByName) {
         };
     }
 
-    const players = getCouncilPlayers(rawCouncil, playersByName);
-    return new Entity({ type: "council", attributes, players });
+    return new Council({
+        ...attributes,
+        councilors: rawCouncil.$COUNCILLORS.elements.map(({name}) => playersByName[name].asRef()),
+        senators: rawCouncil.$SENATORS.elements.map(({name}) => playersByName[name].asRef()),
+    });
 }
 
 function entityFromBoard(rawEntity, playersByName) {
     const type = mapClassToType(rawEntity.class);
     let attributes = decodeAttributes(rawEntity);
 
-    let entity = new Entity({
+    const {$PLAYER_REF} = rawEntity;
+    if($PLAYER_REF && playersByName) {
+        attributes.playerRef = playersByName[$PLAYER_REF.name].asRef();
+    }
+
+    return new Entity({
         type,
         attributes,
     });
-
-    const {$PLAYER_REF} = rawEntity;
-    if($PLAYER_REF && playersByName) {
-        const player = playersByName[$PLAYER_REF.name];
-        entity.addPlayer(player);
-    }
-
-    return entity;
 }
 
 function convertBoard(newBoard, board, boardSpaceFactory) {
@@ -296,6 +274,7 @@ function buildUnit(position, board, boardType, gameState) {
 
     if(entity.getPlayerRefs().length > 0) {
         attributes.$PLAYER_REF = buildPlayerRef(entity.getPlayerRefs()[0].getPlayer(gameState));
+        delete attributes.$PLAYERREF;
     }
 
     return {
@@ -304,10 +283,9 @@ function buildUnit(position, board, boardType, gameState) {
     };
 }
 
-function makeCouncilList(council, playerType, gameState) {
-    const players = council.getPlayerRefs()
+function makeCouncilList(councilList, gameState) {
+    const players = councilList
         .map(playerRef => playerRef.getPlayer(gameState))
-        .filter(player => player.type == playerType)
         .map(player => buildPlayerRef(player));
 
     return {
@@ -319,20 +297,20 @@ function makeCouncilList(council, playerType, gameState) {
 function makeCouncil(councilEntity, gameState) {
     let additionalAttributes = {};
 
-    if(councilEntity.attributes.armistice !== undefined) {
+    if(councilEntity.armistice !== undefined) {
         additionalAttributes = {
             ...additionalAttributes,
-            $ARMISTICE_COUNT: councilEntity.attributes.armistice.value,
-            $ARMISTICE_MAX: councilEntity.attributes.armistice.max,
+            $ARMISTICE_COUNT: councilEntity.armistice.value,
+            $ARMISTICE_MAX: councilEntity.armistice.max,
         };
     }
 
     return {
         class: "Council",
-        $COFFER: councilEntity.attributes.coffer,
+        $COFFER: councilEntity.coffer,
         ...additionalAttributes,
-        $COUNCILLORS: makeCouncilList(councilEntity, "councilor", gameState),
-        $SENATORS: makeCouncilList(councilEntity, "senator", gameState),
+        $COUNCILLORS: makeCouncilList(councilEntity.councilors, gameState),
+        $SENATORS: makeCouncilList(councilEntity.senators, gameState),
     };
 }
 

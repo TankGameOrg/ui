@@ -13,14 +13,14 @@ describe("GameState", () => {
         ];
 
         let board = new Board(2, 2);
-        board.setEntity(new Entity({ type: "tank", attributes: { position: new Position("A1") }, players: [players[0] /* Ted */] }));
-        board.setEntity(new Entity({ type: "tank", attributes: { position: new Position("A2") }, players: [players[1] /* Bella */] }));
+        board.setEntity(new Entity({ type: "tank", attributes: { position: new Position("A1"), playerRef: players[0].asRef() /* Ted */ }, }));
+        board.setEntity(new Entity({ type: "tank", attributes: { position: new Position("A2"), playerRef: players[1].asRef() /* Bella */ }, }));
 
         const gameState = new GameState(
             players,
             board,
             {
-                council: new Entity({ type: "council", players: [players[0] /* Ted */], }),
+                council: new Entity({ type: "council", attributes: { playerRef: players[0].asRef() /* Ted */, }, }),
             },
         );
 

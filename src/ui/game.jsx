@@ -21,7 +21,7 @@ export function Game({ game, navigate, debug }) {
 
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
     const [gameState, stateError] = useGameClient(game,
-            client => client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId])
+            client => currentTurnMgrState.entryId !== undefined && client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId])
 
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 

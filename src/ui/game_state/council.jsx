@@ -11,8 +11,8 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
 
     return (
         <>
-            <ArmisticeClock armistice={gameState.metaEntities.council.attributes.armistice}></ArmisticeClock>
-            <AttributeList attributes={gameState.metaEntities.council.attributes} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
+            <ArmisticeClock armistice={gameState.metaEntities.council.armistice}></ArmisticeClock>
+            <AttributeList attributes={gameState.metaEntities.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
             <div className="user-list">
                 {config.getCouncilPlayerTypes().map(playerType => {
                     const players = gameState.players.getPlayersByType(playerType);

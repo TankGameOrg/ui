@@ -1,12 +1,12 @@
 import { LogBook } from "../game/state/log-book/log-book.js";
 import { OpenHours } from "../game/open-hours/index.js";
-import { getGameVersion } from "../versions/index.js";
 import { GameState } from "../game/state/game-state.js";
 import "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
 import { logger } from "#platform/logging.js";
+import Players from "../game/state/players/players.js";
 
 const FILE_FORMAT_VERSION = 7;
 const MINIMUM_SUPPORTED_FILE_FORMAT_VERSION = 6;
@@ -100,6 +100,11 @@ export function loadFromRaw(fileData) {
     }
 
     const helpers = {
+        // Helper for convering council from an entity
+        getPlayers() {
+            return new Players(deserializer.deserialize(fileData.initialGameState.players));
+        },
+
         updatedContent() {
             // Avoid log spam for mass updates
             if(fileDataUpdated) return;
