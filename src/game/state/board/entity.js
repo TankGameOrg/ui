@@ -13,18 +13,7 @@ export default class Entity {
      */
     constructor({ type, attributes = {} }) {
         this.type = type;
-        this._playerRefs = [];
         this.attributes = attributes;
-        if(attributes.playerRef) this.addPlayer(attributes.playerRef);
-    }
-
-    /**
-     * Add a player that controls this entity
-     * @param {*} player the player or PlayerRef to add
-     */
-    addPlayer(player) {
-        const ref = player.asRef !== undefined ? player.asRef() : player;
-        this._playerRefs.push(ref);
     }
 
     /**
@@ -32,7 +21,7 @@ export default class Entity {
      * @returns
      */
     getPlayerRefs() {
-        return this._playerRefs;
+        return this.attributes.playerRef !== undefined ? [this.attributes.playerRef] : [];
     }
 
     /**
@@ -44,7 +33,7 @@ export default class Entity {
         return new Entity({
             type: this.type,
             attributes: Object.assign({
-                playerRef: removePlayers ? undefined : this._playerRefs[0],
+                playerRef: removePlayers ? undefined : this.attributes.playerRef,
             }, this.attributes),
         });
     }
@@ -76,9 +65,6 @@ export default class Entity {
         return {
             ...this.attributes,
             type: this.type,
-            playerRef: this._playerRefs.length === 0 ?
-                undefined : // Don't include a players field if it's empty
-                this._playerRefs[0],
         };
     }
 }

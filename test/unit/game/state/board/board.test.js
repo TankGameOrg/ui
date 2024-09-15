@@ -9,11 +9,9 @@ let board = new Board(7, 5);
 
 const tank1 = new Entity({ type: "tank", attributes: { position: new Position("A1") } });
 const destroyedTank = new Entity({ type: "dead-tank", attributes: { position: new Position("C4") } });
-let tank2 = new Entity({ type: "tank", attributes: { position: new Position("G5") } });
-const baloon = new Entity({ type: "baloon", attributes: { position: new Position("B2") } });
-
 let josh = new Player({ name: "Josh", type: "tank" });
-tank2.addPlayer(josh);
+let tank2 = new Entity({ type: "tank", attributes: { position: new Position("G5"), playerRef: josh.asRef() } });
+const baloon = new Entity({ type: "baloon", attributes: { position: new Position("B2") } });
 
 board.setEntity(tank1);
 board.setEntity(destroyedTank);
