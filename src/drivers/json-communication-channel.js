@@ -106,6 +106,7 @@ export class JsonCommunicationChannel {
                     clearTimeout(timeoutTimer);
 
                     if(data.error) {
+                        logger.error({ msg: "Engine Error", error: data.error });
                         reject(new Error(`EngineError: ${data.error.message}`));
                         return;
                     }
