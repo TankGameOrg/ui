@@ -14,48 +14,23 @@ import { logger } from "#platform/logging.js";
 import { Council } from "../../game/state/meta/council.js";
 import { camelToSnake, snakeToCamel } from "../../utils.js";
 
-function mapTypeToClass(type, boardType) {
-    if(type == "empty") {
-        return boardType == "unit" ? "EmptyUnit" : "WalkableFloor";
-    }
-
-    let className = {
-        Tank: "GenericTank",
-    }[type];
-
-    if(className === undefined) className = type;
-
-    return className;
-}
-
-function mapClassToType(className) {
-    let type = {
-        GenericTank: "Tank",
-        EmptyUnit: "empty",
-        WalkableFloor: "empty",
-    }[className];
-
-    if(type === undefined) type = className; // throw new Error(`Could not find type for ${className}`);
-
-    return type;
-}
 
 export function gameStateFromRawState(rawGameState) {
-    const playersByName = buildUserLists(rawGameState);
+    let board = new Board(rawGameState.$BOARD.width, rawGameState.$BOARD.height);
 
-    let board = convertBoard(undefined, rawGameState.$BOARD.unit_board, (newBoard, rawUnit, position) => {
-        newBoard.setUnit(elementFromBoard(rawUnit, playersByName));
-    });
+    for(const rawUnit of rawGameState.$BOARD.units) {
+        board.setUnit(elementFromBoard(rawUnit));
+    }
 
-    board = convertBoard(board, rawGameState.$BOARD.floor_board, (newBoard, space, position) => {
-        newBoard.setFloorTile(elementFromBoard(space));
-    });
+    for(const rawFloor of rawGameState.$BOARD.floors) {
+        board.setFloorTile(elementFromBoard(rawFloor));
+    }
 
     let gameState = new GameState(
-        Object.values(playersByName),
+        rawGameState.$PLAYERS.elements.map(rawPlayer => new Player(decodeAttributes(rawPlayer))),
         board,
         {
-            council: convertCouncil(rawGameState.$COUNCIL, playersByName),
+            council: convertCouncil(rawGameState.$COUNCIL),
         },
     );
 
@@ -86,6 +61,10 @@ export function gameStateFromRawState(rawGameState) {
     };
 }
 
+function decodePlayerRef(rawPlayerRef) {
+    return new PlayerRef(rawPlayerRef);
+}
+
 function decodeAttributes(rawAttributes) {
     let attributes = {};
 
@@ -106,7 +85,7 @@ function decodeAttributes(rawAttributes) {
         }
 
         if(attributes[actualName]?.class == "PlayerRef") {
-            attributes[actualName] = new PlayerRef(attributes[actualName]);
+            attributes[actualName] = decodePlayerRef(attributes[actualName]);
         }
 
         const maxAttributeName = "$MAX_" + attributeName.replace("$", "");
@@ -121,13 +100,7 @@ function decodeAttributes(rawAttributes) {
     return attributes;
 }
 
-function convertPlayer(rawPlayer) {
-    if(rawPlayer.class != "Player") throw new Error(`Expected player but got ${rawPlayer.class}`);
-
-    return new Player(decodeAttributes(rawPlayer));
-}
-
-function convertCouncil(rawCouncil, playersByName) {
+function convertCouncil(rawCouncil) {
     let attributes = {
         coffer: rawCouncil.$COFFER,
     };
@@ -141,61 +114,16 @@ function convertCouncil(rawCouncil, playersByName) {
 
     return new Council({
         ...attributes,
-        councilors: rawCouncil.$COUNCILLORS.elements.map(({name}) => playersByName[name].asRef()),
-        senators: rawCouncil.$SENATORS.elements.map(({name}) => playersByName[name].asRef()),
+        councilors: rawCouncil.$COUNCILLORS.elements.map((ref) => decodePlayerRef(ref)),
+        senators: rawCouncil.$SENATORS.elements.map((ref) => decodePlayerRef(ref)),
     });
 }
 
-function elementFromBoard(rawElement, playersByName) {
-    const type = mapClassToType(rawElement.class);
-    let attributes = decodeAttributes(rawElement);
-
-    const {$PLAYER_REF} = rawElement;
-    if($PLAYER_REF && playersByName) {
-        attributes.playerRef = playersByName[$PLAYER_REF.name].asRef();
-    }
-
+function elementFromBoard(rawElement) {
     return new Element({
-        type,
-        ...attributes,
+        type: rawElement.class,
+        ...decodeAttributes(rawElement),
     });
-}
-
-function convertBoard(newBoard, board, boardSpaceFactory) {
-    if(!newBoard) {
-        if(board.length === 0) throw new Error("Zero length boards are not allowed");
-
-        newBoard = new Board(board[0].length, board.length);
-    }
-
-    if(newBoard.height != board.length) {
-        throw new Error(`Board has a length of ${board.length} but previous boards had a length of ${newBoard.height}`);
-    }
-
-    for(let y = 0; y < board.length; ++y) {
-        const row = board[y];
-
-        if(newBoard.width != row.length) {
-            throw new Error(`Row at index ${y} has a length of ${row.length} but previous rows had a length of ${newBoard.width}`);
-        }
-
-        for(let x = 0; x < row.length; ++x) {
-            const position = new Position(x, y);
-            boardSpaceFactory(newBoard, board[y][x], position);
-        }
-    }
-
-    return newBoard;
-}
-
-function buildUserLists(rawGameState) {
-    let playersByName = {};
-
-    for(const rawPlayer of rawGameState.$PLAYERS.elements) {
-        playersByName[rawPlayer.$NAME] = convertPlayer(rawPlayer);
-    }
-
-    return playersByName;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -206,21 +134,6 @@ export function buildPosition(position) {
         x: position.x,
         y: position.y,
     };
-}
-
-function buildBoard(board, elementFn) {
-    let rawBoard = [];
-
-    for(let y = 0; y < board.height; ++y) {
-        let row = [];
-        rawBoard.push(row);
-
-        for(let x = 0; x < board.width; ++x) {
-            row.push(elementFn(new Position(x, y), board));
-        }
-    }
-
-    return rawBoard;
 }
 
 function buildPlayerRef(playerRef) {
@@ -260,9 +173,9 @@ function buildPlayer(player) {
     };
 }
 
-function buildElement(element, boardType) {
+function buildElement(element) {
     return {
-        class: mapTypeToClass(element.type, boardType),
+        class: element.type,
         ...encodeAttributes(element),
     };
 }
@@ -305,8 +218,10 @@ export function gameStateToRawState(gameState) {
         $TICK: 0,
         $BOARD: {
             class: "Board",
-            unit_board: buildBoard(gameState.board, (position, board) => buildElement(board.getUnitAt(position), "unit")),
-            floor_board: buildBoard(gameState.board, (position, board) => buildElement(board.getFloorTileAt(position), "floorTile")),
+            width: gameState.board.width,
+            height: gameState.board.height,
+            units: gameState.board.getAllUnits().map(unit => buildElement(unit)),
+            floors: gameState.board.getAllFloors().map(floor => buildElement(floor)),
         },
         $COUNCIL: makeCouncil(gameState.metaEntities.council),
         $PLAYERS: {

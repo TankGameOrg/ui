@@ -70,6 +70,10 @@ export default class Board {
         }
     }
 
+    getAllFloors() {
+        return Object.values(this._floor);
+    }
+
     getFloorTileAt(position) {
         this._verifyPositon(position, this._floor, "Floor tile");
         return this._floor[position.humanReadable] || (new Element({ type: "empty", position }));
