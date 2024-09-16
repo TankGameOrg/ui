@@ -61,7 +61,7 @@ export function gameStateFromRawState(rawGameState) {
     };
 }
 
-function decodePlayerRef(rawPlayerRef) {
+export function decodePlayerRef(rawPlayerRef) {
     return new PlayerRef(rawPlayerRef);
 }
 
@@ -136,7 +136,7 @@ export function buildPosition(position) {
     };
 }
 
-function buildPlayerRef(playerRef) {
+export function encodePlayerRef(playerRef) {
     return {
         class: "PlayerRef",
         name: playerRef._playerName,
@@ -157,7 +157,7 @@ function encodeAttributes(object) {
         }
 
         if(value instanceof PlayerRef) {
-            value = buildPlayerRef(value);
+            value = encodePlayerRef(value);
         }
 
         attributes["$" + camelToSnake(attributeName).toUpperCase()] = value;
@@ -182,7 +182,7 @@ function buildElement(element) {
 
 function makeCouncilList(councilList) {
     const players = councilList
-        .map(playerRef => buildPlayerRef(playerRef));
+        .map(playerRef => encodePlayerRef(playerRef));
 
     return {
         "class": "AttributeList",

@@ -1,5 +1,6 @@
 import { Position } from "../../game/state/board/position.js";
-import { buildPosition } from "./board-state.js";
+import { PlayerRef } from "../../game/state/players/player.js";
+import { buildPosition, encodePlayerRef } from "./board-state.js";
 
 
 function convertToEngineEntry(logEntry) {
@@ -9,16 +10,8 @@ function convertToEngineEntry(logEntry) {
         logEntry.target_position = buildPosition(new Position(logEntry.target_position));
     }
 
-    if(logEntry.target_player !== undefined) {
-        logEntry.target_player = {
-            "class": "PlayerRef",
-            "name": logEntry.target_player,
-        };
-    }
-
-    let subject;
     if(logEntry.subject !== undefined) {
-        subject = {
+        logEntry.subject = {
             "class": "PlayerRef",
             "name": logEntry.subject,
         };
@@ -32,12 +25,13 @@ function convertToEngineEntry(logEntry) {
                 class: "DieRollResult"
             };
         }
+
+        if(logEntry[key] instanceof PlayerRef) {
+            logEntry[key] = encodePlayerRef(logEntry[key]);
+        }
     }
 
-    return {
-        ...logEntry,
-        subject,
-    };
+    return logEntry;
 }
 
 export function convertLogEntry(logEntry) {

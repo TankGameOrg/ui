@@ -61,7 +61,7 @@ class FormatingHelpers {
         // No info to give the user just return the location
         if(!info) return location;
 
-        info = prettyifyName(info, { capitalize: false });
+        info = prettyifyName(info);
 
         return `${location} (${info})`;
     }

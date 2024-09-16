@@ -5,6 +5,7 @@ import { ActionError } from "../../game/possible-actions/action-error.js";
 import { logger } from "#platform/logging.js";
 import { Dice, Die } from "../../game/possible-actions/die.js";
 import { DiceLogFieldSpec } from "../../game/possible-actions/dice-log-field-spec.js";
+import { decodePlayerRef } from "./board-state.js";
 
 export class JavaEngineSource {
     constructor({ actionsToSkip = [] } = {}) {
@@ -104,7 +105,7 @@ export class JavaEngineSource {
             case "PlayerRef":
                 // If all of our players exist on the board use the position selector instead of the regular select
                 playerPositions = field.options.map(option => {
-                    const player = gameState.players.getPlayerByName(option.value.name);
+                    const player = decodePlayerRef(option.value).getPlayer(gameState);
                     if(!player) {
                         throw new Error(`${option.value.name} is not the name of a known player`);
                     }
@@ -115,7 +116,7 @@ export class JavaEngineSource {
                     if(elements.length > 0) {
                         return {
                             position: elements[0].position.humanReadable,
-                            value: player.name,
+                            value: player.asRef(),
                         };
                     }
                 });
@@ -124,7 +125,7 @@ export class JavaEngineSource {
                     options = field.options.map(option => {
                         return {
                             display: option.pretty_name,
-                            value: option.value.name,
+                            value: decodePlayerRef(option.value),
                         };
                     });
                 }
