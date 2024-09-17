@@ -128,7 +128,7 @@ function elementFromBoard(rawElement) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-export function buildPosition(position) {
+export function encodePosition(position) {
     return {
         class: "Position",
         x: position.x,
@@ -153,7 +153,7 @@ function encodeAttributes(object) {
         }
 
         if(value instanceof Position) {
-            value = buildPosition(value);
+            value = encodePosition(value);
         }
 
         if(value instanceof PlayerRef) {

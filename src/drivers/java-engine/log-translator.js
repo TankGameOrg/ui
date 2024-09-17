@@ -1,14 +1,10 @@
 import { Position } from "../../game/state/board/position.js";
 import { PlayerRef } from "../../game/state/players/player.js";
-import { buildPosition, encodePlayerRef } from "./board-state.js";
+import { encodePosition, encodePlayerRef } from "./board-state.js";
 
 
-function convertToEngineEntry(logEntry) {
-    logEntry = Object.assign({}, logEntry);
-
-    if(logEntry.target_position !== undefined) {
-        logEntry.target_position = buildPosition(new Position(logEntry.target_position));
-    }
+function convertToEngineEntry(_logEntry) {
+    let logEntry = Object.assign({}, _logEntry);
 
     if(logEntry.subject !== undefined) {
         logEntry.subject = {
@@ -28,6 +24,10 @@ function convertToEngineEntry(logEntry) {
 
         if(logEntry[key] instanceof PlayerRef) {
             logEntry[key] = encodePlayerRef(logEntry[key]);
+        }
+
+        if(logEntry[key] instanceof Position) {
+            logEntry[key] = encodePosition(logEntry[key]);
         }
     }
 

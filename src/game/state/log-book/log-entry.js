@@ -140,6 +140,10 @@ function translateV2to3(rawLogEntry, helpers) {
         });
     }
 
+    if(rawLogEntry.target_position !== undefined) {
+        rawLogEntry.target_position = new Position(rawLogEntry.target_position);
+    }
+
     return LogEntry.deserialize(rawLogEntry);
 }
 

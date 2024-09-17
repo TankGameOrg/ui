@@ -1,5 +1,6 @@
 import { deserializer } from "../../deserialization.js";
 import { prettyifyName } from "../../utils.js";
+import { Position } from "../state/board/position.js";
 
 const VALID_TYPES = [
     "select",
@@ -83,15 +84,21 @@ export class LogFieldSpec {
     }
 
     translateValue(displayName) {
-        const value = this._optionToValue?.[displayName];
-        return value !== undefined ? value : displayName;
+        let value = this._optionToValue?.[displayName];
+        if(value === undefined) value = displayName;
+
+        if(this.type == "select-position" && typeof value == "string") {
+            value = new Position(value);
+        }
+
+        return value;
     }
 
     isValid(value) {
         if(value === undefined) return false;
 
         if(this._logEntryValidValues) {
-            return this._logEntryValidValues.has(value);
+            return this._logEntryValidValues.has(value?.humanReadable || value);
         }
 
         return true;

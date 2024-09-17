@@ -1,6 +1,7 @@
 /* globals console */
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { fetchHelper } from "./fetch-helper.js";
+import { deserializer } from "../../deserialization.js";
 
 class GameClient {
     constructor(game) {
@@ -90,7 +91,7 @@ class GameClient {
 
     async submitTurn(logBookEntry) {
         const result = await fetchHelper(`/api/game/${this._game}/turn`, {
-            body: logBookEntry
+            body: deserializer.serialize(logBookEntry),
         });
 
         this.pollGameInfo();

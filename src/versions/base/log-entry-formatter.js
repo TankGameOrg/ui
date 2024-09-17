@@ -29,13 +29,12 @@ class FormatingHelpers {
         this._logEntry = logEntry;
     }
 
-    describeLocation({ location, unit = true, floor = false } = {}) {
-        if(location === undefined) {
-            location = this._logEntry.rawLogEntry.target_position;
+    describeLocation({ position, unit = true, floor = false } = {}) {
+        if(position === undefined) {
+            position = this._logEntry.rawLogEntry.target_position;
         }
 
-        if(this._gameState === undefined) return location;
-        const position = new Position(location);
+        if(this._gameState === undefined) return position;
 
         let info;
         if(unit) {
@@ -59,11 +58,11 @@ class FormatingHelpers {
         if(!info) info = "empty";
 
         // No info to give the user just return the location
-        if(!info) return location;
+        if(!info) return position.humanReadable;
 
         info = prettyifyName(info);
 
-        return `${location} (${info})`;
+        return `${position.humanReadable} (${info})`;
     }
 
     dieRoll(field, { prefix="", suffix="" }) {
