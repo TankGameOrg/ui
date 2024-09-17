@@ -60,7 +60,7 @@ const commonAttributeDescriptors = {
     globalCooldownEndTime: AttributeDescriptor.make({ displayAs: "hidden" }),
     type: AttributeDescriptor.make({ displayAs: "hidden" }),
     previousSpeed: AttributeDescriptor.make({ displayAs: "hidden" }),
-    councilors: AttributeDescriptor.make({ displayAs: "hidden" }),
+    councillors: AttributeDescriptor.make({ displayAs: "hidden" }),
     senators: AttributeDescriptor.make({ displayAs: "hidden" }),
     playerRef: AttributeDescriptor.make({ displayAs: "hidden" }),
     position: AttributeDescriptor.make({ displayAs: "hidden" }),

@@ -17,7 +17,7 @@ describe("EngineInterop", () => {
         it(`can translate to and from the engine state format (${branch})`, async () => {
             const {initialGameState} = await load(SAMPLE_STATE);
 
-            const translated = library.gameStateFromRawState(library.gameStateToRawState(initialGameState, "default-v3")).gameState;
+            const translated = library.decodeGameState(library.encodeGameState(initialGameState, "default-v3")).gameState;
 
             stripPlayerIds(translated);
             stripPlayerIds(initialGameState);

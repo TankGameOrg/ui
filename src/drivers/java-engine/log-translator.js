@@ -1,7 +1,4 @@
-import { Position } from "../../game/state/board/position.js";
-import { PlayerRef } from "../../game/state/players/player.js";
-import { encodePosition, encodePlayerRef } from "./board-state.js";
-
+import { encode } from "./board-state.js";
 
 function convertToEngineEntry(_logEntry) {
     let logEntry = Object.assign({}, _logEntry);
@@ -22,13 +19,7 @@ function convertToEngineEntry(_logEntry) {
             };
         }
 
-        if(logEntry[key] instanceof PlayerRef) {
-            logEntry[key] = encodePlayerRef(logEntry[key]);
-        }
-
-        if(logEntry[key] instanceof Position) {
-            logEntry[key] = encodePosition(logEntry[key]);
-        }
+        logEntry[key] = encode(logEntry[key]);
     }
 
     return logEntry;

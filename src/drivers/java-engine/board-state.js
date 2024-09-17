@@ -15,22 +15,12 @@ import { Council } from "../../game/state/meta/council.js";
 import { camelToSnake, snakeToCamel } from "../../utils.js";
 
 
-export function gameStateFromRawState(rawGameState) {
-    let board = new Board(rawGameState.$BOARD.width, rawGameState.$BOARD.height);
-
-    for(const rawUnit of rawGameState.$BOARD.units) {
-        board.setUnit(elementFromBoard(rawUnit));
-    }
-
-    for(const rawFloor of rawGameState.$BOARD.floors) {
-        board.setFloorTile(elementFromBoard(rawFloor));
-    }
-
+export function decodeGameState(rawGameState) {
     let gameState = new GameState(
-        rawGameState.$PLAYERS.elements.map(rawPlayer => new Player(decodeAttributes(rawPlayer))),
-        board,
+        decode(rawGameState.$PLAYERS),
+        decode(rawGameState.$BOARD),
         {
-            council: convertCouncil(rawGameState.$COUNCIL),
+            council: decode(rawGameState.$COUNCIL),
         },
     );
 
@@ -42,8 +32,8 @@ export function gameStateFromRawState(rawGameState) {
 
         if(rawGameState.$WINNER == "Council") {
             victoryType = "armistice_vote";
-            const {councilors, senators} = gameState.metaEntities.council;
-            winners = councilors.concat(senators).map(ref => ref.getPlayer(gameState).name);
+            const {councillors, senators} = gameState.metaEntities.council;
+            winners = councillors.concat(senators).map(ref => ref.getPlayer(gameState).name);
         }
         else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
             victoryType = "last_tank_standing";
@@ -61,8 +51,59 @@ export function gameStateFromRawState(rawGameState) {
     };
 }
 
-export function decodePlayerRef(rawPlayerRef) {
+function elementFromBoard(rawElement) {
+    return new Element({
+        type: rawElement.class,
+        ...decodeAttributes(rawElement),
+    });
+}
+
+function decodeBoard(rawBoard) {
+    let board = new Board(rawBoard.width, rawBoard.height);
+
+    for(const rawUnit of rawBoard.units) {
+        board.setUnit(elementFromBoard(rawUnit));
+    }
+
+    for(const rawFloor of rawBoard.floors) {
+        board.setFloorTile(elementFromBoard(rawFloor));
+    }
+
+    return board;
+}
+
+function decodePlayerRef(rawPlayerRef) {
     return new PlayerRef(rawPlayerRef);
+}
+
+export function decode(json) {
+    if(json?.class === undefined) return json;
+
+    if(json.class == "Position") {
+        return new Position(json);
+    }
+
+    if(json.class == "PlayerRef") {
+        return decodePlayerRef(json);
+    }
+
+    if(json.class == "AttributeList") {
+        return json.elements.map(element => decode(element));
+    }
+
+    if(json.class == "Council") {
+        return new Council(decodeAttributes(json));
+    }
+
+    if(json.class == "Board") {
+        return decodeBoard(json);
+    }
+
+    if(json.class == "Player") {
+        return new Player(decodeAttributes(json));
+    }
+
+    throw new Error(`Failed to decode ${json.class}`);
 }
 
 function decodeAttributes(rawAttributes) {
@@ -74,19 +115,7 @@ function decodeAttributes(rawAttributes) {
         // slice(1) to remove the leading $
         const actualName = snakeToCamel(attributeName.toLowerCase().slice(1));
 
-        attributes[actualName] = rawAttributes[attributeName];
-
-        if(actualName == "only_lootable_by") {
-            attributes[actualName] = attributes[actualName].name;
-        }
-
-        if(attributes[actualName]?.class == "Position") {
-            attributes[actualName] = new Position(attributes[actualName]);
-        }
-
-        if(attributes[actualName]?.class == "PlayerRef") {
-            attributes[actualName] = decodePlayerRef(attributes[actualName]);
-        }
+        attributes[actualName] = decode(rawAttributes[attributeName]);
 
         const maxAttributeName = "$MAX_" + attributeName.replace("$", "");
         if(rawAttributes[maxAttributeName] !== undefined) {
@@ -100,35 +129,9 @@ function decodeAttributes(rawAttributes) {
     return attributes;
 }
 
-function convertCouncil(rawCouncil) {
-    let attributes = {
-        coffer: rawCouncil.$COFFER,
-    };
-
-    if(rawCouncil.$ARMISTICE_MAX !== undefined) {
-        attributes.armistice = {
-            value: rawCouncil.$ARMISTICE_COUNT,
-            max: rawCouncil.$ARMISTICE_MAX,
-        };
-    }
-
-    return new Council({
-        ...attributes,
-        councilors: rawCouncil.$COUNCILLORS.elements.map((ref) => decodePlayerRef(ref)),
-        senators: rawCouncil.$SENATORS.elements.map((ref) => decodePlayerRef(ref)),
-    });
-}
-
-function elementFromBoard(rawElement) {
-    return new Element({
-        type: rawElement.class,
-        ...decodeAttributes(rawElement),
-    });
-}
-
 ////////////////////////////////////////////////////////////////////////////////
 
-export function encodePosition(position) {
+function encodePosition(position) {
     return {
         class: "Position",
         x: position.x,
@@ -136,11 +139,65 @@ export function encodePosition(position) {
     };
 }
 
-export function encodePlayerRef(playerRef) {
+function encodePlayerRef(playerRef) {
     return {
         class: "PlayerRef",
         name: playerRef._playerName,
     };
+}
+
+function encodeElement(element) {
+    return {
+        class: element.type,
+        ...encodeAttributes(element),
+    };
+}
+
+function encodeBoard(board) {
+    return {
+        class: "Board",
+        width: board.width,
+        height: board.height,
+        units: board.getAllUnits().map(unit => encodeElement(unit)),
+        floors: board.getAllFloors().map(floor => encodeElement(floor)),
+    };
+}
+
+export function encode(value) {
+    if(value instanceof Position) {
+        return encodePosition(value);
+    }
+
+    if(value instanceof PlayerRef) {
+        return encodePlayerRef(value);
+    }
+
+    if(Array.isArray(value)) {
+        return {
+            class: "AttributeList",
+            elements: value.map(element => encode(element)),
+        };
+    }
+
+    if(value instanceof Council) {
+        return {
+            class: "Council",
+            ...encodeAttributes(value),
+        };
+    }
+
+    if(value instanceof Board) {
+        return encodeBoard(value);
+    }
+
+    if(value instanceof Player) {
+        return {
+            class: "Player",
+            ...encodeAttributes(value),
+        };
+    }
+
+    return value
 }
 
 function encodeAttributes(object) {
@@ -152,13 +209,7 @@ function encodeAttributes(object) {
             value = value.value;
         }
 
-        if(value instanceof Position) {
-            value = encodePosition(value);
-        }
-
-        if(value instanceof PlayerRef) {
-            value = encodePlayerRef(value);
-        }
+        value = encode(value);
 
         attributes["$" + camelToSnake(attributeName).toUpperCase()] = value;
     }
@@ -166,67 +217,14 @@ function encodeAttributes(object) {
     return attributes;
 }
 
-function buildPlayer(player) {
-    return {
-        class: "Player",
-        ...encodeAttributes(player),
-    };
-}
-
-function buildElement(element) {
-    return {
-        class: element.type,
-        ...encodeAttributes(element),
-    };
-}
-
-function makeCouncilList(councilList) {
-    const players = councilList
-        .map(playerRef => encodePlayerRef(playerRef));
-
-    return {
-        "class": "AttributeList",
-        elements: players,
-    }
-}
-
-function makeCouncil(council) {
-    let additionalAttributes = {};
-
-    if(council.armistice !== undefined) {
-        additionalAttributes = {
-            ...additionalAttributes,
-            $ARMISTICE_COUNT: council.armistice.value,
-            $ARMISTICE_MAX: council.armistice.max,
-        };
-    }
-
-    return {
-        class: "Council",
-        $COFFER: council.coffer,
-        ...additionalAttributes,
-        $COUNCILLORS: makeCouncilList(council.councilors),
-        $SENATORS: makeCouncilList(council.senators),
-    };
-}
-
-export function gameStateToRawState(gameState) {
+export function encodeGameState(gameState) {
     return {
         class: "State",
         // It's assumed that we only interact with the engine when the game is active
         $RUNNING: true,
         $TICK: 0,
-        $BOARD: {
-            class: "Board",
-            width: gameState.board.width,
-            height: gameState.board.height,
-            units: gameState.board.getAllUnits().map(unit => buildElement(unit)),
-            floors: gameState.board.getAllFloors().map(floor => buildElement(floor)),
-        },
-        $COUNCIL: makeCouncil(gameState.metaEntities.council),
-        $PLAYERS: {
-            class: "AttributeList",
-            elements: gameState.players.getAllPlayers().map(player => buildPlayer(player)),
-        },
+        $BOARD: encode(gameState.board),
+        $COUNCIL: encode(gameState.metaEntities.council),
+        $PLAYERS: encode(gameState.players.getAllPlayers()),
     };
 }

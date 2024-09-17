@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {spawnSync} from "node:child_process";
 import { logger } from "#platform/logging.js";
-import { gameStateToRawState, gameStateFromRawState } from "./board-state.js";
+import { encodeGameState, decodeGameState } from "./board-state.js";
 import { JavaEngineSource } from "./possible-action-source.js";
 import { JsonCommunicationChannel } from "../json-communication-channel.js";
 import { convertLogEntry } from "./log-translator.js";
@@ -37,11 +37,11 @@ class TankGameApi {
     }
 
     getGameStateFromEngineState(state) {
-        return gameStateFromRawState(state);
+        return decodeGameState(state);
     }
 
     getEngineStateFromGameState(state, gameVersion) {
-        return gameStateToRawState(state, gameVersion);
+        return encodeGameState(state, gameVersion);
     }
 
     async getBoardState() {

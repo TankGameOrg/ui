@@ -86,7 +86,7 @@ deserializer.registerDeserializer("entity", (rawElement, helpers) => {
 
         let councilAttrs = {
             coffer: rawElement.coffer,
-            councilors: (rawElement.players || []).filter(ref => playerTypes[ref._playerName] == "councilor"),
+            councillors: (rawElement.players || []).filter(ref => playerTypes[ref._playerName] == "councilor"),
             senators: (rawElement.players || []).filter(ref => playerTypes[ref._playerName] == "senator"),
         };
 

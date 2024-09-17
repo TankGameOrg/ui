@@ -23,7 +23,7 @@ function validateSampleFile({logBook, initialGameState, gameSettings}) {
     assert.equal(gameSettings.something, "else");
     assert.equal(initialGameState.board.height, 11);
     assert.equal(initialGameState.board.width, 11);
-    assert.deepEqual(initialGameState.metaEntities.council.councilors, []);
+    assert.deepEqual(initialGameState.metaEntities.council.councillors, []);
     assert.deepEqual(initialGameState.metaEntities.council.senators, []);
 }
 
