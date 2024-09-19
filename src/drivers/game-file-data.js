@@ -154,11 +154,11 @@ class FileData {
         this.gameSettings = gameSettings === undefined ? {} : gameSettings;
 
         if(initialGameState === undefined) {
-            initialGameState = new GameState(
-                [],
-                new Board(gameStateInitializer.width, gameStateInitializer.height),
-                gameStateInitializer,
-            );
+            initialGameState = new GameState({
+                ...gameStateInitializer,
+                players: [],
+                board: new Board(gameStateInitializer.board.width, gameStateInitializer.board.height),
+            });
         }
 
         this.initialGameState = initialGameState;

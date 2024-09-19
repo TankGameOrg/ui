@@ -16,11 +16,11 @@ import { camelToSnake, snakeToCamel } from "../../utils.js";
 
 
 export function decodeGameState(rawGameState) {
-    let gameState = new GameState(
-        decode(rawGameState.$PLAYERS),
-        decode(rawGameState.$BOARD),
-        decode(rawGameState.$COUNCIL),
-    );
+    let gameState = new GameState({
+        players: decode(rawGameState.$PLAYERS),
+        board: decode(rawGameState.$BOARD),
+        council: decode(rawGameState.$COUNCIL),
+    });
 
     let victoryInfo;
 

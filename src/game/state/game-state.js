@@ -5,33 +5,28 @@ import "./players/player.js";
 import Players from "./players/players.js";
 
 export class GameState {
-    constructor(players, board, council) {
+    constructor({ players, board, council }) {
         this.players = new Players(players);
         this.board = board;
         this.council = council;
     }
 
     static deserialize(rawGameState) {
-        return new GameState(
-            rawGameState.players,
-            rawGameState.board,
-            rawGameState.council,
-        );
+        return new GameState(rawGameState);
     }
 
     serialize() {
         return {
+            ...this,
             players: this.players.getAllPlayers(),
-            board: this.board,
-            council: this.council,
         };
     }
 
-    modify({ players, board, council } = {}) {
-        return new GameState(
-            (players || this.players).getAllPlayers?.(),
-            board || this.board,
-            council || this.council);
+    modify(newAttributes = {}) {
+        return new GameState({
+            ...this.serialize(),
+            ...newAttributes,
+        });
     }
 
     getElementsByPlayer(player) {

@@ -17,11 +17,11 @@ describe("GameState", () => {
         board.setUnit(new Element({ type: "tank", position: new Position("A1"), playerRef: players[0].asRef() /* Ted */ }));
         board.setUnit(new Element({ type: "tank", position: new Position("A2"), playerRef: players[1].asRef() /* Bella */ }));
 
-        const gameState = new GameState(
+        const gameState = new GameState({
             players,
             board,
-            new Council({}),
-        );
+            council: new Council({}),
+        });
 
         assert.deepEqual(
             gameState.getElementsByPlayer(gameState.players.getPlayerByName("Ted")),
