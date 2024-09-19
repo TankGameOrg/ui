@@ -92,7 +92,7 @@ export async function testPossibleActions(engineFactory, possibleActionsPath) {
         const logBook = interactor.getLogBook();
         const lastId = logBook.getLastEntryId();
 
-        const players = interactor.getGameStateById(lastId).players.getAllPlayers();
+        const {players} = interactor.getGameStateById(lastId);
         if(players.length === 0) {
             throw new Error("Expected at least on player");
         }

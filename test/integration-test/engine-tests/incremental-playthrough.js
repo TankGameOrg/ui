@@ -5,7 +5,6 @@ import { load } from "../../../src/drivers/game-file.js";
 import { logger } from "#platform/logging.js";
 import { OpenHours } from "../../../src/game/open-hours/index.js";
 import { getGameVersion } from "../../../src/versions/index.js";
-import { stripPlayerIds } from "../../unit/helpers.js";
 import { LogEntry } from "../../../src/game/state/log-book/log-entry.js";
 import { PossibleActionSourceSet } from "../../../src/game/possible-actions/index.js";
 
@@ -74,10 +73,6 @@ export async function incrementalPlaythrough(engineFactory, testGamePath) {
             delete fullEntry.timestamp;
 
             assert.deepEqual(incrementalEntry, fullEntry);
-
-            stripPlayerIds(fullInteractor.getGameStateById(id));
-            stripPlayerIds(incrementalInteractor.getGameStateById(id));
-
             assert.deepEqual(fullInteractor.getGameStateById(id), incrementalInteractor.getGameStateById(id));
         }
     }

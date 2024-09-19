@@ -3,7 +3,7 @@ import { unixNow } from "../../utils.js";
 export function findGlobalCooldowns(gameState) {
     const now = unixNow();
 
-    return gameState.players.getAllPlayers()
+    return gameState.players
         .filter(player => player.globalCooldownEndTime >= now)
         .map(player => {
             const playerName = player.name;

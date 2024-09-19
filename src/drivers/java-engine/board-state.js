@@ -16,11 +16,12 @@ import { camelToSnake, snakeToCamel } from "../../utils.js";
 
 
 export function decodeGameState(rawGameState) {
-    let gameState = new GameState({
-        players: decode(rawGameState.$PLAYERS),
-        board: decode(rawGameState.$BOARD),
-        council: decode(rawGameState.$COUNCIL),
-    });
+    let gameState = new GameState(decodeAttributes({
+        ...rawGameState,
+        $WINNER: undefined,
+        $TICK: undefined,
+        $RUNNING: undefined,
+    }));
 
     let victoryInfo;
 
@@ -33,7 +34,7 @@ export function decodeGameState(rawGameState) {
             const {councillors, senators} = gameState.council;
             winners = councillors.concat(senators).map(ref => ref.getPlayer(gameState).name);
         }
-        else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
+        else if(gameState.players.find(player => player.name == rawGameState.$WINNER) !== undefined) {
             victoryType = "last_tank_standing";
         }
 
@@ -108,7 +109,7 @@ function decodeAttributes(rawAttributes) {
     let attributes = {};
 
     for(const attributeName of Object.keys(rawAttributes)) {
-        if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_")) continue;
+        if(!attributeName.startsWith("$") || attributeName.startsWith("$MAX_") || rawAttributes[attributeName] === undefined) continue;
 
         // slice(1) to remove the leading $
         const actualName = snakeToCamel(attributeName.toLowerCase().slice(1));
@@ -221,8 +222,6 @@ export function encodeGameState(gameState) {
         // It's assumed that we only interact with the engine when the game is active
         $RUNNING: true,
         $TICK: 0,
-        $BOARD: encode(gameState.board),
-        $COUNCIL: encode(gameState.council),
-        $PLAYERS: encode(gameState.players.getAllPlayers()),
+        ...encodeAttributes(gameState),
     };
 }

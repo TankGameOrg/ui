@@ -3,7 +3,6 @@ import Board from "../../../../../src/game/state/board/board.js";
 import Element from "../../../../../src/game/state/board/element.js";
 import { Position } from "../../../../../src/game/state/board/position.js";
 import Player from "../../../../../src/game/state/players/player.js";
-import Players from "../../../../../src/game/state/players/players.js";
 
 let board = new Board(7, 5);
 
@@ -43,7 +42,7 @@ describe("Board", () => {
     });
 
     it("can be serialize and deserialized", () => {
-        let players = new Players([josh]);
+        let players = [josh];
         const reSerializedBoard = Board.deserialize(board.serialize({players}), players);
         assert.deepEqual(reSerializedBoard, board);
     });

@@ -24,14 +24,14 @@ describe("GameState", () => {
         });
 
         assert.deepEqual(
-            gameState.getElementsByPlayer(gameState.players.getPlayerByName("Ted")),
+            gameState.getElementsByPlayer(players[0]),
             [
                 board.getUnitAt(new Position("A1")),
             ],
         );
 
         assert.deepEqual(
-            gameState.getElementsByPlayer(gameState.players.getPlayerByName("Bella")),
+            gameState.getElementsByPlayer(players[1]),
             [
                 board.getUnitAt(new Position("A2")),
             ],

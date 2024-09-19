@@ -1,14 +1,10 @@
 import { deserializer } from "../../deserialization.js";
 import "./board/board.js";
 import "./board/element.js";
-import "./players/player.js";
-import Players from "./players/players.js";
 
 export class GameState {
-    constructor({ players, board, council }) {
-        this.players = new Players(players);
-        this.board = board;
-        this.council = council;
+    constructor(attributes = {}) {
+        Object.assign(this, attributes);
     }
 
     static deserialize(rawGameState) {
@@ -18,7 +14,6 @@ export class GameState {
     serialize() {
         return {
             ...this,
-            players: this.players.getAllPlayers(),
         };
     }
 

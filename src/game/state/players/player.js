@@ -82,7 +82,7 @@ export class PlayerRef {
      * @returns
      */
     getPlayer(gameState) {
-        return gameState.players.getPlayerByName(this._playerName);
+        return gameState.players.find(player => player.name == this._playerName);
     }
 
     /**

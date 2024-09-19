@@ -13,8 +13,7 @@ export class JavaEngineSource {
     }
 
     async getActionFactoriesForPlayer({playerName, gameState, engine}) {
-        const player = gameState.players.getPlayerByName(playerName);
-        if(!player) return [];
+        if(!playerName) return [];
 
         const possibleActions = await engine.getPossibleActions(playerName);
 
