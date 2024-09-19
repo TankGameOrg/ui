@@ -5,17 +5,17 @@ import "./players/player.js";
 import Players from "./players/players.js";
 
 export class GameState {
-    constructor(players, board, metaEntities) {
+    constructor(players, board, council) {
         this.players = new Players(players);
         this.board = board;
-        this.metaEntities = metaEntities;
+        this.council = council;
     }
 
     static deserialize(rawGameState) {
         return new GameState(
             rawGameState.players,
             rawGameState.board,
-            rawGameState.metaEntities,
+            rawGameState.council,
         );
     }
 
@@ -23,27 +23,31 @@ export class GameState {
         return {
             players: this.players.getAllPlayers(),
             board: this.board,
-            metaEntities: this.metaEntities,
+            council: this.council,
         };
     }
 
-    modify({ players, board, metaEntities } = {}) {
+    modify({ players, board, council } = {}) {
         return new GameState(
             (players || this.players).getAllPlayers?.(),
             board || this.board,
-            metaEntities || this.metaEntities);
-    }
-
-    _getAllEntities() {
-        let allEntities = Object.values(this.metaEntities);
-        allEntities = allEntities.concat(this.board.getAllUnits());
-        return allEntities;
+            council || this.council);
     }
 
     getElementsByPlayer(player) {
-        return this._getAllEntities()
+        return this.board.getAllUnits()
             .filter(element => !!element.playerRef?.isFor?.(player));
     }
 }
 
-deserializer.registerClass("game-state-v1", GameState);
+deserializer.registerDeserializer("game-state-v1", (rawState, helper) => {
+    // helpers.updatedContent(); // TODO: Uncomment
+
+    return GameState.deserialize({
+        ...rawState,
+        council: rawState.metaEntities.council,
+        metaEntities: undefined,
+    });
+});
+
+deserializer.registerClass("game-state-v2", GameState);

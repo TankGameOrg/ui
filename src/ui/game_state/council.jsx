@@ -9,24 +9,24 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
         return "Loading...";
     }
 
-    if(gameState.metaEntities.council === undefined) return;
+    if(gameState.council === undefined) return;
 
     return (
         <>
-            <ArmisticeClock armistice={gameState.metaEntities.council.armistice}></ArmisticeClock>
-            <AttributeList attributes={gameState.metaEntities.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
+            <ArmisticeClock armistice={gameState.council.armistice}></ArmisticeClock>
+            <AttributeList attributes={gameState.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
             <div className="user-list">
                 <Section
                     key="councilors"
                     name="Councilors"
-                    users={gameState.metaEntities.council.councilors}
+                    users={gameState.council.councilors}
                     canSubmitAction={canSubmitAction}
                     setSelectedUser={setSelectedUser}
                     gameState={gameState}></Section>
                 <Section
                     key="senators"
                     name="Senators"
-                    users={gameState.metaEntities.council.senators}
+                    users={gameState.council.senators}
                     canSubmitAction={canSubmitAction}
                     setSelectedUser={setSelectedUser}
                     gameState={gameState}></Section>

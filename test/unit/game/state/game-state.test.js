@@ -4,6 +4,7 @@ import Element from "../../../../src/game/state/board/element.js";
 import { Position } from "../../../../src/game/state/board/position";
 import { GameState } from "../../../../src/game/state/game-state.js";
 import Player from "../../../../src/game/state/players/player.js";
+import { Council } from "../../../../src/game/state/meta/council.js";
 
 describe("GameState", () => {
     it("can find all entities owned by a player", () => {
@@ -19,15 +20,12 @@ describe("GameState", () => {
         const gameState = new GameState(
             players,
             board,
-            {
-                council: new Element({ type: "council", playerRef: players[0].asRef() /* Ted */, }),
-            },
+            new Council({}),
         );
 
         assert.deepEqual(
             gameState.getElementsByPlayer(gameState.players.getPlayerByName("Ted")),
             [
-                gameState.metaEntities.council,
                 board.getUnitAt(new Position("A1")),
             ],
         );

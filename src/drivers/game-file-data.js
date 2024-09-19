@@ -139,14 +139,10 @@ export function dumpToRaw(fileData) {
     return deserializer.serialize(fileData);
 }
 
-export function createEmptyFileData({gameVersion, width, height, metaEntities = {}}) {
+export function createEmptyFileData({gameVersion, ...gameStateInitializer}) {
     return new FileData({
         gameVersion,
-        gameStateInitializer: {
-            width,
-            height,
-            metaEntities,
-        },
+        gameStateInitializer,
     });
 }
 
@@ -161,7 +157,7 @@ class FileData {
             initialGameState = new GameState(
                 [],
                 new Board(gameStateInitializer.width, gameStateInitializer.height),
-                gameStateInitializer.metaEntities,
+                gameStateInitializer,
             );
         }
 

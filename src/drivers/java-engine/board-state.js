@@ -19,9 +19,7 @@ export function decodeGameState(rawGameState) {
     let gameState = new GameState(
         decode(rawGameState.$PLAYERS),
         decode(rawGameState.$BOARD),
-        {
-            council: decode(rawGameState.$COUNCIL),
-        },
+        decode(rawGameState.$COUNCIL),
     );
 
     let victoryInfo;
@@ -32,7 +30,7 @@ export function decodeGameState(rawGameState) {
 
         if(rawGameState.$WINNER == "Council") {
             victoryType = "armistice_vote";
-            const {councillors, senators} = gameState.metaEntities.council;
+            const {councillors, senators} = gameState.council;
             winners = councillors.concat(senators).map(ref => ref.getPlayer(gameState).name);
         }
         else if(gameState.players.getPlayerByName(rawGameState.$WINNER) !== undefined) {
@@ -224,7 +222,7 @@ export function encodeGameState(gameState) {
         $RUNNING: true,
         $TICK: 0,
         $BOARD: encode(gameState.board),
-        $COUNCIL: encode(gameState.metaEntities.council),
+        $COUNCIL: encode(gameState.council),
         $PLAYERS: encode(gameState.players.getAllPlayers()),
     };
 }
