@@ -17,9 +17,9 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
             <AttributeList attributes={gameState.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
             <div className="user-list">
                 <Section
-                    key="councilors"
-                    name="Councilors"
-                    users={gameState.council.councilors}
+                    key="councillors"
+                    name="Councillors"
+                    users={gameState.council.councillors}
                     canSubmitAction={canSubmitAction}
                     setSelectedUser={setSelectedUser}
                     gameState={gameState}></Section>

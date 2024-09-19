@@ -66,6 +66,7 @@ const commonAttributeDescriptors = {
     position: AttributeDescriptor.make({ displayAs: "hidden" }),
     name: AttributeDescriptor.make({ displayAs: "hidden" }),
     dead: AttributeDescriptor.make({ displayAs: "hidden" }),
+    canBounty: AttributeDescriptor.make({ displayAs: "hidden" }),
 };
 
 
