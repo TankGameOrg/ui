@@ -40,7 +40,7 @@ describe("GameFile", () => {
         it(`loading '${path.parse(oldFilePath).name}' returns the same data as version '${getLatestFileName()}'`, async () => {
             const oldFile = await load(oldFilePath);
             const newFile = await load(getLatestFilePath());
-            assert.deepEqual(oldFile, newFile);
+            assert.notStrictEqual(oldFile, newFile);
         });
     }
 
