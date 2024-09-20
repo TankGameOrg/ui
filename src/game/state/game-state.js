@@ -17,13 +17,6 @@ export class GameState {
         };
     }
 
-    modify(newAttributes = {}) {
-        return new GameState({
-            ...this.serialize(),
-            ...newAttributes,
-        });
-    }
-
     getElementsByPlayer(player) {
         return this.board.getAllUnits()
             .filter(element => !!element.playerRef?.isFor?.(player));

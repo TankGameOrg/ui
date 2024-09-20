@@ -14,18 +14,6 @@ export default class Element {
     }
 
     /**
-     * Clone this element (PlayerRefs are shallow copied)
-     * @param {*} removePlayers Don't copy players to the cloned element
-     * @returns
-     */
-    clone({ removePlayers = false } = {}) {
-        return new Element({
-            ...this,
-            playerRef: removePlayers ? undefined : this.playerRef,
-        });
-    }
-
-    /**
      * Load an element from a json serialized object
      * @param {*} rawElement the json serialized object to load
      * @returns

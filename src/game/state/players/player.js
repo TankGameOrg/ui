@@ -31,14 +31,6 @@ export default class Player {
     }
 
     /**
-     * Duplicate this player
-     * @returns
-     */
-    clone() {
-        return new Player(deepClone(this));
-    }
-
-    /**
      * Get a PlayerRef for this player
      * @returns
      */

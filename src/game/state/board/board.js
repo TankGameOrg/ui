@@ -33,13 +33,6 @@ export default class Board {
         };
     }
 
-    clone() {
-        let clone = new Board(this.width, this.height);
-        Object.assign(clone._units, this._units);
-        Object.assign(clone._floor, this._floor);
-        return clone;
-    }
-
     _verifyPositon(position, elementsObject, type) {
         const {humanReadable} = position;
 
@@ -94,38 +87,6 @@ export default class Board {
 
     isInBounds(position) {
         return position.x < this.width && position.y < this.height;
-    }
-
-    cloneAndResize({ left = 0, right = 0, top = 0, bottom = 0 } = {}) {
-        const newWidth = this.width + left + right;
-        const newHeight = this.height + top + bottom;
-        let newBoard = new Board(newWidth, newHeight);
-
-        const boardLayers = [
-            ["unit", this._units],
-            ["floorTile", this._floor],
-        ];
-
-        for(const [targetType, targets] of boardLayers) {
-            for(const element of Object.values(targets)) {
-                const newX = element.position.x + left;
-                const newY = element.position.y + top;
-
-                if(0 <= newX && newX < newWidth && 0 <= newY && newY < newHeight) {
-                    let newElement = element.clone();
-                    newElement.position = new Position(newX, newY);
-
-                    if(targetType == "unit") {
-                        newBoard.setUnit(newElement);
-                    }
-                    else {
-                        newBoard.setFloorTile(newElement);
-                    }
-                }
-            }
-        }
-
-        return newBoard;
     }
 }
 
