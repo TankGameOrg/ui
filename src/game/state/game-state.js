@@ -30,8 +30,8 @@ export class GameState {
     }
 }
 
-deserializer.registerDeserializer("game-state-v1", (rawState, helper) => {
-    // helpers.updatedContent(); // TODO: Uncomment
+deserializer.registerDeserializer("game-state-v1", (rawState, helpers) => {
+    helpers.updatedContent();
 
     return GameState.deserialize({
         ...rawState,

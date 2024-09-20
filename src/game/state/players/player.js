@@ -48,7 +48,7 @@ export default class Player {
 }
 
 deserializer.registerDeserializer("player-v1", function(rawPlayer, helpers) {
-    // helpers.updatedContent(); // TODO: Uncomment
+    helpers.updatedContent();
 
     return Player.deserialize({
         ...rawPlayer.attributes,
@@ -100,7 +100,7 @@ export class PlayerRef {
 }
 
 deserializer.registerDeserializer("player-ref-v1", (rawPlayerRef, helpers) => {
-    // helpers.updatedContent(); // TODO: Uncomment
+    helpers.updatedContent();
     rawPlayerRef.name = helpers.getPlayerNameById(rawPlayerRef.playerId);
 
     return PlayerRef.deserialize(rawPlayerRef);

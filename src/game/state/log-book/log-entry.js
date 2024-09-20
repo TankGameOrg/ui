@@ -132,7 +132,7 @@ deserializer.registerDeserializer("log-entry-v1", (rawLogEntry, helpers) => {
 });
 
 function translateV2to3(rawLogEntry, helpers) {
-    // helpers.updatedContent(); // TODO: Uncomment
+    helpers.updatedContent();
 
     if(rawLogEntry.target_player !== undefined) {
         rawLogEntry.target_player = new PlayerRef({

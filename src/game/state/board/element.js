@@ -62,7 +62,7 @@ const TYPE_MAPPINGS = {
 };
 
 deserializer.registerDeserializer("entity", (rawElement, helpers) => {
-    // helpers.updatedContent(); // TODO: Uncomment
+    helpers.updatedContent();
 
     rawElement.type = TYPE_MAPPINGS[rawElement.type] || rawElement.type;
 
