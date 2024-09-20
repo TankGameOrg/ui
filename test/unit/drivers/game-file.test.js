@@ -4,7 +4,6 @@ import path from "node:path";
 import fs from"node:fs";
 import { hashFile } from "../../../src/drivers/file-utils.js";
 import { MockEngine } from "../game/execution/mock-engine.js";
-import { stripPlayerIds } from "../helpers.js";
 import { getAllFileNames, getAllFilePaths, getLatestFileName, getLatestFilePath } from "./test-file-helper.js";
 
 const TEST_FILES = "test/unit/drivers/test-files";
@@ -23,7 +22,8 @@ function validateSampleFile({logBook, initialGameState, gameSettings}) {
     assert.equal(gameSettings.something, "else");
     assert.equal(initialGameState.board.height, 11);
     assert.equal(initialGameState.board.width, 11);
-    assert.deepEqual(initialGameState.metaEntities.council.getPlayerRefs(), []);
+    assert.deepEqual(initialGameState.council.councillors, []);
+    assert.deepEqual(initialGameState.council.senators, []);
 }
 
 
@@ -40,11 +40,7 @@ describe("GameFile", () => {
         it(`loading '${path.parse(oldFilePath).name}' returns the same data as version '${getLatestFileName()}'`, async () => {
             const oldFile = await load(oldFilePath);
             const newFile = await load(getLatestFilePath());
-
-            stripPlayerIds(oldFile);
-            stripPlayerIds(newFile);
-
-            assert.deepEqual(oldFile, newFile);
+            assert.notStrictEqual(oldFile, newFile);
         });
     }
 

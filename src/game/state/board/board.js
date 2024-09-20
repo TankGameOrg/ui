@@ -1,20 +1,20 @@
 import { deserializer } from "../../../deserialization.js";
-import Entity from "./entity.js";
+import Element from "./element.js";
 import { Position } from "./position.js";
 
 export default class Board {
     constructor(width, height) {
         this.width = width;
         this.height = height;
-        this._entities = {};
+        this._units = {};
         this._floor = {};
     }
 
     static deserialize(rawBoard) {
         let board = new Board(rawBoard.width, rawBoard.height);
 
-        for(const entity of rawBoard.entities) {
-            board.setEntity(entity);
+        for(const unit of rawBoard.units) {
+            board.setUnit(unit);
         }
 
         for(const floorTile of rawBoard.floor) {
@@ -28,51 +28,48 @@ export default class Board {
         return {
             width: this.width,
             height: this.height,
-            entities: Object.values(this._entities),
+            units: Object.values(this._units),
             floor: Object.values(this._floor),
         };
     }
 
-    clone() {
-        let clone = new Board(this.width, this.height);
-        Object.assign(clone._entities, this._entities);
-        Object.assign(clone._floor, this._floor);
-        return clone;
-    }
-
-    _verifyPositon(position, entitiesObject, type) {
+    _verifyPositon(position, elementsObject, type) {
         const {humanReadable} = position;
 
-        if(entitiesObject[humanReadable] != undefined && entitiesObject[humanReadable].position.humanReadable != humanReadable) {
-            throw new Error(`${type} at ${humanReadable} thinks it should be at ${entitiesObject[humanReadable].position.humanReadable}`);
+        if(elementsObject[humanReadable] != undefined && elementsObject[humanReadable].position.humanReadable != humanReadable) {
+            throw new Error(`${type} at ${humanReadable} thinks it should be at ${elementsObject[humanReadable].position.humanReadable}`);
         }
     }
 
-    getAllEntities() {
-        return Object.values(this._entities);
+    getAllUnits() {
+        return Object.values(this._units);
     }
 
-    getEntityAt(position) {
-        this._verifyPositon(position, this._entities, "Entity");
-        return this._entities[position.humanReadable] || (new Entity({ type: "empty", position }));
+    getUnitAt(position) {
+        this._verifyPositon(position, this._units, "Element");
+        return this._units[position.humanReadable] || (new Element({ type: "empty",  position }));
     }
 
-    setEntity(entity) {
-        if(!this.isInBounds(entity.position)) {
-            throw new Error(`Can not set entity ${entity.type} to position ${entity.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
+    setUnit(unit) {
+        if(!this.isInBounds(unit.position)) {
+            throw new Error(`Can not set unit ${unit.type} to position ${unit.position.humanReadable} which is outside the bounds of this board ${this.width}x${this.height}`);
         }
 
-        if(entity.type == "empty") {
-            delete this._entities[entity.position.humanReadable];
+        if(unit.type == "empty") {
+            delete this._units[unit.position.humanReadable];
         }
         else {
-            this._entities[entity.position.humanReadable] = entity;
+            this._units[unit.position.humanReadable] = unit;
         }
+    }
+
+    getAllFloors() {
+        return Object.values(this._floor);
     }
 
     getFloorTileAt(position) {
         this._verifyPositon(position, this._floor, "Floor tile");
-        return this._floor[position.humanReadable] || (new Entity({ type: "empty", position }));
+        return this._floor[position.humanReadable] || (new Element({ type: "empty", position }));
     }
 
     setFloorTile(tile) {
@@ -91,38 +88,16 @@ export default class Board {
     isInBounds(position) {
         return position.x < this.width && position.y < this.height;
     }
-
-    cloneAndResize({ left = 0, right = 0, top = 0, bottom = 0 } = {}) {
-        const newWidth = this.width + left + right;
-        const newHeight = this.height + top + bottom;
-        let newBoard = new Board(newWidth, newHeight);
-
-        const boardLayers = [
-            ["entity", this._entities],
-            ["floorTile", this._floor],
-        ];
-
-        for(const [targetType, targets] of boardLayers) {
-            for(const entity of Object.values(targets)) {
-                const newX = entity.position.x + left;
-                const newY = entity.position.y + top;
-
-                if(0 <= newX && newX < newWidth && 0 <= newY && newY < newHeight) {
-                    let newEntity = entity.clone();
-                    newEntity.position = new Position(newX, newY);
-
-                    if(targetType == "entity") {
-                        newBoard.setEntity(newEntity);
-                    }
-                    else {
-                        newBoard.setFloorTile(newEntity);
-                    }
-                }
-            }
-        }
-
-        return newBoard;
-    }
 }
 
-deserializer.registerClass("board-v1", Board);
+deserializer.registerDeserializer("board-v1", (rawBoard) => {
+    rawBoard = {
+        ...rawBoard,
+        units: rawBoard.entities,
+        entities: undefined,
+    };
+
+    return Board.deserialize(rawBoard);
+});
+
+deserializer.registerClass("board-v2", Board);

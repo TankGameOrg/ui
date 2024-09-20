@@ -1,6 +1,7 @@
 import { deserializer } from "../../../deserialization.js";
 import { Dice } from "../../possible-actions/die.js";
 import { Position } from "../board/position.js";
+import Player, { PlayerRef } from "../players/player.js";
 
 export class LogEntry {
     constructor(rawLogEntry, message, dieRolls) {
@@ -127,7 +128,25 @@ deserializer.registerDeserializer("log-entry-v1", (rawLogEntry, helpers) => {
         }
     }
 
-    return LogEntry.deserialize(rawLogEntry);
+    return translateV2to3(rawLogEntry, helpers);
 });
 
-deserializer.registerClass("log-entry-v2", LogEntry);
+function translateV2to3(rawLogEntry, helpers) {
+    helpers.updatedContent();
+
+    if(rawLogEntry.target_player !== undefined) {
+        rawLogEntry.target_player = new PlayerRef({
+            name: rawLogEntry.target_player,
+        });
+    }
+
+    if(rawLogEntry.target_position !== undefined) {
+        rawLogEntry.target_position = new Position(rawLogEntry.target_position);
+    }
+
+    return LogEntry.deserialize(rawLogEntry);
+}
+
+deserializer.registerDeserializer("log-entry-v2", translateV2to3);
+
+deserializer.registerClass("log-entry-v3", LogEntry);

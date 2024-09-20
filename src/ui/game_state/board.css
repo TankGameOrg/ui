@@ -25,7 +25,7 @@
     flex-direction: column;
 }
 
-.board-space-entity-wrapper {
+.board-space-unit-wrapper {
     width: 90%;
     height: 90%;
     border: 1px solid #000;

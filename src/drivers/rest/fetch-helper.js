@@ -3,6 +3,7 @@ import { deserializer } from "../../deserialization.js";
 import "../../game/state/log-book/log-book.js";
 import "../../game/open-hours/index.js";
 import "../../game/state/game-state.js";
+import "../../game/state/meta/council.js";
 import "../../game/state/log-book/log-entry.js";
 import "../../game/possible-actions/action-error.js";
 import "../../game/possible-actions/index.js";

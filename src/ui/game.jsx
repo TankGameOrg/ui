@@ -21,17 +21,12 @@ export function Game({ game, navigate, debug }) {
 
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
     const [gameState, stateError] = useGameClient(game,
-            client => client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId])
+            client => currentTurnMgrState.entryId !== undefined && client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId])
 
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
     const versionConfig = gameInfo?.game?.gameVersion !== undefined ?
         getGameVersion(gameInfo.game.gameVersion) : undefined;
-
-    const possibleActionsContext = useMemo(() => ({
-        gameState,
-        versionConfig,
-    }), [gameState, versionConfig]);
 
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";
@@ -118,7 +113,6 @@ export function Game({ game, navigate, debug }) {
                 <div className="centered">
                     <div>
                         {canSubmitAction ? <SubmitTurn
-                            context={possibleActionsContext}
                             game={game}
                             builtTurnState={builtTurnState}
                             buildTurnDispatch={buildTurnDispatch}

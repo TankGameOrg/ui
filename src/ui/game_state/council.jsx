@@ -9,26 +9,27 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
         return "Loading...";
     }
 
+    if(gameState.council === undefined) return;
+
     return (
         <>
-            <ArmisticeClock armistice={gameState.metaEntities.council.attributes.armistice}></ArmisticeClock>
-            <AttributeList attributes={gameState.metaEntities.council.attributes} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
+            <ArmisticeClock armistice={gameState.council.armistice}></ArmisticeClock>
+            <AttributeList attributes={gameState.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
             <div className="user-list">
-                {config.getCouncilPlayerTypes().map(playerType => {
-                    const players = gameState.players.getPlayersByType(playerType);
-
-                    if(players.length === 0) return;
-
-                    return (
-                        <Section
-                            key={playerType}
-                            name={playerType}
-                            users={players}
-                            canSubmitAction={canSubmitAction}
-                            setSelectedUser={setSelectedUser}
-                            gameState={gameState}></Section>
-                    );
-                })}
+                <Section
+                    key="councillors"
+                    name="Councillors"
+                    users={gameState.council.councillors}
+                    canSubmitAction={canSubmitAction}
+                    setSelectedUser={setSelectedUser}
+                    gameState={gameState}></Section>
+                <Section
+                    key="senators"
+                    name="Senators"
+                    users={gameState.council.senators}
+                    canSubmitAction={canSubmitAction}
+                    setSelectedUser={setSelectedUser}
+                    gameState={gameState}></Section>
             </div>
         </>
     )
@@ -36,14 +37,17 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
 
 
 function Section({ name, users, setSelectedUser, canSubmitAction, gameState }) {
+    if(users === undefined || users.length === 0) return;
+
     return (
         <>
-            <h3>{prettyifyName(name)}s</h3>
+            <h3>{prettyifyName(name)}</h3>
             <ul>
-                {users.map(user => {
-                    const entities = gameState.getEntitiesByPlayer(user);
-                    const hasEntitiesOnBoard = entities.find(entity => entity.position !== undefined);
-                    const actionButton = !hasEntitiesOnBoard && canSubmitAction ? (
+                {users.map(userRef => {
+                    const user = userRef.getPlayer(gameState);
+                    const units = gameState.getElementsByPlayer(user);
+                    const hasElementsOnBoard = units.find(unit => unit.position !== undefined);
+                    const actionButton = !hasElementsOnBoard && canSubmitAction ? (
                         <button onClick={() => setSelectedUser(user.name)} className="council-action-button">
                             Take Action
                         </button>

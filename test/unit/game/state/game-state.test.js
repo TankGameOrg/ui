@@ -1,9 +1,10 @@
 import assert from "node:assert";
 import Board from "../../../../src/game/state/board/board.js";
-import Entity from "../../../../src/game/state/board/entity.js";
+import Element from "../../../../src/game/state/board/element.js";
 import { Position } from "../../../../src/game/state/board/position";
 import { GameState } from "../../../../src/game/state/game-state.js";
 import Player from "../../../../src/game/state/players/player.js";
+import { Council } from "../../../../src/game/state/meta/council.js";
 
 describe("GameState", () => {
     it("can find all entities owned by a player", () => {
@@ -13,29 +14,26 @@ describe("GameState", () => {
         ];
 
         let board = new Board(2, 2);
-        board.setEntity(new Entity({ type: "tank", position: new Position("A1"), players: [players[0] /* Ted */] }));
-        board.setEntity(new Entity({ type: "tank", position: new Position("A2"), players: [players[1] /* Bella */] }));
+        board.setUnit(new Element({ type: "tank", position: new Position("A1"), playerRef: players[0].asRef() /* Ted */ }));
+        board.setUnit(new Element({ type: "tank", position: new Position("A2"), playerRef: players[1].asRef() /* Bella */ }));
 
-        const gameState = new GameState(
+        const gameState = new GameState({
             players,
             board,
-            {
-                council: new Entity({ type: "council", players: [players[0] /* Ted */], }),
-            },
-        );
+            council: new Council({}),
+        });
 
         assert.deepEqual(
-            gameState.getEntitiesByPlayer(gameState.players.getPlayerByName("Ted")),
+            gameState.getElementsByPlayer(players[0]),
             [
-                gameState.metaEntities.council,
-                board.getEntityAt(new Position("A1")),
+                board.getUnitAt(new Position("A1")),
             ],
         );
 
         assert.deepEqual(
-            gameState.getEntitiesByPlayer(gameState.players.getPlayerByName("Bella")),
+            gameState.getElementsByPlayer(players[1]),
             [
-                board.getEntityAt(new Position("A2")),
+                board.getUnitAt(new Position("A2")),
             ],
         );
     });

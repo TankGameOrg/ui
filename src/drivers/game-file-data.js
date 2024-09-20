@@ -1,8 +1,6 @@
 import { LogBook } from "../game/state/log-book/log-book.js";
 import { OpenHours } from "../game/open-hours/index.js";
-import { getGameVersion } from "../versions/index.js";
 import { GameState } from "../game/state/game-state.js";
-import "../game/state/players/players.js";
 import Board from "../game/state/board/board.js";
 import { deserializer } from "../deserialization.js";
 import { Position } from "../game/state/board/position.js";
@@ -100,6 +98,24 @@ export function loadFromRaw(fileData) {
     }
 
     const helpers = {
+        // Helper for convering council from an entity
+        getPlayerTypes() {
+            let types = {};
+            for(const player of fileData.initialGameState.players) {
+                types[player.attributes.name] = player.attributes.type;
+            }
+            return types;
+        },
+
+        // Helper for convering player ref to v2
+        getPlayerNameById(id) {
+            for(const player of fileData.initialGameState.players) {
+                if(player.uniqueId == id) return player.attributes.name;
+            }
+
+            throw new Error(`Player with ID ${id} was not found`);
+        },
+
         updatedContent() {
             // Avoid log spam for mass updates
             if(fileDataUpdated) return;
@@ -121,14 +137,10 @@ export function dumpToRaw(fileData) {
     return deserializer.serialize(fileData);
 }
 
-export function createEmptyFileData({gameVersion, width, height, metaEntities = {}}) {
+export function createEmptyFileData({gameVersion, ...gameStateInitializer}) {
     return new FileData({
         gameVersion,
-        gameStateInitializer: {
-            width,
-            height,
-            metaEntities,
-        },
+        gameStateInitializer,
     });
 }
 
@@ -140,11 +152,11 @@ class FileData {
         this.gameSettings = gameSettings === undefined ? {} : gameSettings;
 
         if(initialGameState === undefined) {
-            initialGameState = new GameState(
-                [],
-                new Board(gameStateInitializer.width, gameStateInitializer.height),
-                gameStateInitializer.metaEntities,
-            );
+            initialGameState = new GameState({
+                ...gameStateInitializer,
+                players: [],
+                board: new Board(gameStateInitializer.board.width, gameStateInitializer.board.height),
+            });
         }
 
         this.initialGameState = initialGameState;

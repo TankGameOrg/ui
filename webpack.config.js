@@ -18,7 +18,7 @@ function getBuildInfo() {
 const buildInfo = process.env.BUILD_INFO || getBuildInfo();
 
 
-export function webpackConfig({ appName, configFileUrl, jsxExclude, title }) {
+export function webpackConfig({ appName, configFileUrl, jsxExclude, title, defaultPort = 3000 }) {
     const version = `${appName} ${buildInfo}`;
 
     const { pathname } = new URL(configFileUrl);
@@ -50,7 +50,7 @@ export function webpackConfig({ appName, configFileUrl, jsxExclude, title }) {
             static: {
                 directory: staticDir,
             },
-            port: process.env["port"] ?? 3000,
+            port: process.env["port"] ?? defaultPort,
             proxy: [
                 {
                     context: ["/api/"],

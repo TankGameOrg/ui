@@ -1,10 +1,11 @@
-import { logger } from "#platform/logging.js";
+export const snakeToCamel = string => string.replace(/_([a-z])/g, (_, char) => char.toUpperCase());
+export const camelToSnake = string => string.replace(/([A-Z])/g, (_, char) => "_" + char.toLowerCase());
 
 // Remove _, - and capitalize names
 export function prettyifyName(name, { capitalize = true, plural = false } = {}) {
     if(name === undefined) return;
 
-    name = name.split(/_|-|\s+/)
+    name = camelToSnake(name).split(/_|-|\s+/)
         .map(word => word.length > 0 && capitalize ? (word[0].toUpperCase() + word.slice(1)) : word)
         .join(" ");
 
@@ -17,7 +18,7 @@ export function prettyifyName(name, { capitalize = true, plural = false } = {}) 
         name += "s";
     }
 
-    return name;
+    return name.trim();
 }
 
 export class PromiseLock {

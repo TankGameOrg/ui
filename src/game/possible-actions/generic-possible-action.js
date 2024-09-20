@@ -1,5 +1,6 @@
 import { logger } from "#platform/logging.js";
 import { deserializer } from "../../deserialization.js";
+import { Position } from "../state/board/position.js";
 import "./dice-log-field-spec.js";
 import { DiceLogFieldSpec } from "./dice-log-field-spec.js";
 import "./log-field-spec.js";
@@ -59,7 +60,12 @@ export class GenericPossibleAction {
     getParameterSpec(logEntry) {
         const nestedSpecs = Object.keys(logEntry)
             .filter(key => this._nestedSpecs.has(key))
-            .flatMap(key => this._nestedSpecs.get(key).get(logEntry[key]))
+            .flatMap(key => {
+                let value = logEntry[key];
+                // Maps don't work correctly with objects so convert Position to a string before matching it
+                if(value instanceof Position) value = value.humanReadable;
+                return this._nestedSpecs.get(key).get(value);
+            })
             // We may not have subspecs for all log entry values, remove the unused ones
             .filter(spec => spec !== undefined);
 

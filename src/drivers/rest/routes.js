@@ -82,7 +82,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
                 return;
             }
 
-            const entry = await interactor.addLogBookEntry(req.body);
+            const entry = await interactor.addLogBookEntry(deserializer.deserialize(req.body));
             serialize(res, { success: true, entry: entry });
         }
         catch(err) {

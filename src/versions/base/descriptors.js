@@ -5,9 +5,20 @@ export function imageBackground(url) {
     return url?.length > 0 ? `url("${SITE_PUBLIC_PATH}assets/${url}.png")` : undefined;
 }
 
-export class EntityDescriptor {
-    constructor(entity, gameState) {
-        this.entity = entity;
+export class UnitDescriptor {
+    static make({ background, backgroundImage }) {
+        return class extends UnitDescriptor {
+            getTileStyle() {
+                return new TileStyle({
+                    textColor: "#000",
+                    background: background || imageBackground(backgroundImage),
+                });
+            }
+        }
+    }
+
+    constructor(unit, gameState) {
+        this.unit = unit;
         this.gameState = gameState;
     }
 
@@ -40,13 +51,13 @@ export class EntityDescriptor {
         });
     }
 
-    // Get the name to display for this entity
+    // Get the name to display for this unit
     // returns: string or undefined to hide name tag
     getName() {}
 
-    // Get a human readable string for when this entity is referenced in a log entry
+    // Get a human readable string for when this unit is referenced in a log entry
     formatForLogEntry() {
-        return this.getName() || this.entity.type;
+        return this.getName() || this.unit.type;
     }
 }
 
@@ -83,6 +94,14 @@ export class TileStyle {
 
 
 export class FloorTileDescriptor {
+    static make({ background, backgroundImage }) {
+        return class extends FloorTileDescriptor {
+            getBackground() {
+                return background || imageBackground(backgroundImage);
+            }
+        }
+    }
+
     constructor(floorTile) {
         this.floorTile = floorTile;
     }
@@ -175,6 +194,6 @@ export class AttributeDescriptor {
             return `${this.attribute.value} / ${this.attribute.max}`;
         }
 
-        return this.attribute;
+        return this.attribute?.toString?.();
     }
 }

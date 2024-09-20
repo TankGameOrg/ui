@@ -5,6 +5,7 @@ import { ActionError } from "../../game/possible-actions/action-error.js";
 import { logger } from "#platform/logging.js";
 import { Dice, Die } from "../../game/possible-actions/die.js";
 import { DiceLogFieldSpec } from "../../game/possible-actions/dice-log-field-spec.js";
+import { decode } from "./board-state.js";
 
 export class JavaEngineSource {
     constructor({ actionsToSkip = [] } = {}) {
@@ -12,8 +13,7 @@ export class JavaEngineSource {
     }
 
     async getActionFactoriesForPlayer({playerName, gameState, engine}) {
-        const player = gameState.players.getPlayerByName(playerName);
-        if(!player) return [];
+        if(!playerName) return [];
 
         const possibleActions = await engine.getPossibleActions(playerName);
 
@@ -104,18 +104,18 @@ export class JavaEngineSource {
             case "PlayerRef":
                 // If all of our players exist on the board use the position selector instead of the regular select
                 playerPositions = field.options.map(option => {
-                    const player = gameState.players.getPlayerByName(option.value.name);
+                    const player = decode(option.value).getPlayer(gameState);
                     if(!player) {
                         throw new Error(`${option.value.name} is not the name of a known player`);
                     }
 
-                    const entities = gameState.getEntitiesByPlayer(player)
-                        .filter(entity => entity.position !== undefined);
+                    const elements = gameState.getElementsByPlayer(player)
+                        .filter(element => element.position !== undefined);
 
-                    if(entities.length > 0) {
+                    if(elements.length > 0) {
                         return {
-                            position: entities[0].position.humanReadable,
-                            value: player.name,
+                            position: elements[0].position.humanReadable,
+                            value: player.asRef(),
                         };
                     }
                 });
@@ -124,7 +124,7 @@ export class JavaEngineSource {
                     options = field.options.map(option => {
                         return {
                             display: option.pretty_name,
-                            value: option.value.name,
+                            value: decode(option.value),
                         };
                     });
                 }

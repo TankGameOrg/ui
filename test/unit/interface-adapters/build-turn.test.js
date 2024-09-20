@@ -3,6 +3,7 @@ import { GenericPossibleAction } from "../../../src/game/possible-actions/generi
 import { LogFieldSpec } from "../../../src/game/possible-actions/log-field-spec.js";
 import { buildTurnReducer, makeInitalState, resetPossibleActions, selectActionType, selectLocation, setActionSpecificField, setLastError, setLastRollEntry, setPossibleActions, setSubject } from "../../../src/interface-adapters/build-turn.js";
 import { ActionError } from "../../../src/game/possible-actions/action-error.js";
+import { Position } from "../../../src/game/state/board/position.js";
 
 const swappingBaseSpec = new LogFieldSpec({
     name: "pick",
@@ -280,7 +281,7 @@ describe("BuildTurn", () => {
             logBookEntry: {
                 subject: "Teddy",
                 action: "shoot",
-                location: "J12",
+                location: new Position("J12"),
                 hit: true,
             },
             uiFieldValues: {
@@ -316,7 +317,7 @@ describe("BuildTurn", () => {
             logBookEntry: {
                 subject: "Pam",
                 action: "shoot",
-                location: "H1",
+                location: new Position("H1"),
                 hit: false,
             },
             uiFieldValues: {

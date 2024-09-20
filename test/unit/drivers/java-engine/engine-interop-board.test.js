@@ -1,9 +1,7 @@
 /* global URL */
 import assert from "node:assert";
-import path from "node:path";
 import * as boardState from "../../../../src/drivers/java-engine/board-state.js";
 import { load } from "../../../../src/drivers/game-file.js";
-import { stripPlayerIds } from "../../helpers.js";
 import { getLatestFilePath } from "../test-file-helper.js";
 
 const SAMPLE_STATE = getLatestFilePath();
@@ -17,11 +15,7 @@ describe("EngineInterop", () => {
         it(`can translate to and from the engine state format (${branch})`, async () => {
             const {initialGameState} = await load(SAMPLE_STATE);
 
-            const translated = library.gameStateFromRawState(library.gameStateToRawState(initialGameState, "default-v3")).gameState;
-
-            stripPlayerIds(translated);
-            stripPlayerIds(initialGameState);
-
+            const translated = library.decodeGameState(library.encodeGameState(initialGameState, "default-v3")).gameState;
             assert.deepEqual(translated, initialGameState);
         });
     }

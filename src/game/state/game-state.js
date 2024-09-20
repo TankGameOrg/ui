@@ -1,51 +1,36 @@
 import { deserializer } from "../../deserialization.js";
 import "./board/board.js";
-import "./board/entity.js";
-import "./players/player.js";
-import Players from "./players/players.js";
+import "./board/element.js";
 
 export class GameState {
-    constructor(players, board, metaEntities) {
-        this.players = new Players(players);
-        this.board = board;
-        this.metaEntities = metaEntities;
+    constructor(attributes = {}) {
+        Object.assign(this, attributes);
     }
 
     static deserialize(rawGameState) {
-        return new GameState(
-            rawGameState.players,
-            rawGameState.board,
-            rawGameState.metaEntities,
-        );
+        return new GameState(rawGameState);
     }
 
     serialize() {
         return {
-            players: this.players.getAllPlayers(),
-            board: this.board,
-            metaEntities: this.metaEntities,
+            ...this,
         };
     }
 
-    modify({ players, board, metaEntities } = {}) {
-        return new GameState(
-            (players || this.players).getAllPlayers?.(),
-            board || this.board,
-            metaEntities || this.metaEntities);
-    }
-
-    _getAllEntities() {
-        let allEntities = Object.values(this.metaEntities);
-        allEntities = allEntities.concat(this.board.getAllEntities());
-        return allEntities;
-    }
-
-    getEntitiesByPlayer(player) {
-        return this._getAllEntities()
-            .filter(entity => {
-                return !!entity.getPlayerRefs().find(playerRef => playerRef.isFor(player));
-            });
+    getElementsByPlayer(player) {
+        return this.board.getAllUnits()
+            .filter(element => !!element.playerRef?.isFor?.(player));
     }
 }
 
-deserializer.registerClass("game-state-v1", GameState);
+deserializer.registerDeserializer("game-state-v1", (rawState, helpers) => {
+    helpers.updatedContent();
+
+    return GameState.deserialize({
+        ...rawState,
+        council: rawState.metaEntities.council,
+        metaEntities: undefined,
+    });
+});
+
+deserializer.registerClass("game-state-v2", GameState);
