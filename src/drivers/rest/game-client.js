@@ -100,7 +100,7 @@ class GameClient {
     }
 
     async reloadGame() {
-        await fetchHelper(`/api/game/${this._game}/reload`);
+        await fetchHelper(`/api/game/${this._game}/reload`, { method: "POST" });
         this.invalidateCache();
     }
 
@@ -123,7 +123,7 @@ export function getGameClient(game) {
 }
 
 export async function reloadAllGames() {
-    await fetchHelper("/api/games/reload");
+    await fetchHelper("/api/games/reload", { method: "POST" });
 
     for(const client of gameClients.values()) {
         client.invalidateCache();

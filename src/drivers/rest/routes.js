@@ -28,7 +28,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
         })));
     });
 
-    app.get("/api/games/reload", async (req, res) => {
+    app.post("/api/games/reload", async (req, res) => {
         try {
             req.games.gameManager.reload();
             res.json({ success: true });
@@ -114,7 +114,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
         serialize(res, factories);
     });
 
-    app.get("/api/game/:gameName/reload", async (req, res) => {
+    app.post("/api/game/:gameName/reload", async (req, res) => {
         try {
             req.games.gameManager.reload({ gameName: req.params.gameName });
             res.json({ success: true });
