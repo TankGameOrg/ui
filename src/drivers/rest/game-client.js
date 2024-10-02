@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
 import { fetchHelper } from "./fetch-helper.js";
 import { deserializer } from "../../deserialization.js";
+import { LogBookSlice } from "../../game/state/log-book/log-book.js";
 
 class GameClient {
     constructor(game) {
@@ -55,7 +56,21 @@ class GameClient {
 
     async getGameInfo() {
         if(this._gameInfo === undefined) {
-            this._gameInfo = await fetchHelper(`/api/game/${this._game}/`);
+            let cacheParams = "";
+            if(this._cacheInfo !== undefined) {
+                cacheParams = `?gameLoadedAt=${this._cacheInfo.gameLoadedAt}&lastEntryId=${this._cacheInfo.logBook.getLastEntryId()}`;
+            }
+
+            this._gameInfo = await fetchHelper(`/api/game/${this._game}${cacheParams}`);
+
+            if(this._gameInfo.logBook instanceof LogBookSlice) {
+                this._gameInfo.logBook = this._gameInfo.logBook.apply(this._cacheInfo.logBook);
+            }
+
+            this._cacheInfo = {
+                gameLoadedAt: this._gameInfo.gameLoadedAt,
+                logBook: this._gameInfo.logBook,
+            };
         }
 
         return this._gameInfo;
