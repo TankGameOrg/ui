@@ -15,6 +15,8 @@ export class Game {
     constructor(opts) {
         this._state = "loading";
         this._hasBeenShutDown = false;
+        // Identify when a game has been reloaded by tracking the time it was loaded at
+        this.loadedAt = Date.now();
         this.name = opts.name;
         this.title = prettyifyName(this.name);
         this.loaded = this._initializeGame(opts.gameDataPromise);

@@ -150,6 +150,40 @@ export class LogBook {
 
         return previousDay;
     }
+
+    slice(length) {
+        return new LogBookSlice(length, this._entries.slice(length));
+    }
+}
+
+export class LogBookSlice {
+    constructor(firstId, entries) {
+        this._firstId = firstId;
+        this._entries = entries;
+    }
+
+    apply(existingLogBook) {
+        if(existingLogBook.getLength() < this._firstId) {
+            throw new Error(`Existing log book is too short to combine with slice (logBook.getLength() = ${existingLogBook.getLength()}, firstId = ${this._firstId})`);
+        }
+
+        let combinedEntries = existingLogBook._entries.slice(0, this._firstId)
+            .concat(this._entries);
+
+        return new LogBook(combinedEntries);
+    }
+
+    serialize() {
+        return {
+            firstId: this._firstId,
+            entries: this._entries,
+        };
+    }
+
+    static deserialize(rawSlice)  {
+        return new LogBookSlice(rawSlice.firstId, rawSlice.entries);
+    }
 }
 
 deserializer.registerClass("log-book-v1", LogBook);
+deserializer.registerClass("log-book-slice-v1", LogBookSlice);

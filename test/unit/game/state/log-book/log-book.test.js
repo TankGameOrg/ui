@@ -82,4 +82,23 @@ describe("LogBook", () => {
         assert.equal(3, logBook.getMaxDay());
         assert.equal(newId, logBook.getFirstEntryIdOfDay(3));
     });
+
+    it("can be sliced and recombined", () => {
+        LogEntry.enableTestModeTimeStamps();
+        const logBook = new LogBook(entries);
+        const partialLogBook = new LogBook(entries.slice(0, 4));
+
+        const slice = logBook.slice(3);
+        const rebuildLogBook = slice.apply(partialLogBook);
+        assert.deepEqual(rebuildLogBook, logBook);
+    });
+
+    it("slice cannot be recombined with a smaller log book", () => {
+        LogEntry.enableTestModeTimeStamps();
+        const logBook = new LogBook(entries);
+        const partialLogBook = new LogBook(entries.slice(0, 1));
+
+        const slice = logBook.slice(3);
+        assert.throws(() => slice.apply(partialLogBook));
+    });
 });

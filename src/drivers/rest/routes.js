@@ -45,13 +45,20 @@ export function defineRoutes(app, buildInfo, engineManager) {
         const {valid, interactor, game} = req.games.getGameIfAvailable();
         if(!valid) return;
 
+        let logBook = interactor.getLogBook();
+        const lastEntryId = +req.query.lastEntryId;
+        if(!isNaN(lastEntryId) && +req.query.gameLoadedAt == game.loadedAt) {
+            logBook = logBook.slice(lastEntryId + 1);
+        }
+
         serialize(res, {
             buildInfo,
+            gameLoadedAt: game.loadedAt,
             engineInfo: game.getEngineVersionInfo(),
             game: game.getBasicGameInfo(),
             gameSettings: game.getSettings(),
             openHours: game.getOpenHours().asResolved(),
-            logBook: interactor.getLogBook(),
+            logBook,
         });
     });
 
