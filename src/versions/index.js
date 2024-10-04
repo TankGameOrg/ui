@@ -8,12 +8,14 @@ const gameVersions = {
     "default-v4": version4,
 };
 
+const commonVersionConfigInstance = new GameVersion(commonVersionConfig);
+
 
 export function getGameVersion(version) {
     let config = gameVersions[version];
 
     if(config === undefined) {
-        config = new GameVersion(commonVersionConfig);
+        config = commonVersionConfigInstance;
     }
 
     return config;

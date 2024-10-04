@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import "./unit-tile.css";
 import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
@@ -68,12 +68,39 @@ function getBadgesForUnit(descriptor) {
     return <div className="board-space-unit-badges">{leftBadge}<div className="separator"></div>{rightBadge}</div>;
 }
 
+function triggerAnimations(animationsForTile, cardElement) {
+    if(animationsForTile.length > 0) {
+        console.log(animationsForTile);
+    }
 
-export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canSubmitAction, gameState }) {
+    const positionChange = animationsForTile.find(change => change.key === "position");
+
+    if(positionChange !== undefined) {
+        const {width, height} = cardElement.getBoundingClientRect();
+
+        let relativeX = (positionChange.from.x - positionChange.to.x) * width;
+        let relativeY = (positionChange.from.y - positionChange.to.y) * height;
+
+        cardElement.animate([
+            { transform: `translate(${Math.round(relativeX)}px, ${Math.round(relativeY)}px)` },
+            { transform: "translate(0, 0)" },
+        ], {
+            duration: 500,
+            iterations: 1,
+        });
+    }
+}
+
+
+export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canSubmitAction, gameState, animationData }) {
     const cardRef = useRef();
+    const wrapperRef = useRef();
     const [opened, setOpened] = useState(false);
 
     const close = useCallback(() => setOpened(false), [setOpened]);
+
+    const animationsForTile = animationData.getAnimationsByPosition(unit.position);
+    useEffect(() => triggerAnimations(animationsForTile, wrapperRef.current), [animationsForTile, wrapperRef]);
 
     const descriptor = config && config.getUnitDescriptor(unit, gameState);
     if(!descriptor) return;
@@ -90,7 +117,7 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
     );
 
     return (
-        <div className="board-space-unit-wrapper">
+        <div className="board-space-unit-wrapper" ref={wrapperRef}>
             <div className="board-space-unit" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
                 {label}
                 <div className="board-space-centered board-space-attribute-featured">

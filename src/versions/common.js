@@ -5,6 +5,7 @@ import { DestructibleFloor } from "./shared/destructible-floor.js";
 import { findGlobalCooldowns } from "./shared/global-cooldown.js";
 import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./base/descriptors.js";
 import { prettyifyName } from "../utils.js";
+import { addAnimationsBetweenStates } from "../game/state/animation-data.js";
 
 
 // Common log entries
@@ -70,9 +71,25 @@ const commonAttributeDescriptors = {
 };
 
 
+export function addAnimationData(animationData, previousState, currentState) {
+    addAnimationsBetweenStates(animationData, previousState, currentState, {
+        attributesToAnimate: [
+            "position", // Track player movement
+            // Interesting attributes
+            "gold",
+            "bounty",
+            "speed",
+            "range",
+            "durability",
+        ],
+    });
+}
+
+
 export const commonVersionConfig = {
     findCooldowns: findGlobalCooldowns,
     attributeDescriptors: commonAttributeDescriptors,
+    addAnimationData,
     logFormatter: new LogEntryFormatter(commonLogEntryFormatters),
     unitDescriptors: {
         Tank: TankDescriptor,

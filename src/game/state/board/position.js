@@ -77,6 +77,10 @@ export class Position {
         const sqrt = Math.sqrt(xDiff ** 2 + yDiff ** 2);
         return Math.floor(sqrt);
     }
+
+    equals(other) {
+        return this.x === other?.x && this.y === other.y;
+    }
 }
 
 deserializer.registerClass("position", Position);

@@ -45,6 +45,8 @@ function determineDayRelativeIds(state) {
 
 
 function processTurnUpdateAction(state, action) {
+    const previousEntryId = state.entryId;
+
     // Handle user updates to the entry
     if(action.type == "next-entry" || action.type == "auto-advance-entry") {
         state.entryId = Math.min(state._logBook.getLastEntryId(), state.entryId + 1);
@@ -91,6 +93,10 @@ function processTurnUpdateAction(state, action) {
     if(action.type != "auto-advance-entry" && action.type != "set-log-book" && action.type != "toggle-playback") {
         state.playbackInProgress = false;
         state.lastAutoAdvance = 0;
+    }
+
+    if(state.entryId != previousEntryId) {
+        state.previousEntryId = previousEntryId;
     }
 }
 
