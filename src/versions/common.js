@@ -71,8 +71,8 @@ const commonAttributeDescriptors = {
 };
 
 
-export function addAnimationData(animationData, previousState, currentState) {
-    addAnimationsBetweenStates(animationData, previousState, currentState, {
+export function addAnimationData(previousState, currentState) {
+    return addAnimationsBetweenStates(previousState, currentState, {
         attributesToAnimate: [
             "position", // Track player movement
             // Interesting attributes

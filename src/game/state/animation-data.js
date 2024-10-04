@@ -41,25 +41,6 @@ function isEqual(objectA, objectB) {
 }
 
 
-export class AnimationData {
-    constructor() {
-        this._animationsByPosition = {};
-    }
-
-    addAnimation(position, animation) {
-        if(this._animationsByPosition[position.humanReadable] === undefined) {
-            this._animationsByPosition[position.humanReadable] = [];
-        }
-
-        this._animationsByPosition[position.humanReadable].push(animation);
-    }
-
-    getAnimationsByPosition(position) {
-        return this._animationsByPosition[position.humanReadable] || [];
-    }
-}
-
-
 function _buildElementMappings(gameState) {
     let mapping = {};
     for(const unit of gameState.board.getAllUnits()) {
@@ -70,7 +51,8 @@ function _buildElementMappings(gameState) {
 }
 
 
-export function addAnimationsBetweenStates(animationData, previousState, currentState, opts = {}) {
+export function addAnimationsBetweenStates(previousState, currentState, opts = {}) {
+    let animations = [];
     const previousElements = _buildElementMappings(previousState);
     const currentElements = _buildElementMappings(currentState);
 
@@ -78,14 +60,16 @@ export function addAnimationsBetweenStates(animationData, previousState, current
         fromKeys: Object.keys(previousElements),
         toKeys: Object.keys(currentElements),
         onAdd: elementId => {
-            animationData.addAnimation(currentElements[elementId].position, {
+            animations.push({
                 type: "spawn",
+                position: currentElements[elementId].position,
                 element: currentElements[elementId],
             });
         },
         onRemove: elementId => {
-            animationData.addAnimation(previousElements[elementId].position, {
+            animations.push({
                 type: "destroy",
+                position: previousElements[elementId].position,
                 element: previousElements[elementId],
             });
         },
@@ -95,21 +79,24 @@ export function addAnimationsBetweenStates(animationData, previousState, current
                 fromKeys: opts.attributesToAnimate.filter(key => previousElements[elementId][key] !== undefined),
                 toKeys: opts.attributesToAnimate.filter(key => currentElements[elementId][key] !== undefined),
                 onAdd: key => {
-                    animationData.addAnimation(currentElements[elementId].position, {
+                    animations.push({
                         type: "add-attribute",
+                        position: currentElements[elementId].position,
                         key,
                     });
                 },
                 onRemove: key => {
-                    animationData.addAnimation(currentElements[elementId].position, {
+                    animations.push({
                         type: "remove-attribute",
+                        position: currentElements[elementId].position,
                         key,
                     });
                 },
                 onElse: key => {
                     if(!isEqual(previousElements[elementId][key], currentElements[elementId][key])) {
-                        animationData.addAnimation(currentElements[elementId].position, {
+                        animations.push({
                             type: "update-attribute",
+                            position: currentElements[elementId].position,
                             key,
                             from: previousElements[elementId][key],
                             to: currentElements[elementId][key],
@@ -119,4 +106,6 @@ export function addAnimationsBetweenStates(animationData, previousState, current
             });
         },
     });
+
+    return animations;
 }

@@ -13,35 +13,8 @@ import { getGameVersion } from "../versions/index.js";
 import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
-import { AnimationData } from "../game/state/animation-data.js";
+import { useStateAndAnimationData } from "../interface-adapters/animation-manager.js";
 
-
-function useAnimationData(game, currentTurnMgrState, currentState, versionConfig) {
-    const [result, _] = useGameClient(game,
-        client => {
-            if(currentTurnMgrState.previousEntryId !== undefined) {
-                return Promise.all([
-                    currentTurnMgrState.previousEntryId,
-                    client.getGameState(currentTurnMgrState.previousEntryId),
-                ]);
-            }
-
-            return [];
-        }, [currentTurnMgrState.previousEntryId]);
-
-    const [previousStateId, previousState] = result || [];
-
-    return useMemo(() => {
-        let animationData = new AnimationData();
-        const shouldDisplayAnimation = Math.abs(currentTurnMgrState.entryId - currentTurnMgrState.previousEntryId) === 1;
-
-        if(shouldDisplayAnimation && previousState && previousStateId === currentTurnMgrState.previousEntryId) {
-            versionConfig.addAnimationData(animationData, previousState, currentState);
-        }
-
-        return animationData;
-    }, [currentTurnMgrState.entryId, currentTurnMgrState.previousEntryId, previousState, previousStateId, currentState, versionConfig]);
-}
 
 
 export function Game({ game, navigate, debug }) {
@@ -49,15 +22,13 @@ export function Game({ game, navigate, debug }) {
     const [gameInfo, infoError] = useGameClient(game, client => client.getGameInfo());
 
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
-    const [gameState, stateError] = useGameClient(game,
-            client => currentTurnMgrState.entryId !== undefined && client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId]);
-
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
     const versionConfig = gameInfo?.game?.gameVersion !== undefined ?
         getGameVersion(gameInfo.game.gameVersion) : undefined;
 
-    const animationData = useAnimationData(game, currentTurnMgrState, gameState, versionConfig, gameInfo?.logBook);
+    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, versionConfig);
+    const {currentState: gameState} = animationState;
 
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";
@@ -124,7 +95,8 @@ export function Game({ game, navigate, debug }) {
                         {gameMessage !== undefined ? <div>{gameMessage}</div> : undefined}
                         <GameBoard
                             gameState={gameState}
-                            animationData={animationData}
+                            animationState={animationState}
+                            dispatchAnimation={dispatchAnimation}
                             config={versionConfig}
                             canSubmitAction={canSubmitAction}
                             setSelectedUser={setSelectedUser}
