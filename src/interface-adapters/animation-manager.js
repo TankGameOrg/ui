@@ -4,10 +4,12 @@ import { useGameClient } from "../drivers/rest/game-client.js";
 
 function groupAnimations(animations, versionConfig, currentGameState) {
     let animationsByPosition = {};
+    let nextId = 0;
 
     for(const animation of animations) {
         if(animationsByPosition[animation.position.humanReadable] === undefined) {
             animationsByPosition[animation.position.humanReadable] = {
+                id: `${Date.now()}-${++nextId}`,
                 popups: {
                     list: [],
                 },
@@ -58,6 +60,12 @@ function buildAnimationData(entryId, previousEntryId, versionConfig, previousGam
 
 function applyFinishAnimation(state, action) {
     const animationsForTile = state.animationData[action.position.humanReadable];
+    if(!animationsForTile) return state;
+
+    // This action was meant for an old animation discard it
+    if(animationsForTile.id !== action.targetId) {
+        return state;
+    }
 
     return {
         ...state,
@@ -74,6 +82,12 @@ function applyFinishAnimation(state, action) {
 
 function applyStartAnimation(state, action) {
     const animationsForTile = state.animationData[action.position.humanReadable];
+    if(!animationsForTile) return state;
+
+    // This action was meant for an old animation discard it
+    if(animationsForTile.id !== action.targetId) {
+        return state;
+    }
 
     return {
         ...state,
@@ -124,8 +138,8 @@ export function animationsReducer(state, action) {
 }
 
 
-export const startAnimation = (position, animationId) => ({ type: "start-animation", position, animationId });
-export const finishAnimation = (position, animationId) => ({ type: "finish-animation", position, animationId });
+export const startAnimation = (position, animationId, targetId) => ({ type: "start-animation", position, animationId, targetId });
+export const finishAnimation = (position, animationId, targetId) => ({ type: "finish-animation", position, animationId, targetId });
 
 
 export function useStateAndAnimationData(game, currentTurnMgrState, versionConfig) {

@@ -78,7 +78,7 @@ function getAnimationInfo(animationState, position) {
     if(animations === undefined) return;
 
     let animationInfo = {
-        popups: animations.popups,
+        ...animations,
     };
 
     if(animations.move !== undefined) {
@@ -120,16 +120,11 @@ function tiggerAnimation(animationInfo, dispatchAnimation, position, name, eleme
     if(animationInfo[name] !== undefined && !animationInfo[name].started) {
         const animation = animationStartFunctor[name](element, animationInfo[name]);
 
-        // const handle = setInterval(() => {
-        //     if(animation.playState == "finished") clearInterval(handle);
-        //     console.log(animation.currentTime);
-        // }, 100);
-
         animation.finished.then(() => {
-            dispatchAnimation(finishAnimation(position, name));
+            dispatchAnimation(finishAnimation(position, name, animationInfo.id));
         });
 
-        dispatchAnimation(startAnimation(position, name));
+        dispatchAnimation(startAnimation(position, name, animationInfo.id));
     }
 }
 
