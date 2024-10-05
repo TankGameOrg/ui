@@ -81,6 +81,7 @@ export function addAnimationData(previousState, currentState) {
             "speed",
             "range",
             "durability",
+            "actions",
         ],
     });
 }

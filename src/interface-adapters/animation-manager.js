@@ -8,7 +8,9 @@ function groupAnimations(animations) {
     for(const animation of animations) {
         if(animationsByPosition[animation.position.humanReadable] === undefined) {
             animationsByPosition[animation.position.humanReadable] = {
-                animations: [],
+                popups: {
+                    list: [],
+                },
             };
         }
 
@@ -16,6 +18,21 @@ function groupAnimations(animations) {
 
         if(animation.key === "position") {
             animationsForTile.move = animation;
+            continue;
+        }
+
+        const fromValue = animation.from?.value ?? animation.from;
+        const toValue = animation.to?.value ?? animation.to;
+        if(animation.type == "update-attribute" && typeof fromValue == "number" && typeof toValue == "number") {
+            const difference = toValue - fromValue;
+
+            animationsForTile.popups.list.push({
+                id: animationsForTile.popups.list.length + "",
+                attribute: animation.key,
+                difference: `${difference > 0 ? "+" : ""}${difference}`,
+            });
+
+            continue;
         }
     }
 
@@ -36,20 +53,35 @@ function buildAnimationData(entryId, previousEntryId, versionConfig, previousGam
 
 
 function applyFinishAnimation(state, action) {
-    let animationsForTile = state.animationData[action.position.humanReadable];
-
-    if(action.animationId == "move") {
-        animationsForTile = {
-            ...animationsForTile,
-            move: undefined,
-        };
-    }
+    const animationsForTile = state.animationData[action.position.humanReadable];
 
     return {
         ...state,
         animationData: {
             ...state.animationData,
-            [action.position.humanReadable]: animationsForTile,
+            [action.position.humanReadable]: {
+                ...animationsForTile,
+                [action.animationId]: undefined,
+            },
+        }
+    }
+}
+
+
+function applyStartAnimation(state, action) {
+    const animationsForTile = state.animationData[action.position.humanReadable];
+
+    return {
+        ...state,
+        animationData: {
+            ...state.animationData,
+            [action.position.humanReadable]: {
+                ...animationsForTile,
+                [action.animationId]: {
+                    ...animationsForTile[action.animationId],
+                    started: true,
+                },
+            },
         }
     }
 }
@@ -70,7 +102,9 @@ export function animationsReducer(state, action) {
             ...state,
             currentState: action.state,
             _entryId: action.entryId,
-            animationData: buildAnimationData(action.entryId, previousEntryId, state._versionConfig, previousState, action.state),
+            animationData: previousEntryId === action.entryId ?
+                state.animationData :
+                buildAnimationData(action.entryId, previousEntryId, state._versionConfig, previousState, action.state),
         };
     }
 
@@ -78,10 +112,15 @@ export function animationsReducer(state, action) {
         return applyFinishAnimation(state, action);
     }
 
+    if(action.type == "start-animation") {
+        return applyStartAnimation(state, action);
+    }
+
     return state;
 }
 
 
+export const startAnimation = (position, animationId) => ({ type: "start-animation", position, animationId });
 export const finishAnimation = (position, animationId) => ({ type: "finish-animation", position, animationId });
 
 
