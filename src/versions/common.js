@@ -48,12 +48,25 @@ const commonAttributeDescriptors = {
     },
 
     ////////// Stats //////////
-    durability: AttributeDescriptor.make({ category: "stats" }),
+    durability: AttributeDescriptor.make({
+        category: "stats",
+
+        animationStyle: {
+            background: "#f00",
+            color: "#fff",
+        },
+    }),
     range: AttributeDescriptor.make({ category: "stats" }),
     speed: AttributeDescriptor.make({ category: "stats" }),
 
     ////////// Resources //////////
-    gold: AttributeDescriptor.make({ category: "resources" }),
+    gold: AttributeDescriptor.make({
+        category: "resources",
+        animationStyle: {
+            background: "#fd0",
+            color: "#000",
+        },
+    }),
     actions: AttributeDescriptor.make({ category: "resources" }),
     power: AttributeDescriptor.make({ category: "resources" }),
 

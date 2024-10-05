@@ -153,7 +153,7 @@ function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
 
     const popups = animationInfo.popups.list.map(popup => {
         return (
-            <div key={popup.attribute} className="unit-tile-animated-stat-popup">
+            <div key={popup.attribute} className="unit-tile-animated-stat-popup" style={popup.style}>
                 {popup.difference} {prettyifyName(popup.attribute)}
             </div>
         );

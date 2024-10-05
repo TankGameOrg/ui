@@ -2,7 +2,7 @@ import { useEffect, useReducer } from "preact/hooks";
 import { useGameClient } from "../drivers/rest/game-client.js";
 
 
-function groupAnimations(animations) {
+function groupAnimations(animations, versionConfig, currentGameState) {
     let animationsByPosition = {};
 
     for(const animation of animations) {
@@ -26,10 +26,14 @@ function groupAnimations(animations) {
         if(animation.type == "update-attribute" && typeof fromValue == "number" && typeof toValue == "number") {
             const difference = toValue - fromValue;
 
+            const unit = currentGameState.board.getUnitAt(animation.position);
+            const attributeConfig = versionConfig.getAttributeDescriptor(animation.key, unit[animation.key]);
+
             animationsForTile.popups.list.push({
                 id: animationsForTile.popups.list.length + "",
                 attribute: animation.key,
                 difference: `${difference > 0 ? "+" : ""}${difference}`,
+                style: attributeConfig.getAnimationStyle(),
             });
 
             continue;
@@ -48,7 +52,7 @@ function buildAnimationData(entryId, previousEntryId, versionConfig, previousGam
         animations = versionConfig.addAnimationData(previousGameState, currentGameState);
     }
 
-    return groupAnimations(animations);
+    return groupAnimations(animations, versionConfig, currentGameState);
 }
 
 

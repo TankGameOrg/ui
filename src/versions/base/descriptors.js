@@ -121,7 +121,7 @@ export class FloorTileDescriptor {
 
 export class AttributeDescriptor {
     // Make a simple attribute descriptor
-    static make({ category, background, displayAs, textColor }) {
+    static make({ category, background, displayAs, textColor, animationStyle }) {
         return class extends AttributeDescriptor {
             getCategory() {
                 return category !== undefined ? category : super.getCategory();
@@ -137,6 +137,10 @@ export class AttributeDescriptor {
 
             getTextColor() {
                 return textColor !== undefined ? textColor : super.getTextColor();
+            }
+
+            getAnimationStyle() {
+                return animationStyle !== undefined ? animationStyle : super.getAnimationStyle();
             }
         };
     }
@@ -195,5 +199,12 @@ export class AttributeDescriptor {
         }
 
         return this.attribute?.toString?.();
+    }
+
+    getAnimationStyle() {
+        return {
+            background: "#00f",
+            color: "#fff",
+        };
     }
 }
