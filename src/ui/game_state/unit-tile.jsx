@@ -86,7 +86,10 @@ function getAnimationInfo(animationState, position) {
         let startY = (animations.move.from.y - animations.move.to.y) * TILE_HEIGHT;
 
         animationInfo.move = {
-            transform: `translate(${Math.round(startX)}px, ${Math.round(startY)}px)`,
+            tileStyles: {
+                transform: `translate(${Math.round(startX)}px, ${Math.round(startY)}px)`,
+                "z-index": 10,
+            },
             started: animations.move.started,
         };
     }
@@ -97,7 +100,7 @@ function getAnimationInfo(animationState, position) {
 const animationStartFunctor = {
     move: (cardElement, animationInfo) => {
         return cardElement.animate([
-            { transform: animationInfo.transform },
+            { transform: animationInfo.tileStyles.transform },
             { transform: "translate(0, 0)" },
         ], {
             duration: 500,
@@ -188,7 +191,7 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
     );
 
     return (
-        <div className="board-space-unit-wrapper" ref={wrapperRef} style={{ transform: animationInfo?.move?.transform }}>
+        <div className="board-space-unit-wrapper" ref={wrapperRef} style={animationInfo?.move?.tileStyles}>
             <div className="board-space-unit" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
                 {label}
                 <div className="board-space-centered board-space-attribute-featured">
