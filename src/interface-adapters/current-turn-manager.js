@@ -85,6 +85,10 @@ function processTurnUpdateAction(state, action) {
 
         // Set the last auto advance time when we start playing so we don't immediately jump to the next turn
         state.lastAutoAdvance = state.playbackInProgress ? Date.now() : 0;
+
+        if(state.entryId == state._logBook.getLastEntryId()) {
+            state.entryId = 0;
+        }
     }
 
     // If this was a player initiated turn change stop playback
