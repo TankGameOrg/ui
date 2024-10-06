@@ -106,7 +106,7 @@ const commonAttributeDescriptors = {
 const COST_ATTRIBUTES = new Set(["actions", "gold"]);
 
 
-export function addAnimationData(logEntry, previousState, currentState) {
+export function addAnimationData(isForwardAnimation, logEntry, previousState, currentState) {
     const animations = addAnimationsBetweenStates(previousState, currentState, {
         attributesToAnimate: [
             "position", // Track player movement
@@ -137,6 +137,11 @@ export function addAnimationData(logEntry, previousState, currentState) {
 
             // Don't show the changes to the cost attribute
             if(COST_ATTRIBUTES.has(animation.key) && animation.type == "update-attribute" && animation.difference < 0) {
+                return false;
+            }
+
+            // Position is the only attribute change that can be reversed
+            if(!isForwardAnimation && animation.type == "update-attribute" && animation.difference !== undefined) {
                 return false;
             }
 

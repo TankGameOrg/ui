@@ -45,9 +45,10 @@ function groupAnimations(animations, versionConfig, currentGameState) {
 function buildAnimationData(entryId, previousEntryId, versionConfig, previousGameState, currentGameState, logEntry) {
     let animations = [];
     const shouldDisplayAnimation = Math.abs(entryId - previousEntryId) === 1;
+    const isForwardAnimation = entryId > previousEntryId;
 
     if(shouldDisplayAnimation && previousGameState) {
-        animations = versionConfig.addAnimationData(logEntry, previousGameState, currentGameState);
+        animations = versionConfig.addAnimationData(isForwardAnimation, logEntry, previousGameState, currentGameState);
     }
 
     return groupAnimations(animations, versionConfig, currentGameState);
