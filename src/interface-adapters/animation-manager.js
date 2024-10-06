@@ -42,9 +42,11 @@ function groupAnimations(animations, versionConfig, currentGameState) {
 }
 
 
-function buildAnimationData(entryId, previousEntryId, versionConfig, previousGameState, currentGameState, logEntry) {
+function buildAnimationData(entryId, previousEntryId, versionConfig, previousGameState, currentGameState, logBook) {
+    const logEntry = logBook.getEntry(entryId);
     let animations = [];
-    const shouldDisplayAnimation = Math.abs(entryId - previousEntryId) === 1;
+    // Show animations for entries that span 0 or 1 days
+    const shouldDisplayAnimation = Math.abs(logBook.getDayOfEntryId(entryId) - logBook.getDayOfEntryId(previousEntryId)) < 2;
     const isForwardAnimation = entryId > previousEntryId;
 
     if(shouldDisplayAnimation && previousGameState) {
@@ -127,7 +129,7 @@ export function animationsReducer(state, action) {
             _entryId: action.entryId,
             animationData: previousEntryId === action.entryId ?
                 state.animationData :
-                buildAnimationData(action.entryId, previousEntryId, state._versionConfig, previousState, action.state, state._logBook.getEntry(action.entryId)),
+                buildAnimationData(action.entryId, previousEntryId, state._versionConfig, previousState, action.state, state._logBook),
         };
     }
 
