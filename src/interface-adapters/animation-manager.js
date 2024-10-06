@@ -23,18 +23,14 @@ function groupAnimations(animations, versionConfig, currentGameState) {
             continue;
         }
 
-        const fromValue = animation.from?.value ?? animation.from;
-        const toValue = animation.to?.value ?? animation.to;
-        if(animation.type == "update-attribute" && typeof fromValue == "number" && typeof toValue == "number") {
-            const difference = toValue - fromValue;
-
+        if(animation.type == "update-attribute" && animation.difference !== undefined) {
             const unit = currentGameState.board.getUnitAt(animation.position);
             const attributeConfig = versionConfig.getAttributeDescriptor(animation.key, unit[animation.key]);
 
             animationsForTile.popups.list.push({
                 id: animationsForTile.popups.list.length + "",
                 attribute: animation.key,
-                difference: `${difference > 0 ? "+" : ""}${difference}`,
+                difference: `${animation.difference > 0 ? "+" : ""}${animation.difference}`,
                 style: attributeConfig.getAnimationStyle(),
             });
 
@@ -46,12 +42,12 @@ function groupAnimations(animations, versionConfig, currentGameState) {
 }
 
 
-function buildAnimationData(entryId, previousEntryId, versionConfig, previousGameState, currentGameState) {
+function buildAnimationData(entryId, previousEntryId, versionConfig, previousGameState, currentGameState, logEntry) {
     let animations = [];
     const shouldDisplayAnimation = Math.abs(entryId - previousEntryId) === 1;
 
     if(shouldDisplayAnimation && previousGameState) {
-        animations = versionConfig.addAnimationData(previousGameState, currentGameState);
+        animations = versionConfig.addAnimationData(logEntry, previousGameState, currentGameState);
     }
 
     return groupAnimations(animations, versionConfig, currentGameState);
@@ -108,7 +104,15 @@ function applyStartAnimation(state, action) {
 export function animationsReducer(state, action) {
     if(action.type == "set-version-config") {
         return {
+            ...state,
             _versionConfig: action.versionConfig,
+        };
+    }
+
+    if(action.type == "set-log-book") {
+        return {
+            ...state,
+            _logBook: action.logBook,
         };
     }
 
@@ -122,7 +126,7 @@ export function animationsReducer(state, action) {
             _entryId: action.entryId,
             animationData: previousEntryId === action.entryId ?
                 state.animationData :
-                buildAnimationData(action.entryId, previousEntryId, state._versionConfig, previousState, action.state),
+                buildAnimationData(action.entryId, previousEntryId, state._versionConfig, previousState, action.state, state._logBook.getEntry(action.entryId)),
         };
     }
 
@@ -142,13 +146,16 @@ export const startAnimation = (position, animationId, targetId) => ({ type: "sta
 export const finishAnimation = (position, animationId, targetId) => ({ type: "finish-animation", position, animationId, targetId });
 
 
-export function useStateAndAnimationData(game, currentTurnMgrState, versionConfig) {
+export function useStateAndAnimationData(game, currentTurnMgrState, versionConfig, logBook) {
     const [animationsState, dispatch] = useReducer(animationsReducer, {});
 
     useEffect(() => {
         dispatch({ type: "set-version-config", versionConfig });
     }, [versionConfig, dispatch]);
 
+    useEffect(() => {
+        dispatch({ type: "set-log-book", logBook });
+    }, [logBook, dispatch]);
 
     const [_, stateError] = useGameClient(game, async client => {
         if(currentTurnMgrState.entryId !== undefined) {

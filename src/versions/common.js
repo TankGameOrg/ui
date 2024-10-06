@@ -50,14 +50,25 @@ const commonAttributeDescriptors = {
     ////////// Stats //////////
     durability: AttributeDescriptor.make({
         category: "stats",
-
         animationStyle: {
             background: "#f00",
             color: "#fff",
         },
     }),
-    range: AttributeDescriptor.make({ category: "stats" }),
-    speed: AttributeDescriptor.make({ category: "stats" }),
+    range: AttributeDescriptor.make({
+        category: "stats",
+        animationStyle: {
+            background: "#050",
+            color: "#fff",
+        },
+    }),
+    speed: AttributeDescriptor.make({
+        category: "stats",
+        animationStyle: {
+            background: "#f0f",
+            color: "#fff",
+        },
+    }),
 
     ////////// Resources //////////
     gold: AttributeDescriptor.make({
@@ -69,6 +80,14 @@ const commonAttributeDescriptors = {
     }),
     actions: AttributeDescriptor.make({ category: "resources" }),
     power: AttributeDescriptor.make({ category: "resources" }),
+
+    ////////// Uncategorized attributes //////////
+    bounty: AttributeDescriptor.make({
+        animationStyle: {
+            background: "orange",
+            color: "#000",
+        },
+    }),
 
     ////////// Internal attributes //////////
     globalCooldownEndTime: AttributeDescriptor.make({ displayAs: "hidden" }),
@@ -84,10 +103,14 @@ const commonAttributeDescriptors = {
 };
 
 
-export function addAnimationData(previousState, currentState) {
-    return addAnimationsBetweenStates(previousState, currentState, {
+const COST_ATTRIBUTES = new Set(["actions", "gold"]);
+
+
+export function addAnimationData(logEntry, previousState, currentState) {
+    const animations = addAnimationsBetweenStates(previousState, currentState, {
         attributesToAnimate: [
             "position", // Track player movement
+            "dead", // Certain attribute changes shouldn't be shown on death
             // Interesting attributes
             "gold",
             "bounty",
@@ -97,6 +120,28 @@ export function addAnimationData(previousState, currentState) {
             "actions",
         ],
     });
+
+    const positionsWithDeathChange = new Set(
+        animations
+            .filter(animation => animation.key == "dead")
+            .map(animation => animation.position.humanReadable)
+    );
+
+    return animations
+        .filter((animation) => {
+            // Death triggers a bunch of attribute changes including +2 durability
+            // Hide all of them to keep from confusing users
+            if(positionsWithDeathChange.has(animation.position.humanReadable)) {
+                return false;
+            }
+
+            // Don't show the changes to the cost attribute
+            if(COST_ATTRIBUTES.has(animation.key) && animation.type == "update-attribute" && animation.difference < 0) {
+                return false;
+            }
+
+            return true;
+        });
 }
 
 

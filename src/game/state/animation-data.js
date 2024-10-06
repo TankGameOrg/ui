@@ -94,12 +94,23 @@ export function addAnimationsBetweenStates(previousState, currentState, opts = {
                 },
                 onElse: key => {
                     if(!isEqual(previousElements[elementId][key], currentElements[elementId][key])) {
+                        const from = previousElements[elementId][key];
+                        const to = currentElements[elementId][key];
+
+                        let difference;
+                        const fromValue = from?.value ?? from;
+                        const toValue = to?.value ?? to;
+                        if(typeof fromValue == "number" && typeof toValue == "number") {
+                            difference = toValue - fromValue;
+                        }
+
                         animations.push({
                             type: "update-attribute",
                             position: currentElements[elementId].position,
                             key,
-                            from: previousElements[elementId][key],
-                            to: currentElements[elementId][key],
+                            from,
+                            to,
+                            difference,
                         });
                     }
                 },

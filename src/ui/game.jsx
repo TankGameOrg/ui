@@ -27,7 +27,7 @@ export function Game({ game, navigate, debug }) {
     const versionConfig = gameInfo?.game?.gameVersion !== undefined ?
         getGameVersion(gameInfo.game.gameVersion) : undefined;
 
-    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, versionConfig);
+    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, versionConfig, gameInfo?.logBook);
     const {currentState: gameState} = animationState;
 
     const error = infoError || stateError;
