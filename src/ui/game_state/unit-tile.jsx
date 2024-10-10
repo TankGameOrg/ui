@@ -165,6 +165,8 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
 
     const animationInfo = useMemo(() => getAnimationInfo(animationState, unit.position), [animationState, unit.position]);
 
+    // When we destory an element it is immediately removed from the state but we need something to fade out
+    // so we add it back in here until the animation completes
     if(animationInfo.destroy !== undefined) {
         unit = animationInfo.destroy.element;
     }
