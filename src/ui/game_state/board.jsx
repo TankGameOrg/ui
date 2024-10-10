@@ -89,24 +89,17 @@ export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAct
 }
 
 function Space({ unit, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState, animationState, dispatchAnimation }) {
-    let tile = null;
-
-    // Try to place an unit in this space
-    if(unit && unit.type != "empty") {
-        tile = <UnitTile
-            dispatchAnimation={dispatchAnimation}
-            unit={unit}
-            showPopupOnClick={!(onClick || disabled)}
-            config={config}
-            canSubmitAction={canSubmitAction}
-            setSelectedUser={setSelectedUser}
-            gameState={gameState}
-            animationState={animationState}></UnitTile>;
-    }
-
     return (
         <Tile floorTile={floorTile} disabled={disabled} onClick={onClick} selected={selected} config={config} isCut={isCut}>
-            {tile}
+            <UnitTile
+                dispatchAnimation={dispatchAnimation}
+                unit={unit}
+                showPopupOnClick={!(onClick || disabled)}
+                config={config}
+                canSubmitAction={canSubmitAction}
+                setSelectedUser={setSelectedUser}
+                gameState={gameState}
+                animationState={animationState}></UnitTile>
         </Tile>
     );
 }

@@ -165,6 +165,10 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
 
     const animationInfo = useMemo(() => getAnimationInfo(animationState, unit.position), [animationState, unit.position]);
 
+    if(animationInfo.destroy !== undefined) {
+        unit = animationInfo.destroy.element;
+    }
+
     useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "move", (cardElement, animationInfo) => {
         const moveStyles = getMoveStyles({ move: animationInfo });
 
@@ -178,10 +182,21 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
 
     useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "spawn", (cardElement) => {
         return cardElement.animate([
-            { opacity: 0 },
-            { opacity: 1 },
+            { opacity: 0, transform: "scale(80%)", },
+            { opacity: 0.5, transform: "scale(100%)", },
+            { opacity: 1, transform: "scale(100%)", },
         ], {
-            duration: 200,
+            duration: 300,
+        });
+    });
+
+    useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "destroy", (cardElement) => {
+        return cardElement.animate([
+            { opacity: 1, transform: "scale(100%)", },
+            { opacity: 0.5, transform: "scale(100%)", },
+            { opacity: 0, transform: "scale(80%)", },
+        ], {
+            duration: 300,
         });
     });
 
@@ -203,10 +218,15 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
     if(animationInfo.spawn !== undefined) {
         animationStyles = {
             opacity: 0,
+            transform: "scale(80%)",
         };
     }
     else if(animationInfo.move !== undefined) {
         animationStyles = getMoveStyles(animationInfo);
+    }
+
+    if(unit.type == "empty") {
+        return;
     }
 
     return (
