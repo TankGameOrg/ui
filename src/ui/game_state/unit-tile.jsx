@@ -74,33 +74,30 @@ const TILE_HEIGHT = 68;
 
 function getAnimationInfo(animationState, position) {
     const {animationData} = animationState;
-    const animations = animationData[position?.humanReadable];
-    if(animations === undefined) return;
-
-    let animationInfo = {
-        ...animations,
-    };
-
-    if(animations.move !== undefined) {
-        let startX = (animations.move.from.x - animations.move.to.x) * TILE_WIDTH;
-        let startY = (animations.move.from.y - animations.move.to.y) * TILE_HEIGHT;
-
-        animationInfo.move = {
-            tileStyles: {
-                transform: `translate(${Math.round(startX)}px, ${Math.round(startY)}px)`,
-                "z-index": 10,
-            },
-            started: animations.move.started,
-        };
-    }
+    const animationInfo = animationData[position?.humanReadable];
+    if(animationInfo === undefined) return [];
 
     return animationInfo;
 }
 
+function getMoveStyles(animationInfo) {
+    if(animationInfo.move !== undefined) {
+        let startX = (animationInfo.move.from.x - animationInfo.move.to.x) * TILE_WIDTH;
+        let startY = (animationInfo.move.from.y - animationInfo.move.to.y) * TILE_HEIGHT;
+
+        return {
+            transform: `translate(${Math.round(startX)}px, ${Math.round(startY)}px)`,
+            "z-index": 10,
+        };
+    }
+}
+
 const animationStartFunctor = {
     move: (cardElement, animationInfo) => {
+        const moveStyles = getMoveStyles({ move: animationInfo });
+
         return cardElement.animate([
-            { transform: animationInfo.tileStyles.transform },
+            { transform: moveStyles.transform },
             { transform: "translate(0, 0)" },
         ], {
             duration: 500,
@@ -119,33 +116,40 @@ const animationStartFunctor = {
     },
 };
 
-function tiggerAnimation(animationInfo, dispatchAnimation, position, name, element) {
-    if(animationInfo[name] !== undefined && !animationInfo[name].started) {
-        const animation = animationStartFunctor[name](element, animationInfo[name]);
+function triggerAnimation(animationInfo, animationId, dispatchAnimation, position, name, element) {
+    if(animationInfo !== undefined && element !== undefined) {
+        let animation = animationStartFunctor[name](element, animationInfo);
+
+        if(animationInfo?.startTime === undefined) {
+            dispatchAnimation(startAnimation(position, name, animationId, Date.now()));
+        }
+        else {
+            animation.currentTime = Date.now() - animationInfo.startTime;
+        }
+
+        animation.play();
 
         animation.finished.then(() => {
-            dispatchAnimation(finishAnimation(position, name, animationInfo.id));
+            dispatchAnimation(finishAnimation(position, name, animationId));
+        }, () => {
+
         });
 
-        dispatchAnimation(startAnimation(position, name, animationInfo.id));
+        return () => {
+            animation.cancel();
+        }
     }
 }
-
-function triggerCardAnimations(animationInfo, cardElement, dispatchAnimation, position) {
-    for(const name of ["move"]) {
-        tiggerAnimation(animationInfo, dispatchAnimation, position, name, cardElement);
-    }
-}
-
 
 function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
     const popupRef = useRef();
 
+    const animationId = animationInfo?.id;
     useEffect(() => {
-        if(animationInfo && popupRef.current) {
-            tiggerAnimation(animationInfo, dispatchAnimation, position, "popups", popupRef.current);
+        if(animationInfo?.popups && popupRef.current) {
+            return triggerAnimation(animationInfo.popups, animationId, dispatchAnimation, position, "popups", popupRef.current);
         }
-    }, [animationInfo, popupRef, dispatchAnimation, position]);
+    }, [animationInfo?.popups, animationId, popupRef, dispatchAnimation, position]);
 
     if(animationInfo?.popups === undefined) return;
 
@@ -172,9 +176,11 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
     const close = useCallback(() => setOpened(false), [setOpened]);
 
     const animationInfo = useMemo(() => getAnimationInfo(animationState, unit.position), [animationState, unit.position]);
-    useEffect(
-        () => animationInfo && triggerCardAnimations(animationInfo, wrapperRef.current, dispatchAnimation, unit.position),
-        [animationInfo, wrapperRef, dispatchAnimation, unit.position]);
+
+    const animationId = animationInfo?.id;
+    useEffect(() => {
+        return triggerAnimation(animationInfo?.move, animationId, dispatchAnimation, unit.position, "move", wrapperRef.current);
+    }, [animationInfo?.move, animationId, wrapperRef, dispatchAnimation, unit.position]);
 
     const descriptor = config && config.getUnitDescriptor(unit, gameState);
     if(!descriptor) return;
@@ -191,7 +197,7 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
     );
 
     return (
-        <div className="board-space-unit-wrapper" ref={wrapperRef} style={animationInfo?.move?.tileStyles}>
+        <div className="board-space-unit-wrapper" ref={wrapperRef} style={getMoveStyles(animationInfo)}>
             <div className="board-space-unit" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
                 {label}
                 <div className="board-space-centered board-space-attribute-featured">

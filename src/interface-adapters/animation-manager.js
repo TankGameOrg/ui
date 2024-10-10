@@ -81,10 +81,12 @@ function applyFinishAnimation(state, action) {
 
 function applyStartAnimation(state, action) {
     const animationsForTile = state.animationData[action.position.humanReadable];
-    if(!animationsForTile) return state;
+    if(!animationsForTile) {
+        return state;
+    }
 
     // This action was meant for an old animation discard it
-    if(animationsForTile.id !== action.targetId) {
+    if(animationsForTile.id !== action.targetId || animationsForTile[action.animationId] === undefined) {
         return state;
     }
 
@@ -96,7 +98,7 @@ function applyStartAnimation(state, action) {
                 ...animationsForTile,
                 [action.animationId]: {
                     ...animationsForTile[action.animationId],
-                    started: true,
+                    startTime: action.startTime,
                 },
             },
         }
@@ -145,7 +147,7 @@ export function animationsReducer(state, action) {
 }
 
 
-export const startAnimation = (position, animationId, targetId) => ({ type: "start-animation", position, animationId, targetId });
+export const startAnimation = (position, animationId, targetId, startTime) => ({ type: "start-animation", position, animationId, targetId, startTime });
 export const finishAnimation = (position, animationId, targetId) => ({ type: "finish-animation", position, animationId, targetId });
 
 
