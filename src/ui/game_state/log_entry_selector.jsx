@@ -25,14 +25,22 @@ function LogEntrySelectorInternal({ currentTurnMgrState, distachLogEntryMgr, deb
 
     if(debug) turnText += ` (turnId: ${currentTurnMgrState.entryId})`;
 
+
+    let playbackButtonText;
+    if(!currentTurnMgrState.canGoTo.latestTurn) {
+        playbackButtonText = "Play from start";
+    }
+    else if(currentTurnMgrState.playbackInProgress) {
+        playbackButtonText = "Pause playback";
+    }
+    else {
+        playbackButtonText = "Playback turns";
+    }
+
     return (
         <div className="turn-selector centered">
             {extraButtonsLeft}
-            <button
-                onClick={() => distachLogEntryMgr(togglePlayback())}
-                disabled={!currentTurnMgrState.canGoTo.latestTurn}>
-                    {currentTurnMgrState.playbackInProgress ? "Pause playback" : "Playback turns"}
-            </button>
+            <button onClick={() => distachLogEntryMgr(togglePlayback())}>{playbackButtonText}</button>
             <button
                 onClick={() => distachLogEntryMgr(goToPreviousDay())}
                 disabled={!currentTurnMgrState.canGoTo.previousDay}>

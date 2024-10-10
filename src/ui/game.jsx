@@ -13,6 +13,8 @@ import { getGameVersion } from "../versions/index.js";
 import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
+import { useStateAndAnimationData } from "../interface-adapters/animation-manager.js";
+
 
 
 export function Game({ game, navigate, debug }) {
@@ -20,13 +22,13 @@ export function Game({ game, navigate, debug }) {
     const [gameInfo, infoError] = useGameClient(game, client => client.getGameInfo());
 
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
-    const [gameState, stateError] = useGameClient(game,
-            client => currentTurnMgrState.entryId !== undefined && client.getGameState(currentTurnMgrState.entryId), [currentTurnMgrState.entryId])
-
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
     const versionConfig = gameInfo?.game?.gameVersion !== undefined ?
         getGameVersion(gameInfo.game.gameVersion) : undefined;
+
+    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, versionConfig, gameInfo?.logBook);
+    const {currentState: gameState} = animationState;
 
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";
@@ -93,6 +95,8 @@ export function Game({ game, navigate, debug }) {
                         {gameMessage !== undefined ? <div>{gameMessage}</div> : undefined}
                         <GameBoard
                             gameState={gameState}
+                            animationState={animationState}
+                            dispatchAnimation={dispatchAnimation}
                             config={versionConfig}
                             canSubmitAction={canSubmitAction}
                             setSelectedUser={setSelectedUser}
