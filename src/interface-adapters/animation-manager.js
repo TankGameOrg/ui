@@ -43,14 +43,13 @@ function groupAnimations(animations, versionConfig, currentGameState) {
 
 
 function buildAnimationData(entryId, previousEntryId, versionConfig, previousGameState, currentGameState, logBook) {
-    const logEntry = logBook.getEntry(entryId);
     let animations = [];
     // Show animations for entries that span 0 or 1 days
     const shouldDisplayAnimation = Math.abs(logBook.getDayOfEntryId(entryId) - logBook.getDayOfEntryId(previousEntryId)) < 2;
     const isForwardAnimation = entryId > previousEntryId;
 
     if(shouldDisplayAnimation && previousGameState) {
-        animations = versionConfig.addAnimationData(isForwardAnimation, logEntry, previousGameState, currentGameState);
+        animations = versionConfig.addAnimationData(isForwardAnimation, previousGameState, currentGameState);
     }
 
     return groupAnimations(animations, versionConfig, currentGameState);

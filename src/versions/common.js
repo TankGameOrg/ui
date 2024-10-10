@@ -106,7 +106,7 @@ const commonAttributeDescriptors = {
 const COST_ATTRIBUTES = new Set(["actions", "gold"]);
 
 
-export function addAnimationData(isForwardAnimation, logEntry, previousState, currentState) {
+export function addAnimationData(isForwardAnimation, previousState, currentState) {
     const animations = addAnimationsBetweenStates(previousState, currentState, {
         attributesToAnimate: [
             "position", // Track player movement
