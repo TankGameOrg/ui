@@ -92,19 +92,43 @@ function getMoveStyles(animationInfo) {
     }
 }
 
-const animationStartFunctor = {
-    move: (cardElement, animationInfo) => {
-        const moveStyles = getMoveStyles({ move: animationInfo });
+function useAnimation(animationInfo, animationRef, dispatchAnimation, position, name, animationStartClosure) {
+    const animationId = animationInfo?.id;
+    const animationSpecificInfo = animationInfo?.[name];
 
-        return cardElement.animate([
-            { transform: moveStyles.transform },
-            { transform: "translate(0, 0)" },
-        ], {
-            duration: 500,
-            rangeStart: "50%",
-        });
-    },
-    popups: (popupElement) => {
+    useEffect(() => {
+        const element = animationRef.current;
+
+        if(animationSpecificInfo !== undefined && element !== undefined) {
+            let animation = animationStartClosure(element, animationSpecificInfo);
+
+            if(animationSpecificInfo?.startTime === undefined) {
+                // On the first iteration save the start time so if the react
+                // state updates we can resume the animation
+                dispatchAnimation(startAnimation(position, name, animationId, Date.now()));
+            }
+            else {
+                // The animation has already started by the react state has been modified
+                // resume the animation from where it left off
+                animation.currentTime = Date.now() - animationSpecificInfo.startTime;
+            }
+
+            animation.finished.then(() => {
+                dispatchAnimation(finishAnimation(position, name, animationId));
+            }).catch(() => {
+                // Animation.cancel() causes animation.finished the throw a rejection
+                // to avoid annoying errors during development we eat the error
+                // https://developer.mozilla.org/en-US/docs/Web/API/Animation/cancel
+            });
+
+            return () => animation.cancel();
+        }
+    }, [animationSpecificInfo, animationId, animationRef, dispatchAnimation, position, name, animationStartClosure]);
+}
+
+function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
+    const popupRef = useRef();
+    useAnimation(animationInfo, popupRef, dispatchAnimation, position, "popups", (popupElement) => {
         return popupElement.animate([
             { offset: 0,   opacity: 0, transform: "translateY(10px)" },
             { offset: 0.1, opacity: 1, transform: "translateY(  0px)" },
@@ -113,43 +137,7 @@ const animationStartFunctor = {
         ], {
             duration: 1400,
         });
-    },
-};
-
-function triggerAnimation(animationInfo, animationId, dispatchAnimation, position, name, element) {
-    if(animationInfo !== undefined && element !== undefined) {
-        let animation = animationStartFunctor[name](element, animationInfo);
-
-        if(animationInfo?.startTime === undefined) {
-            dispatchAnimation(startAnimation(position, name, animationId, Date.now()));
-        }
-        else {
-            animation.currentTime = Date.now() - animationInfo.startTime;
-        }
-
-        animation.play();
-
-        animation.finished.then(() => {
-            dispatchAnimation(finishAnimation(position, name, animationId));
-        }, () => {
-
-        });
-
-        return () => {
-            animation.cancel();
-        }
-    }
-}
-
-function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
-    const popupRef = useRef();
-
-    const animationId = animationInfo?.id;
-    useEffect(() => {
-        if(animationInfo?.popups && popupRef.current) {
-            return triggerAnimation(animationInfo.popups, animationId, dispatchAnimation, position, "popups", popupRef.current);
-        }
-    }, [animationInfo?.popups, animationId, popupRef, dispatchAnimation, position]);
+    });
 
     if(animationInfo?.popups === undefined) return;
 
@@ -177,10 +165,17 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
 
     const animationInfo = useMemo(() => getAnimationInfo(animationState, unit.position), [animationState, unit.position]);
 
-    const animationId = animationInfo?.id;
-    useEffect(() => {
-        return triggerAnimation(animationInfo?.move, animationId, dispatchAnimation, unit.position, "move", wrapperRef.current);
-    }, [animationInfo?.move, animationId, wrapperRef, dispatchAnimation, unit.position]);
+    useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "move", (cardElement, animationInfo) => {
+        const moveStyles = getMoveStyles({ move: animationInfo });
+
+        return cardElement.animate([
+            { transform: moveStyles.transform },
+            { transform: "translate(0, 0)" },
+        ], {
+            duration: 500,
+            rangeStart: "50%",
+        });
+    });
 
     const descriptor = config && config.getUnitDescriptor(unit, gameState);
     if(!descriptor) return;
