@@ -173,7 +173,15 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
             { transform: "translate(0, 0)" },
         ], {
             duration: 500,
-            rangeStart: "50%",
+        });
+    });
+
+    useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "spawn", (cardElement) => {
+        return cardElement.animate([
+            { opacity: 0 },
+            { opacity: 1 },
+        ], {
+            duration: 200,
         });
     });
 
@@ -191,8 +199,18 @@ export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canS
         <div className="board-space-unit-title-placeholder"></div>
     );
 
+    let animationStyles;
+    if(animationInfo.spawn !== undefined) {
+        animationStyles = {
+            opacity: 0,
+        };
+    }
+    else if(animationInfo.move !== undefined) {
+        animationStyles = getMoveStyles(animationInfo);
+    }
+
     return (
-        <div className="board-space-unit-wrapper" ref={wrapperRef} style={getMoveStyles(animationInfo)}>
+        <div className="board-space-unit-wrapper" ref={wrapperRef} style={animationStyles}>
             <div className="board-space-unit" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
                 {label}
                 <div className="board-space-centered board-space-attribute-featured">

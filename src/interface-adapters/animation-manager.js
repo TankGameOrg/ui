@@ -36,6 +36,19 @@ function groupAnimations(animations, versionConfig, currentGameState) {
 
             continue;
         }
+
+        if(animation.type == "spawn") {
+            animationsForTile[animation.type] = {};
+            continue;
+        }
+
+        if(animation.type == "destroy") {
+            animationsForTile[animation.type] = {
+                element: animation.element,
+            };
+
+            continue;
+        }
     }
 
     return animationsByPosition;
