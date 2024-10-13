@@ -2,14 +2,14 @@ import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./desc
 import { LogEntryFormatter } from "./log-entry-formatter.js";
 
 export class GameVersion {
-    constructor({ logFormatter, unitDescriptors, floorTileDescriptors, manualPath, attributeDescriptors, findCooldowns, addAnimationData } = {}) {
+    constructor({ logFormatter, unitDescriptors, floorTileDescriptors, manualPath, attributeDescriptors, findCooldowns, getAnimationsForState } = {}) {
         this._logFormatter = logFormatter || new LogEntryFormatter();
         this._unitDescriptors = unitDescriptors || {};
         this._floorTileDescriptors = floorTileDescriptors || {};
         this._manualPath = manualPath;
         this._attributeDescriptors = attributeDescriptors || {};
         this.findCooldowns = findCooldowns || (() => []);
-        this.addAnimationData = addAnimationData;
+        this.getAnimationsForState = getAnimationsForState;
     }
 
     formatLogEntry(logEntry, gameState) {

@@ -350,8 +350,8 @@ describe("GameStateManager", () => {
     it("playback is halted when the last action is reached", async () => {
         let state = currentLogGameStateReducer(undefined, setLogBook(testLogbook));
         state = currentLogGameStateReducer(state, togglePlayback());
-        assert.ok(!state.playbackInProgress, "Playback can't be enabled on last turn");
-        assert.equal(state.lastAutoAdvance, 0);
+        assert.ok(state.playbackInProgress, "Playback can be restarted from the last turn");
+        assert.equal(state.entryId, 0);
 
         state = currentLogGameStateReducer(state, goToEntryId(10)); // 3nd to last turn
         state = currentLogGameStateReducer(state, togglePlayback());
@@ -374,10 +374,11 @@ describe("GameStateManager", () => {
         assert.ok(lastAdvance < state.lastAutoAdvance);
 
         state = currentLogGameStateReducer(state, autoAdvanceEntry());
-        assert.ok(!state.playbackInProgress, "Playback is disabled on the last turn");
+        assert.ok(!state.playbackInProgress, "Playback stops on the last turn");
         assert.equal(state.lastAutoAdvance, 0);
+
         state = currentLogGameStateReducer(state, togglePlayback());
-        assert.ok(!state.playbackInProgress, "Playback can't be enabled on last turn");
-        assert.equal(state.lastAutoAdvance, 0);
+        assert.ok(state.playbackInProgress, "Playback can be restarted from the last turn");
+        assert.equal(state.entryId, 0);
     });
 });

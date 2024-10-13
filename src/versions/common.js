@@ -106,7 +106,7 @@ const commonAttributeDescriptors = {
 const COST_ATTRIBUTES = new Set(["actions", "gold"]);
 
 
-export function addAnimationData(isForwardAnimation, previousState, currentState) {
+export function getAnimationsForState(isForwardAnimation, previousState, currentState) {
     const animations = addAnimationsBetweenStates(previousState, currentState, {
         attributesToAnimate: [
             "position", // Track player movement
@@ -153,7 +153,7 @@ export function addAnimationData(isForwardAnimation, previousState, currentState
 export const commonVersionConfig = {
     findCooldowns: findGlobalCooldowns,
     attributeDescriptors: commonAttributeDescriptors,
-    addAnimationData,
+    getAnimationsForState,
     logFormatter: new LogEntryFormatter(commonLogEntryFormatters),
     unitDescriptors: {
         Tank: TankDescriptor,

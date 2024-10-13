@@ -1,6 +1,11 @@
 import { useEffect, useReducer } from "preact/hooks";
 import { useGameClient } from "../drivers/rest/game-client.js";
 
+let now = () => Date.now();
+
+export function enableUnitTestNow() {
+    now = () => "current-time";
+}
 
 function groupAnimations(animations, versionConfig, currentGameState) {
     let animationsByPosition = {};
@@ -9,7 +14,7 @@ function groupAnimations(animations, versionConfig, currentGameState) {
     for(const animation of animations) {
         if(animationsByPosition[animation.position.humanReadable] === undefined) {
             animationsByPosition[animation.position.humanReadable] = {
-                id: `${Date.now()}-${++nextId}`,
+                id: `${now()}-${++nextId}`,
                 popups: {
                     list: [],
                 },
@@ -19,7 +24,10 @@ function groupAnimations(animations, versionConfig, currentGameState) {
         let animationsForTile =  animationsByPosition[animation.position.humanReadable];
 
         if(animation.key === "position") {
-            animationsForTile.move = animation;
+            animationsForTile.move = {
+                from: animation.from,
+                to: animation.to,
+            };
             continue;
         }
 
@@ -62,7 +70,7 @@ function buildAnimationData(entryId, previousEntryId, versionConfig, previousGam
     const isForwardAnimation = entryId > previousEntryId;
 
     if(shouldDisplayAnimation && previousGameState) {
-        animations = versionConfig.addAnimationData(isForwardAnimation, previousGameState, currentGameState);
+        animations = versionConfig.getAnimationsForState(isForwardAnimation, previousGameState, currentGameState);
     }
 
     return groupAnimations(animations, versionConfig, currentGameState);
@@ -84,7 +92,7 @@ function applyFinishAnimation(state, action) {
             ...state.animationData,
             [action.position.humanReadable]: {
                 ...animationsForTile,
-                [action.animationId]: undefined,
+                [action.animationKey]: undefined,
             },
         }
     }
@@ -98,7 +106,7 @@ function applyStartAnimation(state, action) {
     }
 
     // This action was meant for an old animation discard it
-    if(animationsForTile.id !== action.targetId || animationsForTile[action.animationId] === undefined) {
+    if(animationsForTile.id !== action.targetId || animationsForTile[action.animationKey] === undefined) {
         return state;
     }
 
@@ -108,8 +116,8 @@ function applyStartAnimation(state, action) {
             ...state.animationData,
             [action.position.humanReadable]: {
                 ...animationsForTile,
-                [action.animationId]: {
-                    ...animationsForTile[action.animationId],
+                [action.animationKey]: {
+                    ...animationsForTile[action.animationKey],
                     startTime: action.startTime,
                 },
             },
@@ -159,8 +167,8 @@ export function animationsReducer(state, action) {
 }
 
 
-export const startAnimation = (position, animationId, targetId, startTime) => ({ type: "start-animation", position, animationId, targetId, startTime });
-export const finishAnimation = (position, animationId, targetId) => ({ type: "finish-animation", position, animationId, targetId });
+export const startAnimation = (position, animationKey, targetId, startTime) => ({ type: "start-animation", position, animationKey, targetId, startTime });
+export const finishAnimation = (position, animationKey, targetId) => ({ type: "finish-animation", position, animationKey, targetId });
 
 
 export function useStateAndAnimationData(game, currentTurnMgrState, versionConfig, logBook) {
