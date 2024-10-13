@@ -5,7 +5,7 @@ import { DestructibleFloor } from "./shared/destructible-floor.js";
 import { findGlobalCooldowns } from "./shared/global-cooldown.js";
 import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./base/descriptors.js";
 import { prettyifyName } from "../utils.js";
-import { addAnimationsBetweenStates } from "../game/state/animation-data.js";
+import { findAnimationsBetweenStates } from "../game/state/animations.js";
 
 
 // Common log entries
@@ -107,7 +107,7 @@ const COST_ATTRIBUTES = new Set(["actions", "gold"]);
 
 
 export function getAnimationsForState(isForwardAnimation, previousState, currentState) {
-    const animations = addAnimationsBetweenStates(previousState, currentState, {
+    const animations = findAnimationsBetweenStates(previousState, currentState, {
         attributesToAnimate: [
             "position", // Track player movement
             "dead", // Certain attribute changes shouldn't be shown on death

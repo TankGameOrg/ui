@@ -51,7 +51,14 @@ function _buildElementMappings(gameState) {
 }
 
 
-export function addAnimationsBetweenStates(previousState, currentState, opts = {}) {
+/**
+ * Given a previous and current state return an array of animatable changes
+ * @param {*} previousState The previous state
+ * @param {*} currentState The current state
+ * @param {*} opts.attributesToAnimate An array of attributes who's changes we have animations for
+ * @returns
+ */
+export function findAnimationsBetweenStates(previousState, currentState, opts = {}) {
     let animations = [];
     const previousElements = _buildElementMappings(previousState);
     const currentElements = _buildElementMappings(currentState);
