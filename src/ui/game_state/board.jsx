@@ -7,13 +7,15 @@ import { prettyifyName } from "../../utils.js";
 import { AttributeList } from "./attribute-list.jsx";
 
 
-export function GameBoard({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, emptyMessage = "No board data supplied" }) {
+export function GameBoard({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, animationState, dispatchAnimation, emptyMessage = "No board data supplied" }) {
     if(!gameState?.board) return <p>{emptyMessage}</p>;
 
     try {
         return (
             <GameBoardView
                 gameState={gameState}
+                animationState={animationState}
+                dispatchAnimation={dispatchAnimation}
                 config={config}
                 canSubmitAction={canSubmitAction}
                 setSelectedUser={setSelectedUser}
@@ -29,7 +31,7 @@ export function GameBoard({ gameState, config, setSelectedUser, canSubmitAction,
     }
 }
 
-export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection }) {
+export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, animationState, dispatchAnimation }) {
     const selectedTargets = (locationSelector.locations || []);
     const {board} = gameState;
 
@@ -63,6 +65,8 @@ export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAct
 
             renderedRow.push(
                 <Space
+                    dispatchAnimation={dispatchAnimation}
+                    animationState={animationState}
                     unit={board.getUnitAt(position)}
                     floorTile={board.getFloorTileAt(position)}
                     onClick={onClick}
@@ -84,23 +88,18 @@ export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAct
     )
 }
 
-function Space({ unit, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState }) {
-    let tile = null;
-
-    // Try to place an unit in this space
-    if(unit && unit.type != "empty") {
-        tile = <UnitTile
-            unit={unit}
-            showPopupOnClick={!(onClick || disabled)}
-            config={config}
-            canSubmitAction={canSubmitAction}
-            setSelectedUser={setSelectedUser}
-            gameState={gameState}></UnitTile>;
-    }
-
+function Space({ unit, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState, animationState, dispatchAnimation }) {
     return (
         <Tile floorTile={floorTile} disabled={disabled} onClick={onClick} selected={selected} config={config} isCut={isCut}>
-            {tile}
+            <UnitTile
+                dispatchAnimation={dispatchAnimation}
+                unit={unit}
+                showPopupOnClick={!(onClick || disabled)}
+                config={config}
+                canSubmitAction={canSubmitAction}
+                setSelectedUser={setSelectedUser}
+                gameState={gameState}
+                animationState={animationState}></UnitTile>
         </Tile>
     );
 }

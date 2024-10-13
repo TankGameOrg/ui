@@ -89,6 +89,10 @@ export class PlayerRef {
     toString() {
         return this._playerName;
     }
+
+    equals(otherRef) {
+        return this._playerName === otherRef._playerName;
+    }
 }
 
 deserializer.registerDeserializer("player-ref-v1", (rawPlayerRef, helpers) => {

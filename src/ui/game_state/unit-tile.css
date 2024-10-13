@@ -43,6 +43,7 @@
     flex-direction: column;
     width: 100%;
     height: 100%;
+    position: relative;
 }
 
 .board-space-unit-badge {
@@ -57,4 +58,22 @@
 
 .board-space-unit-badges .separator {
     flex-grow: 1;
+}
+
+.unit-tile-animated-stat-popups {
+    position: absolute;
+    left: -50%;
+    bottom: var(--tank-game-cell-size);
+    width: 200%;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    opacity: 0;
+}
+
+.unit-tile-animated-stat-popup {
+    border-radius: 8px;
+    padding: 2px 5px;
+    margin: 2px 0px;
+    box-shadow: 0px 0px 8px #555;
 }

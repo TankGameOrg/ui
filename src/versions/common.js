@@ -5,6 +5,7 @@ import { DestructibleFloor } from "./shared/destructible-floor.js";
 import { findGlobalCooldowns } from "./shared/global-cooldown.js";
 import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./base/descriptors.js";
 import { prettyifyName } from "../utils.js";
+import { findAnimationsBetweenStates } from "../game/state/animations.js";
 
 
 // Common log entries
@@ -47,14 +48,46 @@ const commonAttributeDescriptors = {
     },
 
     ////////// Stats //////////
-    durability: AttributeDescriptor.make({ category: "stats" }),
-    range: AttributeDescriptor.make({ category: "stats" }),
-    speed: AttributeDescriptor.make({ category: "stats" }),
+    durability: AttributeDescriptor.make({
+        category: "stats",
+        animationStyle: {
+            background: "#f00",
+            color: "#fff",
+        },
+    }),
+    range: AttributeDescriptor.make({
+        category: "stats",
+        animationStyle: {
+            background: "#050",
+            color: "#fff",
+        },
+    }),
+    speed: AttributeDescriptor.make({
+        category: "stats",
+        animationStyle: {
+            background: "#f0f",
+            color: "#fff",
+        },
+    }),
 
     ////////// Resources //////////
-    gold: AttributeDescriptor.make({ category: "resources" }),
+    gold: AttributeDescriptor.make({
+        category: "resources",
+        animationStyle: {
+            background: "#fd0",
+            color: "#000",
+        },
+    }),
     actions: AttributeDescriptor.make({ category: "resources" }),
     power: AttributeDescriptor.make({ category: "resources" }),
+
+    ////////// Uncategorized attributes //////////
+    bounty: AttributeDescriptor.make({
+        animationStyle: {
+            background: "orange",
+            color: "#000",
+        },
+    }),
 
     ////////// Internal attributes //////////
     globalCooldownEndTime: AttributeDescriptor.make({ displayAs: "hidden" }),
@@ -70,9 +103,57 @@ const commonAttributeDescriptors = {
 };
 
 
+const COST_ATTRIBUTES = new Set(["actions", "gold"]);
+
+
+export function getAnimationsForState(isForwardAnimation, previousState, currentState) {
+    const animations = findAnimationsBetweenStates(previousState, currentState, {
+        attributesToAnimate: [
+            "position", // Track player movement
+            "dead", // Certain attribute changes shouldn't be shown on death
+            // Interesting attributes
+            "gold",
+            "bounty",
+            "speed",
+            "range",
+            "durability",
+            "actions",
+        ],
+    });
+
+    const positionsWithDeathChange = new Set(
+        animations
+            .filter(animation => animation.key == "dead")
+            .map(animation => animation.position.humanReadable)
+    );
+
+    return animations
+        .filter((animation) => {
+            // Death triggers a bunch of attribute changes including +2 durability
+            // Hide all of them to keep from confusing users
+            if(positionsWithDeathChange.has(animation.position.humanReadable)) {
+                return false;
+            }
+
+            // Don't show the changes to the cost attribute
+            if(COST_ATTRIBUTES.has(animation.key) && animation.type == "update-attribute" && animation.difference < 0) {
+                return false;
+            }
+
+            // Position is the only attribute change that can be reversed
+            if(!isForwardAnimation && animation.type == "update-attribute" && animation.difference !== undefined) {
+                return false;
+            }
+
+            return true;
+        });
+}
+
+
 export const commonVersionConfig = {
     findCooldowns: findGlobalCooldowns,
     attributeDescriptors: commonAttributeDescriptors,
+    getAnimationsForState,
     logFormatter: new LogEntryFormatter(commonLogEntryFormatters),
     unitDescriptors: {
         Tank: TankDescriptor,

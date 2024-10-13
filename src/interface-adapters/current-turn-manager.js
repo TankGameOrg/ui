@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "preact/hooks";
 
-const TURN_SWITCH_FREQENCY = 700;  // 0.7 seconds in ms
+const TURN_SWITCH_FREQENCY = 1500;  // 1.5 seconds in ms
 
 
 function useAutoTurnAdvance(state, dispatch) {
@@ -85,6 +85,10 @@ function processTurnUpdateAction(state, action) {
 
         // Set the last auto advance time when we start playing so we don't immediately jump to the next turn
         state.lastAutoAdvance = state.playbackInProgress ? Date.now() : 0;
+
+        if(state.entryId == state._logBook.getLastEntryId()) {
+            state.entryId = 0;
+        }
     }
 
     // If this was a player initiated turn change stop playback
