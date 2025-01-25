@@ -1,35 +1,10 @@
 #!/bin/bash
 set -e
 
-cd engine
-mvn clean compile package
-cd ..
+# Cd to repo root
+cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-npm ci
-rm -rf dist
-npm run build
-
-export GITHUB_OUTPUT="$(mktemp)"
-./scripts/get-version
-version="$(awk -F= '/version/ {print $2}' "$GITHUB_OUTPUT")"
-rm "$GITHUB_OUTPUT"
-
-BUNDLE_DIR="$(mktemp -d)"
-trap "rm -rf $BUNDLE_DIR" EXIT
-
-cp -r src "$BUNDLE_DIR/src"
-cp -r dist "$BUNDLE_DIR/www"
-mkdir "$BUNDLE_DIR/engine"
-cp engine/target/TankGame-*.jar "$BUNDLE_DIR/engine"
-cp package*.json "$BUNDLE_DIR/"
-
-cd "$BUNDLE_DIR/"
-npm ci --omit=dev
-cd - >/dev/null
-
-release_file="tank-game-$version.tar.xz"
-tar -C "$BUNDLE_DIR" -cJf "$release_file" .
-
-if [ "$1" == "release" ]; then
-    gh release create "$version" "$release_file" --generate-notes
-fi
+docker build "$@" \
+    -t "${IMAGE:-ghcr.io/tankgameorg/ui:development}" \
+    --build-arg BUILD_INFO="$(./scripts/get-version dev)" \
+    .
