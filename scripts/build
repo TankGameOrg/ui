@@ -27,7 +27,7 @@ cd "$BUNDLE_DIR/"
 npm ci --omit=dev
 cd - >/dev/null
 
-release_file="tank-game-$version.tar.xz"
+release_file="classic-tank-game-$version.tar.xz"
 tar -C "$BUNDLE_DIR" -cJf "$release_file" .
 
 if [ "$1" == "release" ]; then
