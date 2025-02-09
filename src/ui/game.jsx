@@ -1,5 +1,5 @@
 import { GameBoard } from "./game_state/board.jsx";
-import { useMemo } from "preact/hooks";
+import { useEffect, useMemo, useReducer } from "preact/hooks";
 import { LogEntrySelector } from "./game_state/log_entry_selector.jsx"
 import { SubmitTurn } from "./game_state/submit-turn/submit-turn.jsx";
 import { Council } from "./game_state/council.jsx";
@@ -10,11 +10,11 @@ import { AppContent } from "./app-content.jsx";
 import { GameManual } from "./game-manual.jsx";
 import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface-adapters/current-turn-manager.js";
 import { getGameVersion } from "../versions/index.js";
-import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
+import { setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
 import { useStateAndAnimationData } from "../interface-adapters/animation-manager.js";
-
+import { boardReducer } from "../interface-adapters/board/state.js";
 
 
 export function Game({ game, navigate, debug }) {
@@ -29,6 +29,14 @@ export function Game({ game, navigate, debug }) {
 
     const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, versionConfig, gameInfo?.logBook);
     const {currentState: gameState} = animationState;
+
+    const [newState, dispatchBoard] = useReducer(boardReducer);
+    useEffect(() => {
+        dispatchBoard({
+            type: "import-board",
+            gameState,
+        });
+    }, [gameState, dispatchBoard]);
 
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";
@@ -94,14 +102,13 @@ export function Game({ game, navigate, debug }) {
                     <div className="app-side-by-side-main">
                         {gameMessage !== undefined ? <div>{gameMessage}</div> : undefined}
                         <GameBoard
+                            boardState={newState?.board}
                             gameState={gameState}
                             animationState={animationState}
                             dispatchAnimation={dispatchAnimation}
                             config={versionConfig}
-                            canSubmitAction={canSubmitAction}
-                            setSelectedUser={setSelectedUser}
                             locationSelector={builtTurnState.locationSelector}
-                            selectLocation={location => buildTurnDispatch(selectLocation(location))}></GameBoard>
+                            dispatch={dispatchBoard}></GameBoard>
                     </div>
                     <div>
                         <Council

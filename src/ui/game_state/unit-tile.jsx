@@ -1,67 +1,28 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
 import "./unit-tile.css";
-import { Popup } from "../generic/popup.jsx";
 import { prettyifyName } from "../../utils.js";
-import { AttributeList } from "./attribute-list.jsx";
 import { finishAnimation, startAnimation } from "../../interface-adapters/animation-manager.js";
 
 
-function UnitDetails({ descriptor, unit, setSelectedUser, canSubmitAction, closePopup, versionConfig, gameState }) {
-    const title = prettyifyName(descriptor.getName() || unit.type);
-
-    const takeActionHandler = (player) => {
-        setSelectedUser(player.name);
-        closePopup();
+function makeBadgeStyle(badge) {
+    return {
+        color: badge.textColor,
+        background: badge.background,
     };
-
-    let takeActionButtons;
-    if(canSubmitAction && unit.playerRef) {
-        const player = unit.playerRef.getPlayer(gameState);
-
-        takeActionButtons =  (
-            <div className="unit-details-take-action centered" key={player.name}>
-                <button onClick={takeActionHandler.bind(undefined, player)}>Take Action</button>
-            </div>
-        );
-    }
-
-    const attributes = useMemo(() => {
-        let allAttributes = unit;
-
-        if(unit.playerRef) {
-            const player = unit.playerRef.getPlayer(gameState);
-            allAttributes = Object.assign({}, allAttributes, player);
-        }
-
-        return allAttributes;
-    }, [unit, gameState]);
-
-    return (
-        <>
-            <div className="unit-details-title-wrapper">
-                <h2>{title}</h2>
-            </div>
-            <AttributeList attributes={attributes} versionConfig={versionConfig}></AttributeList>
-            {takeActionButtons}
-        </>
-    )
 }
 
-
-function getBadgesForUnit(descriptor) {
-    const badgeAttribute = descriptor.getBadge();
-
-    const rightBadge = badgeAttribute !== undefined ? (
-        <div className="board-space-unit-badge right-badge" style={badgeAttribute.style}>
-            {badgeAttribute.text}
+function getBadgesForUnit(cell) {
+    const rightBadge = cell.badge !== undefined ? (
+        <div className="board-space-unit-badge right-badge" style={makeBadgeStyle(cell.badge)}>
+            {cell.badge.text}
         </div>
     ): undefined;
 
-    const indicators = descriptor.getIndicators()
-        .map(indicator => <span key={indicator.symbol} style={indicator.style}>{indicator.symbol}</span>);
+    const indicators = cell.indicators
+        .map(indicator => <span key={indicator.symbol} style={{ color: indicator.color }}>{indicator.symbol}</span>);
 
     const leftBadge = indicators.length > 0 ? (
-        <div className="board-space-unit-badge left-badge" style={{ background: descriptor.getIndicatorBackground() }}>
+        <div className="board-space-unit-badge left-badge" style={{ background: cell.indicatorBackground }}>
             {indicators}
         </div>
     ): undefined;
@@ -156,104 +117,91 @@ function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
     );
 }
 
-export function UnitTile({ unit, showPopupOnClick, config, setSelectedUser, canSubmitAction, gameState, animationState, dispatchAnimation }) {
-    const cardRef = useRef();
+export function UnitTile({ cell, config, gameState, animationState, dispatchAnimation }) {
     const wrapperRef = useRef();
-    const [opened, setOpened] = useState(false);
 
-    const close = useCallback(() => setOpened(false), [setOpened]);
-
-    const animationInfo = useMemo(() => getAnimationInfo(animationState, unit.position), [animationState, unit.position]);
+    // const animationInfo = useMemo(() => getAnimationInfo(animationState, position), [animationState, position]);
 
     // When we destory an element it is immediately removed from the state but we need something to fade out
     // so we add it back in here until the animation completes
-    if(animationInfo.destroy !== undefined) {
-        unit = animationInfo.destroy.element;
-    }
+    // if(animationInfo.destroy !== undefined) {
+    //     unit = animationInfo.destroy.element;
+    // }
 
-    useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "move", (cardElement, animationInfo) => {
-        const moveStyles = getMoveStyles({ move: animationInfo });
+    // useAnimation(animationInfo, wrapperRef, dispatchAnimation, position, "move", (cardElement, animationInfo) => {
+    //     const moveStyles = getMoveStyles({ move: animationInfo });
 
-        return cardElement.animate([
-            { transform: moveStyles.transform },
-            { transform: "translate(0, 0)" },
-        ], {
-            duration: 500,
-        });
-    });
+    //     return cardElement.animate([
+    //         { transform: moveStyles.transform },
+    //         { transform: "translate(0, 0)" },
+    //     ], {
+    //         duration: 500,
+    //     });
+    // });
 
-    useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "spawn", (cardElement) => {
-        return cardElement.animate([
-            { opacity: 0, transform: "scale(80%)", },
-            { opacity: 0.5, transform: "scale(100%)", },
-            { opacity: 1, transform: "scale(100%)", },
-        ], {
-            duration: 300,
-        });
-    });
+    // useAnimation(animationInfo, wrapperRef, dispatchAnimation, position, "spawn", (cardElement) => {
+    //     return cardElement.animate([
+    //         { opacity: 0, transform: "scale(80%)", },
+    //         { opacity: 0.5, transform: "scale(100%)", },
+    //         { opacity: 1, transform: "scale(100%)", },
+    //     ], {
+    //         duration: 300,
+    //     });
+    // });
 
-    useAnimation(animationInfo, wrapperRef, dispatchAnimation, unit.position, "destroy", (cardElement) => {
-        return cardElement.animate([
-            { opacity: 1, transform: "scale(100%)", },
-            { opacity: 0.5, transform: "scale(100%)", },
-            { opacity: 0, transform: "scale(80%)", },
-        ], {
-            duration: 300,
-        });
-    });
+    // useAnimation(animationInfo, wrapperRef, dispatchAnimation, position, "destroy", (cardElement) => {
+    //     return cardElement.animate([
+    //         { opacity: 1, transform: "scale(100%)", },
+    //         { opacity: 0.5, transform: "scale(100%)", },
+    //         { opacity: 0, transform: "scale(80%)", },
+    //     ], {
+    //         duration: 300,
+    //     });
+    // });
 
-    const descriptor = config && config.getUnitDescriptor(unit, gameState);
-    if(!descriptor) return;
+    const tileStyles = {
+        background: cell.icon || "",
+        color: cell.textColor || "#000",
+    };
 
-    const tileStyles = descriptor.getTileStyle().style;
-    const badges = getBadgesForUnit(descriptor);
+    const badges = getBadgesForUnit(cell);
 
-    const label = descriptor.getName() !== undefined ? (
+    const label = cell.label !== undefined ? (
         <div className="board-space-unit-title board-space-centered">
-            <div className="board-space-unit-title-inner">{prettyifyName(descriptor.getName())}</div>
+            <div className="board-space-unit-title-inner">{prettyifyName(cell.label)}</div>
         </div>
     ) : (
         <div className="board-space-unit-title-placeholder"></div>
     );
 
     let animationStyles;
-    if(animationInfo.spawn !== undefined) {
-        animationStyles = {
-            opacity: 0,
-            transform: "scale(80%)",
-        };
-    }
-    else if(animationInfo.move !== undefined) {
-        animationStyles = getMoveStyles(animationInfo);
-    }
+    // if(animationInfo.spawn !== undefined) {
+    //     animationStyles = {
+    //         opacity: 0,
+    //         transform: "scale(80%)",
+    //     };
+    // }
+    // else if(animationInfo.move !== undefined) {
+    //     animationStyles = getMoveStyles(animationInfo);
+    // }
 
-    if(unit.type == "empty") {
+    if(!cell.showUnitTile) {
         return;
     }
 
     return (
         <div className="board-space-unit-wrapper" ref={wrapperRef} style={animationStyles}>
-            <div className="board-space-unit" ref={cardRef} onClick={() => showPopupOnClick && setOpened(open => !open)} style={tileStyles}>
+            <div className="board-space-unit" style={tileStyles}>
                 {label}
                 <div className="board-space-centered board-space-attribute-featured">
-                    {descriptor.getFeaturedAttribute()}
+                    {cell.text}
                 </div>
                 {badges}
-                <AnimatedPopups
+                {/* <AnimatedPopups
                     animationInfo={animationInfo}
                     dispatchAnimation={dispatchAnimation}
-                    position={unit.position}></AnimatedPopups>
+                    position={position}></AnimatedPopups> */}
             </div>
-            <Popup opened={opened} anchorRef={cardRef} onClose={close}>
-                <UnitDetails
-                    versionConfig={config}
-                    descriptor={descriptor}
-                    unit={unit}
-                    canSubmitAction={canSubmitAction}
-                    setSelectedUser={setSelectedUser}
-                    closePopup={() => setOpened(false)}
-                    gameState={gameState}></UnitDetails>
-            </Popup>
         </div>
     );
 }

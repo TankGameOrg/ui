@@ -1,81 +1,38 @@
 import "./board.css";
 import { Position } from "../../game/state/board/position.js";
 import { UnitTile } from "./unit-tile.jsx";
-import { useRef, useState } from "preact/hooks";
+import { useRef } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
-import { prettyifyName } from "../../utils.js";
-import { AttributeList } from "./attribute-list.jsx";
+import { getCell } from "../../interface-adapters/board/state.js";
 
-
-export function GameBoard({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, animationState, dispatchAnimation, emptyMessage = "No board data supplied" }) {
-    if(!gameState?.board) return <p>{emptyMessage}</p>;
-
-    try {
-        return (
-            <GameBoardView
-                gameState={gameState}
-                animationState={animationState}
-                dispatchAnimation={dispatchAnimation}
-                config={config}
-                canSubmitAction={canSubmitAction}
-                setSelectedUser={setSelectedUser}
-                locationSelector={locationSelector}
-                selectLocation={selectLocation}
-                cutSelection={cutSelection}></GameBoardView>
-        );
-    }
-    catch(err) {
-        return (
-            <p>Failed to render board: {err.message}</p>
-        );
-    }
-}
-
-export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAction, locationSelector, selectLocation, cutSelection, animationState, dispatchAnimation }) {
-    const selectedTargets = (locationSelector.locations || []);
-    const {board} = gameState;
-
-    if(cutSelection === undefined) {
-        cutSelection = [];
+export function GameBoard({ gameState, config, dispatch, animationState, dispatchAnimation, boardState }) {
+    if(!boardState) {
+        return <p>No board data supplied</p>;
     }
 
-    let letters = [<Tile key="empty-coord" className="board-space-coordinate"></Tile>];
-    for(let x = 0; x < board.width; ++x) {
+    let letters = [<Coordiate key="empty-coord"></Coordiate>];
+    for(let x = 0; x < boardState.width; ++x) {
         const letter = new Position(x, 0).humanReadableX;
-        letters.push(<Tile key={`coord-x-${x}`} className="board-space-coordinate">{letter}</Tile>);
+        letters.push(<Coordiate key={`coord-x-${x}`}>{letter}</Coordiate>);
     }
 
     let renderedBoard = [<div key="coords-row" className="game-board-row">{letters}</div>];
 
-    for(let y = 0; y < board.height; ++y) {
-        let renderedRow = [<Tile key={`coord-y-${y}`} className="board-space-coordinate">{y + 1}</Tile>];
+    for(let y = 0; y < boardState.height; ++y) {
+        let renderedRow = [<Coordiate key={`coord-y-${y}`}>{y + 1}</Coordiate>];
 
-        for(let x = 0; x < board.width; ++x) {
-            const position = new Position(x, y);
-            const disabled = locationSelector.isSelecting &&
-                !locationSelector.selectableLocations.includes(position.humanReadable);
-            const isCut = cutSelection.includes(position.humanReadable);
-
-            const onClick = locationSelector.isSelecting && !disabled ? (e) => {
-                selectLocation(position.humanReadable, {
-                    ctrlKey: e.ctrlKey,
-                    shiftKey: e.shiftKey,
-                });
-            } : undefined;
+        for(let x = 0; x < boardState.width; ++x) {
+            const cell = getCell(boardState, x, y);
 
             renderedRow.push(
                 <Space
+                    x={x}
+                    y={y}
+                    cell={cell}
+                    dispatch={dispatch}
                     dispatchAnimation={dispatchAnimation}
                     animationState={animationState}
-                    unit={board.getUnitAt(position)}
-                    floorTile={board.getFloorTileAt(position)}
-                    onClick={onClick}
-                    disabled={disabled}
-                    selected={selectedTargets.includes(position.humanReadable)}
                     config={config}
-                    canSubmitAction={canSubmitAction}
-                    setSelectedUser={setSelectedUser}
-                    isCut={isCut}
                     gameState={gameState}></Space>
             );
         }
@@ -88,53 +45,66 @@ export function GameBoardView({ gameState, config, setSelectedUser, canSubmitAct
     )
 }
 
-function Space({ unit, floorTile, disabled, onClick, selected, config, setSelectedUser, canSubmitAction, isCut, gameState, animationState, dispatchAnimation }) {
+function Coordiate({ children }) {
     return (
-        <Tile floorTile={floorTile} disabled={disabled} onClick={onClick} selected={selected} config={config} isCut={isCut}>
+        <div className="board-space board-space-coordinate">
+            <div className="board-space-selected-overlay board-space-centered">
+                {children}
+            </div>
+        </div>
+    );
+}
+
+function Space({ cell, config, dispatch, x, y, gameState, animationState, dispatchAnimation }) {
+    return (
+        <Tile cell={cell} x={x} y={y} dispatch={dispatch}>
             <UnitTile
+                cell={cell}
                 dispatchAnimation={dispatchAnimation}
-                unit={unit}
-                showPopupOnClick={!(onClick || disabled)}
                 config={config}
-                canSubmitAction={canSubmitAction}
-                setSelectedUser={setSelectedUser}
                 gameState={gameState}
                 animationState={animationState}></UnitTile>
         </Tile>
     );
 }
 
-function Tile({ className = "", children, floorTile, disabled, onClick, selected, config, isCut } = {}) {
-    const [popupOpen, setPopupOpen] = useState(false);
+function Tile({ dispatch, children, cell, x, y } = {}) {
     const anchorRef = useRef();
+    let className = "";
 
-    if(onClick) {
+    if(cell.isClickable) {
         className += " board-space-selectable";
     }
 
-    if(isCut) {
+    if(cell.isCut) {
         className += " board-space-cut";
     }
 
-    let style = {};
-    if(floorTile) {
-        if(config && floorTile.type != "empty") {
-            const descriptor = config.getFloorTileDescriptor(floorTile);
-            style.background = descriptor.getBackground();
-        }
-
-        if(!onClick && !disabled && floorTile.type !== "empty" && children === null) {
-            onClick = () => setPopupOpen(popupOpen => !popupOpen);
-        }
-        else if(popupOpen) {
-            // We're doing something else with this space hide the popup
-            setPopupOpen(false);
-        }
-    }
-
-    if(disabled) {
+    if(cell.isDisabled) {
         className += " board-space-disabled";
     }
+
+    if(cell.isSelected) {
+        className += "board-space-overlay-selected";
+    }
+
+    const style = {
+        background: cell.background,
+    };
+
+    const onClick = cell.isDisabled ? undefined : e => dispatch({
+        type: "board.tile.click",
+        x,
+        y,
+        ctrlKey: e.ctrlKey,
+        shiftKey: e.shiftKey,
+    });
+
+    const onClose = () => dispatch({
+        type: "board.tile.popup.close",
+        x,
+        y,
+    });
 
     return (
         <>
@@ -143,16 +113,53 @@ function Tile({ className = "", children, floorTile, disabled, onClick, selected
                 onClick={onClick}
                 style={style}
                 ref={anchorRef}>
-                    <div className={`board-space-selected-overlay board-space-centered ${selected ? "board-space-overlay-selected" : ""}`}>
+                    <div className={`board-space-selected-overlay board-space-centered`}>
                         {children}
                     </div>
             </div>
-            <Popup opened={popupOpen} anchorRef={anchorRef} onClose={() => setPopupOpen(false)}>
-                <div className="unit-details-title-wrapper">
-                    <h2>{prettyifyName(floorTile?.type)}</h2>
-                </div>
-                <AttributeList attributes={floorTile} versionConfig={config}></AttributeList>
+            <Popup opened={cell.popup && cell.showPopup} anchorRef={anchorRef} onClose={onClose}>
+                {cell?.popup ?
+                    <PopupContents popup={cell.popup} dispatch={dispatch}></PopupContents> : undefined}
             </Popup>
         </>
+    );
+}
+
+function PopupContents({ popup, dispatch }) {
+    return (
+        <>
+            <div className="unit-details-title-wrapper">
+                <h2>{popup.title}</h2>
+            </div>
+            {popup.sections.map(section => (
+                <>
+                    <h3>{section.title}</h3>
+                    <table>
+                        {section.pairs.map(pair => (
+                            <tr key={pair.title}>
+                                <td>{pair.title}</td>
+                                <td>{pair.value}</td>
+                            </tr>
+                        ))}
+                    </table>
+                </>
+            ))}
+            {popup.buttons ?
+                <PopupButtons buttons={popup.buttons} dispatch={dispatch}></PopupButtons> : undefined}
+        </>
+    );
+}
+
+function PopupButtons({ buttons, dispatch }) {
+    return (
+        <div className="unit-details-take-action centered">
+            {buttons.map((button, i) => {
+                const click = () => dispatch({
+                    type: button.dispatchType,
+                });
+
+                <button key={i} onClick={click} disabled={!button.dispatchType}>{button.text}</button>
+            })}
+        </div>
     );
 }
