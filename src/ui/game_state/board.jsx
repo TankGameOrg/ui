@@ -71,6 +71,7 @@ function Space({ cell, config, dispatch, x, y, gameState, animationState, dispat
 function Tile({ dispatch, children, cell, x, y } = {}) {
     const anchorRef = useRef();
     let className = "";
+    let overlayClassName = "";
 
     if(cell.isClickable) {
         className += " board-space-selectable";
@@ -85,7 +86,7 @@ function Tile({ dispatch, children, cell, x, y } = {}) {
     }
 
     if(cell.isSelected) {
-        className += "board-space-overlay-selected";
+        overlayClassName += "board-space-overlay-selected";
     }
 
     const style = {
@@ -113,7 +114,7 @@ function Tile({ dispatch, children, cell, x, y } = {}) {
                 onClick={onClick}
                 style={style}
                 ref={anchorRef}>
-                    <div className={`board-space-selected-overlay board-space-centered`}>
+                    <div className={`board-space-selected-overlay board-space-centered ${overlayClassName}`}>
                         {children}
                     </div>
             </div>

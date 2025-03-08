@@ -26,6 +26,12 @@ function getCellIndex(state, x, y) {
     return (y * state.width) + x;
 }
 
+function getCellPosition(state, index) {
+    return new Position(
+        index % state.width,
+        Math.floor(index / state.width));
+}
+
 export function getCell(state, x, y) {
     return state.cells[getCellIndex(state, x, y)];
 }
@@ -42,6 +48,17 @@ export function modifyCell(state, x, y, modifyCell) {
             ...cells.slice(index + 1),
         ]
     };
+}
+
+export function getSelected(state) {
+    let selections = [];
+    for(let i = 0; i < state.cells.length; ++i) {
+        if(state.cells[i].isSelected) {
+            selections.push(getCellPosition(state, i));
+        }
+    }
+
+    return selections;
 }
 
 
@@ -125,6 +142,7 @@ export function boardReducer(state, action) {
     if(action.type == "import-board") {
         if(action.gameState) {
             return {
+                ...state,
                 board: boardFromBoard(action.gameState),
             };
         }
@@ -132,24 +150,53 @@ export function boardReducer(state, action) {
         return undefined;
     }
 
-    if(action.type == "board.tile.click") {
+    if(action.type == "start-selecting") {
         return {
+            ...state,
+            isSelecting: true,
+        };
+    }
+
+    if(action.type == "stop-selecting") {
+        return {
+            ...state,
+            isSelecting: false,
             board: modifyCell(state.board, action.x, action.y, current => ({
                 ...current,
-                // showPopup: true,
+                isSelected: false,
+            })),
+        };
+    }
+
+    if(action.type == "board.tile.click" && state.isSelecting) {
+        return {
+            ...state,
+            board: modifyCell(state.board, action.x, action.y, current => ({
+                ...current,
                 isSelected: !current.isSelected,
             })),
         };
     }
 
-    // if(action.type == "board.tile.popup.close") {
-    //     return {
-    //         board: modifyCell(state.board, action.x, action.y, current => ({
-    //             ...current,
-    //             showPopup: false,
-    //         })),
-    //     };
-    // }
+    if(action.type == "board.tile.click") {
+        return {
+            ...state,
+            board: modifyCell(state.board, action.x, action.y, current => ({
+                ...current,
+                showPopup: true,
+            })),
+        };
+    }
+
+    if(action.type == "board.tile.popup.close") {
+        return {
+            ...state,
+            board: modifyCell(state.board, action.x, action.y, current => ({
+                ...current,
+                showPopup: false,
+            })),
+        };
+    }
 
     console.log(action);
 
