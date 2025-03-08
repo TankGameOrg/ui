@@ -1,5 +1,5 @@
 import { GameBoard } from "./game_state/board.jsx";
-import { useEffect, useMemo, useReducer } from "preact/hooks";
+import { useEffect, useReducer } from "preact/hooks";
 import { LogEntrySelector } from "./game_state/log_entry_selector.jsx"
 import { SubmitTurn } from "./game_state/submit-turn/submit-turn.jsx";
 import { Council } from "./game_state/council.jsx";
@@ -14,7 +14,7 @@ import { setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
 import { useStateAndAnimationData } from "../interface-adapters/animation-manager.js";
-import { boardReducer } from "../interface-adapters/board/state.js";
+import { boardReducer } from "../interface-adapters/board/game-play-reducer.js";
 
 
 export function Game({ game, navigate, debug }) {

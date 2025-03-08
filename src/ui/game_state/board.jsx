@@ -22,7 +22,7 @@ export function GameBoard({ gameState, config, dispatch, animationState, dispatc
         let renderedRow = [<Coordiate key={`coord-y-${y}`}>{y + 1}</Coordiate>];
 
         for(let x = 0; x < boardState.width; ++x) {
-            const cell = getCell(boardState, x, y);
+            const cell = getCell(boardState, new Position(x, y));
 
             renderedRow.push(
                 <Space
@@ -42,7 +42,7 @@ export function GameBoard({ gameState, config, dispatch, animationState, dispatc
 
     return (
         <div className="game-board">{renderedBoard}</div>
-    )
+    );
 }
 
 function Coordiate({ children }) {
@@ -95,16 +95,14 @@ function Tile({ dispatch, children, cell, x, y } = {}) {
 
     const onClick = cell.isDisabled ? undefined : e => dispatch({
         type: "board.tile.click",
-        x,
-        y,
+        position: new Position(x, y),
         ctrlKey: e.ctrlKey,
         shiftKey: e.shiftKey,
     });
 
     const onClose = () => dispatch({
         type: "board.tile.popup.close",
-        x,
-        y,
+        position: new Position(x, y),
     });
 
     return (
@@ -159,7 +157,9 @@ function PopupButtons({ buttons, dispatch }) {
                     type: button.dispatchType,
                 });
 
-                <button key={i} onClick={click} disabled={!button.dispatchType}>{button.text}</button>
+                return (
+                    <button key={i} onClick={click} disabled={!button.dispatchType}>{button.text}</button>
+                );
             })}
         </div>
     );
