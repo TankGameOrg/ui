@@ -153,12 +153,10 @@ function PopupButtons({ buttons, dispatch }) {
     return (
         <div className="unit-details-take-action centered">
             {buttons.map((button, i) => {
-                const click = () => dispatch({
-                    type: button.dispatchType,
-                });
+                const click = () => dispatch(button.dispatch);
 
                 return (
-                    <button key={i} onClick={click} disabled={!button.dispatchType}>{button.text}</button>
+                    <button key={i} onClick={click} disabled={!button.dispatch === undefined}>{button.text}</button>
                 );
             })}
         </div>

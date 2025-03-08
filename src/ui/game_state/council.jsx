@@ -1,8 +1,5 @@
 import { prettyifyName } from "../../utils.js";
-import { AttributeList } from "./attribute-list.jsx";
 import "./council.css";
-
-const EXCLUDED_ATTRIBUTES = new Set(["armistice"]);
 
 export function Council({ gameState, config, setSelectedUser, canSubmitAction }) {
     if(!gameState || !config) {
@@ -14,7 +11,7 @@ export function Council({ gameState, config, setSelectedUser, canSubmitAction })
     return (
         <>
             <ArmisticeClock armistice={gameState.council.armistice}></ArmisticeClock>
-            <AttributeList attributes={gameState.council} versionConfig={config} excludedAttributes={EXCLUDED_ATTRIBUTES}></AttributeList>
+            <div>Coffer: {gameState.council.coffer}</div>
             <div className="user-list">
                 <Section
                     key="councillors"

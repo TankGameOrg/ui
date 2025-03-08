@@ -1,16 +1,134 @@
 import { Position } from "../../game/state/board/position.js";
-import { TankDescriptor } from "../../versions/shared/tank.js";
-import { Wall } from "../../versions/shared/wall.js";
+import { imageBackground } from "../../versions/base/descriptors.js";
 import { createBoard, modifyAllCells, modifyCell, modifyCellsFromList } from "./state.js";
 
-function getProperties(entity) {
-    return [{
-        title: "Attributes",
-        pairs: Object.keys(entity).map(key => ({
-            title: key,
-            value: entity[key].toString(),
-        }))
-    }];
+const TANK_TEAMS_WITH_ICONS = new Set([
+    "abrams",
+    "centurion",
+    "leopard",
+    "olifant",
+]);
+
+const NUM_WALL_STAGES = 6;
+
+const unitFactories = {
+    "Tank": (unit, gameState) => {
+        let player;
+        if(unit.playerRef) {
+            player = unit.playerRef.getPlayer(gameState);
+        }
+
+        const isDead = unit.dead;
+
+        let icon = isDead ? "DeadTank" : "Tank"
+
+        const team = player?.team?.toLowerCase?.();
+        if(TANK_TEAMS_WITH_ICONS.has(team)) {
+            icon = `Tank-${team}${isDead ? "-dead" : ""}`;
+        }
+
+        let indicators = [];
+        const bounty = unit.bounty;
+        if(bounty !== undefined && bounty > 0) {
+            indicators.push({
+                symbol: "B",
+                color: "orange",
+            });
+        }
+
+        let {actions} = unit;
+        if(actions === undefined) return;
+
+        if(actions?.value !== undefined) {
+            actions = actions.value;
+        }
+
+        return {
+            label: player?.name,
+            text: unit.durability?.value !== undefined ? unit.durability.value : unit.durability,
+            textColor: "#fff",
+            icon: imageBackground(icon),
+            indicators,
+            indicatorBackground: "#000",
+            badge: {
+                text: actions,
+                background: "#00f",
+                textColor: "#fff",
+            },
+            popup: {
+                title: player?.name || "Tank",
+                sections: [
+                    {
+                        pairs: [
+                            {
+                                title: "Durability",
+                                value: unit.durability,
+                            },
+                            {
+                                title: "Bounty",
+                                value: unit.bounty,
+                            },
+                        ],
+                    },
+                    {
+                        title: "Resources",
+                        pairs: [
+                            {
+                                title: "Actions",
+                                value: unit.actions,
+                            },
+                            {
+                                title: "Gold",
+                                value: unit.gold,
+                            },
+                        ],
+                    },
+                    {
+                        title: "Stats",
+                        pairs: [
+                            {
+                                title: "Range",
+                                value: unit.range,
+                            },
+                        ],
+                    },
+                ],
+                buttons: [
+                    {
+                        text: "Submit Action",
+                        dispatch: {
+                            type: "start-selecting",
+                            selectable: [new Position("A1")]
+                        },
+                    },
+                ]
+            },
+        };
+    },
+    "Wall": (unit) => {
+        const durability = unit.durability;
+
+        let status = "";
+        if(durability.max !== undefined) {
+            status = Math.round((durability.value / durability.max) * NUM_WALL_STAGES);
+        }
+        else {
+            status = Math.min(durability, NUM_WALL_STAGES);
+        }
+
+        return {
+            icon: imageBackground(`Wall-${status}`),
+            popup: {
+                title: "Wall",
+                sections: [{
+                    pairs: [{
+                        title: "Durability",
+                        value: unit.durability,
+                    }],
+                }],
+            },
+        };
+    },
 }
 
 export function boardFromBoard(gameState) {
@@ -20,54 +138,24 @@ export function boardFromBoard(gameState) {
         const unit = board.getUnitAt(position);
         const floor = board.getFloorTileAt(position);
 
-        let descriptor;
-        if(unit.type == "Tank") {
-            descriptor = new TankDescriptor(unit, gameState);
-        }
-        else if(unit.type == "Wall") {
-            descriptor = new Wall(unit, gameState);
-        }
-
         let unitProps = {
             showUnitTile: false,
             showPopup: false,
             indicators: [],
         };
 
-        if(descriptor) {
-            const {style: { color: textColor, background: icon }} = descriptor.getTileStyle();
-            const badge = descriptor.getBadge();
-
+        const unitFactory = unitFactories[unit.type];
+        if(unitFactory) {
             unitProps = {
+                ...unitProps,
                 showUnitTile: true,
-                icon,
-                textColor,
-                text: descriptor.getFeaturedAttribute(),
-                label: descriptor.getName(),
-                badge: badge && {
-                    text: badge.text,
-                    background: badge.style.background,
-                    textColor: badge.style.color,
-                },
-                indicators: descriptor.getIndicators().map(indicator => ({
-                    symbol: indicator.symbol,
-                    color: indicator.style.color,
-                })),
-                indicatorBackground: descriptor.getIndicatorBackground(),
-                showPopup: false,
-                popup: {
-                    title: descriptor.getName() || unit.type,
-                    sections: getProperties(unit),
-                    buttons: [
-                        { text: "Submit Action", dispatchType: "start-selecting" },
-                    ]
-                },
+                ...unitFactory(unit, gameState),
             };
         }
         else if(floor.type != "empty") {
             unitProps.popup = {
                 title: floor.type,
-                sections: getProperties(floor),
+                sections: [],
             };
         }
 

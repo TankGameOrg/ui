@@ -1,10 +1,5 @@
 import { LogEntryFormatter } from "./base/log-entry-formatter.js";
-import { TankDescriptor } from "./shared/tank.js";
-import { Wall } from "./shared/wall.js";
-import { DestructibleFloor } from "./shared/destructible-floor.js";
 import { findGlobalCooldowns } from "./shared/global-cooldown.js";
-import { AttributeDescriptor, UnitDescriptor, FloorTileDescriptor } from "./base/descriptors.js";
-import { prettyifyName } from "../utils.js";
 import { findAnimationsBetweenStates } from "../game/state/animations.js";
 
 
@@ -40,67 +35,67 @@ const commonLogEntryFormatters = {
     loot: (entry, formatter) => `${entry.subject} looted ${formatter.describeLocation(LogEntryFormatter.UNIT_ONLY)}`,
 };
 
-const commonAttributeDescriptors = {
-    team: class extends AttributeDescriptor {
-        getValueText() {
-            return prettyifyName(this.attribute);
-        }
-    },
+// const commonAttributeDescriptors = {
+//     team: class extends AttributeDescriptor {
+//         getValueText() {
+//             return prettyifyName(this.attribute);
+//         }
+//     },
 
-    ////////// Stats //////////
-    durability: AttributeDescriptor.make({
-        category: "stats",
-        animationStyle: {
-            background: "#f00",
-            color: "#fff",
-        },
-    }),
-    range: AttributeDescriptor.make({
-        category: "stats",
-        animationStyle: {
-            background: "#050",
-            color: "#fff",
-        },
-    }),
-    speed: AttributeDescriptor.make({
-        category: "stats",
-        animationStyle: {
-            background: "#f0f",
-            color: "#fff",
-        },
-    }),
+//     ////////// Stats //////////
+//     durability: AttributeDescriptor.make({
+//         category: "stats",
+//         animationStyle: {
+//             background: "#f00",
+//             color: "#fff",
+//         },
+//     }),
+//     range: AttributeDescriptor.make({
+//         category: "stats",
+//         animationStyle: {
+//             background: "#050",
+//             color: "#fff",
+//         },
+//     }),
+//     speed: AttributeDescriptor.make({
+//         category: "stats",
+//         animationStyle: {
+//             background: "#f0f",
+//             color: "#fff",
+//         },
+//     }),
 
-    ////////// Resources //////////
-    gold: AttributeDescriptor.make({
-        category: "resources",
-        animationStyle: {
-            background: "#fd0",
-            color: "#000",
-        },
-    }),
-    actions: AttributeDescriptor.make({ category: "resources" }),
-    power: AttributeDescriptor.make({ category: "resources" }),
+//     ////////// Resources //////////
+//     gold: AttributeDescriptor.make({
+//         category: "resources",
+//         animationStyle: {
+//             background: "#fd0",
+//             color: "#000",
+//         },
+//     }),
+//     actions: AttributeDescriptor.make({ category: "resources" }),
+//     power: AttributeDescriptor.make({ category: "resources" }),
 
-    ////////// Uncategorized attributes //////////
-    bounty: AttributeDescriptor.make({
-        animationStyle: {
-            background: "orange",
-            color: "#000",
-        },
-    }),
+//     ////////// Uncategorized attributes //////////
+//     bounty: AttributeDescriptor.make({
+//         animationStyle: {
+//             background: "orange",
+//             color: "#000",
+//         },
+//     }),
 
-    ////////// Internal attributes //////////
-    globalCooldownEndTime: AttributeDescriptor.make({ displayAs: "hidden" }),
-    type: AttributeDescriptor.make({ displayAs: "hidden" }),
-    previousSpeed: AttributeDescriptor.make({ displayAs: "hidden" }),
-    councillors: AttributeDescriptor.make({ displayAs: "hidden" }),
-    senators: AttributeDescriptor.make({ displayAs: "hidden" }),
-    playerRef: AttributeDescriptor.make({ displayAs: "hidden" }),
-    position: AttributeDescriptor.make({ displayAs: "hidden" }),
-    name: AttributeDescriptor.make({ displayAs: "hidden" }),
-    dead: AttributeDescriptor.make({ displayAs: "hidden" }),
-    canBounty: AttributeDescriptor.make({ displayAs: "hidden" }),
-};
+//     ////////// Internal attributes //////////
+//     globalCooldownEndTime: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     type: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     previousSpeed: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     councillors: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     senators: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     playerRef: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     position: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     name: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     dead: AttributeDescriptor.make({ displayAs: "hidden" }),
+//     canBounty: AttributeDescriptor.make({ displayAs: "hidden" }),
+// };
 
 
 const COST_ATTRIBUTES = new Set(["actions", "gold"]);
@@ -152,19 +147,6 @@ export function getAnimationsForState(isForwardAnimation, previousState, current
 
 export const commonVersionConfig = {
     findCooldowns: findGlobalCooldowns,
-    attributeDescriptors: commonAttributeDescriptors,
     getAnimationsForState,
     logFormatter: new LogEntryFormatter(commonLogEntryFormatters),
-    unitDescriptors: {
-        Tank: TankDescriptor,
-        Wall,
-        LootBox: UnitDescriptor.make({ backgroundImage: "loot-box", }),
-    },
-    floorTileDescriptors: {
-        GoldMine: FloorTileDescriptor.make({ background: "#fd0" }),
-        HealthPool: FloorTileDescriptor.make({ backgroundImage: "health-pool" }),
-        UnwalkableFloor: FloorTileDescriptor.make({ backgroundImage: "unwalkable-floor" }),
-        DestructibleFloor,
-        Lava: FloorTileDescriptor.make({ background: "#f40" }),
-    },
 };

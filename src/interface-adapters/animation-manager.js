@@ -33,6 +33,7 @@ function groupAnimations(animations, versionConfig, currentGameState) {
 
         if(animation.type == "update-attribute" && animation.difference !== undefined) {
             const unit = currentGameState.board.getUnitAt(animation.position);
+            // TODO: Remove unused method
             const attributeConfig = versionConfig.getAttributeDescriptor(animation.key, unit[animation.key]);
 
             animationsForTile.popups.list.push({

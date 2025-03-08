@@ -40,17 +40,24 @@ class FormatingHelpers {
         if(unit) {
             const unitAtLocation = this._gameState.board.getUnitAt(position);
             // Don't set info for empty entities so players can see the floor
-            if(unitAtLocation && unitAtLocation.type != "empty") {
-                const descriptor = this._version.getUnitDescriptor(unitAtLocation, this._gameState);
-                info = descriptor.formatForLogEntry();
+            if(unitAtLocation) {
+                if(unitAtLocation.type == "tank") {
+                    info = unitAtLocation.playerRef?.getPlayer?.(this._gameState)?.name;
+
+                    if(unitAtLocation.unit.dead) {
+                        info += " [dead]";
+                    }
+                }
+                else {
+                    info = unitAtLocation.type;
+                }
             }
         }
 
         if(!info && floor) {
             const floorTileAtLocation = this._gameState.board.getFloorTileAt(position);
             if(floorTileAtLocation && floorTileAtLocation.type != "empty") {
-                const descriptor = this._version.getFloorTileDescriptor(floorTileAtLocation);
-                info = descriptor.formatForLogEntry();
+                info = floorTileAtLocation.type;
             }
         }
 
