@@ -6,10 +6,16 @@ import QRCode from "qrcode";
 // Send user to the github since this instance might not be accessible from their phones
 const MANUAL_URL_BASE = "https://github.com/TankGameOrg/ui/blob/main/";
 
+const MANUAL_PATHS = {
+    "default-v3": "/manuals/default-v3.html",
+    "default-v4": "/manuals/default-v4.html",
+}
 
-export function GameManual({ manualPath }) {
+
+export function GameManual({ gameVersion }) {
     const [isManualOpen, setManualOpen] = useState(false);
     const [qrImage, setQrImage] = useState();
+    const manualPath = MANUAL_PATHS[gameVersion];
 
     useEffect(() => {
         if(!manualPath) return;

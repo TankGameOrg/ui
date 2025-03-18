@@ -1,10 +1,8 @@
 import assert from "node:assert";
 import { Game } from "../../../../src/game/execution/game.js";
 import { LogBook } from "../../../../src/game/state/log-book/log-book.js";
-import { PossibleActionSourceSet } from "../../../../src/game/possible-actions/index.js";
 import { MockEngine } from "./mock-engine.js";
 import { LogEntry } from "../../../../src/game/state/log-book/log-entry.js";
-import Player from "../../../../src/game/state/players/player.js";
 
 class MockInteractor {
     constructor(opts) {
@@ -15,8 +13,6 @@ class MockInteractor {
         return this.opts.gameData.logBook;
     }
 }
-
-class MockVersionConfig {}
 
 class MockLogEntryFormatter {
     formatLogEntry(logEntry) {
@@ -51,7 +47,6 @@ async function buildTestGame({ autoStartOfDay, isGameOpen = () => true, waitForL
     let game = new Game({
         engineManager: createEngineManager(gameVersion),
         createInteractor,
-        getGameVersion,
         createAutoStartOfDay,
         gameDataPromise: Promise.resolve({
             gameVersion,
@@ -85,7 +80,6 @@ function createEngineManager(expectedRuleset) {
 }
 
 const createInteractor = opts => new MockInteractor(opts);
-const getGameVersion = () => new MockVersionConfig();
 
 describe("Game", () => {
     it("can load a basic game", async () => {

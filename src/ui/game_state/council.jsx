@@ -1,8 +1,8 @@
 import { prettyifyName } from "../../utils.js";
 import "./council.css";
 
-export function Council({ gameState, config, setSelectedUser, canSubmitAction }) {
-    if(!gameState || !config) {
+export function Council({ gameState, setSelectedUser, canSubmitAction }) {
+    if(!gameState) {
         return "Loading...";
     }
 

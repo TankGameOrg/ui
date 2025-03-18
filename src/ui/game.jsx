@@ -9,7 +9,6 @@ import { OpenHours } from "./open-hours.jsx";
 import { AppContent } from "./app-content.jsx";
 import { GameManual } from "./game-manual.jsx";
 import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface-adapters/current-turn-manager.js";
-import { getGameVersion } from "../versions/index.js";
 import { setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
@@ -24,10 +23,7 @@ export function Game({ game, navigate, debug }) {
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
-    const versionConfig = gameInfo?.game?.gameVersion !== undefined ?
-        getGameVersion(gameInfo.game.gameVersion) : undefined;
-
-    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, versionConfig, gameInfo?.logBook);
+    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, gameInfo?.logBook);
     const {currentState: gameState} = animationState;
 
     const [newState, dispatchBoard] = useReducer(boardReducer);
@@ -106,19 +102,17 @@ export function Game({ game, navigate, debug }) {
                             gameState={gameState}
                             animationState={animationState}
                             dispatchAnimation={dispatchAnimation}
-                            config={versionConfig}
                             locationSelector={builtTurnState.locationSelector}
                             dispatch={dispatchBoard}></GameBoard>
                     </div>
                     <div>
                         <Council
                             gameState={gameState}
-                            config={versionConfig}
                             setSelectedUser={setSelectedUser}
                             canSubmitAction={canSubmitAction}></Council>
                         <OpenHours openHours={gameInfo?.openHours} debug={debug}></OpenHours>
-                        <CooldownList gameState={gameState} versionConfig={versionConfig}></CooldownList>
-                        <GameManual manualPath={versionConfig?.getManual?.()}></GameManual>
+                        <CooldownList gameState={gameState}></CooldownList>
+                        <GameManual gameVersion={gameInfo?.game?.gameVersion}></GameManual>
                     </div>
                 </div>
                 <div className="centered">

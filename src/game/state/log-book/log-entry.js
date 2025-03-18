@@ -2,6 +2,7 @@ import { deserializer } from "../../../deserialization.js";
 import { Dice } from "../../possible-actions/die.js";
 import { Position } from "../board/position.js";
 import Player, { PlayerRef } from "../players/player.js";
+import { defaultFormatter } from "./formatter.js";
 
 export class LogEntry {
     constructor(rawLogEntry, message, dieRolls) {
@@ -64,7 +65,7 @@ export class LogEntry {
         return new Date(this.rawLogEntry.timestamp * 1000);
     }
 
-    updateMessageWithBoardState({ logEntryFormatter, previousState, actions }) {
+    updateMessageWithBoardState({ previousState, actions }) {
         this.dieRolls = {};
         const rollFields = Object.keys(this.rawLogEntry)
             .map(key => ({ key, value: this.rawLogEntry[key] }))
@@ -82,7 +83,7 @@ export class LogEntry {
             }
         }
 
-        this.message = logEntryFormatter.formatLogEntry(this, previousState);
+        this.message = defaultFormatter.format(this, previousState);
     }
 
     finalizeEntry({ actions }) {

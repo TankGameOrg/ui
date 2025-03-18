@@ -2,7 +2,6 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { logger } from "#platform/logging.js";
-import { getGameVersion } from "../../versions/index.js";
 import { deserializer } from "../../deserialization.js";
 
 const STATIC_DIR = "www";
@@ -139,7 +138,7 @@ export function defineRoutes(app, buildInfo, engineManager) {
             engineManager.listAvailableEngines()
                 .map(gameVersionInfo => ({
                     ...gameVersionInfo,
-                    supportedByUI: !!getGameVersion(gameVersionInfo.gameVersion),
+                    supportedByUI: true, // TODO: Deprecate me
                 }))
         );
     });

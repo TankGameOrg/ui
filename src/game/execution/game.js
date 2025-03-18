@@ -1,6 +1,5 @@
 import { logger } from "#platform/logging.js";
 import { prettyifyName } from "../../utils.js";
-import { getGameVersion as defaultGetGameVersion } from "../../versions/index.js";
 import { AutomaticStartOfDay } from "../open-hours/automatic-start-of-day.js";
 import { PossibleActionSourceSet } from "../possible-actions/index.js";
 import { StartOfDaySource } from "../possible-actions/start-of-day-source.js";
@@ -24,7 +23,6 @@ export class Game {
         this._factories = {
             engineManager: opts.engineManager,
             createInteractor: opts.createInteractor || createDefaultInteractor,
-            getGameVersion:  opts.getGameVersion || defaultGetGameVersion,
             createAutoStartOfDay: opts.createAutoStartOfDay || createDefaultAutoStartOfDay,
         };
     }
@@ -63,7 +61,6 @@ export class Game {
             // After this point shutdown with directly terminte the interactor
             if(this._hasBeenShutDown) return;
 
-            const gameVersion = this._factories.getGameVersion(this._gameData.gameVersion);
             const engine = this._getEngineFactory().createEngine(this._gameData.gameVersion);
             let actionFactories = new PossibleActionSourceSet(
                 engine.getEngineSpecificSource ? [engine.getEngineSpecificSource()] : []);
@@ -79,7 +76,6 @@ export class Game {
                 saveHandler: this._saveHandler,
                 onGameOver: this._setGameOver.bind(this),
                 actionFactories,
-                logEntryFormatter: gameVersion,
             });
 
             await this._interactor.loaded;

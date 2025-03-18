@@ -1,20 +1,19 @@
 import { logger } from "#platform/logging.js";
-import { Position } from "../../game/state/board/position.js";
-import { prettyifyName } from "../../utils.js";
+import { prettyifyName } from "../../../utils.js";
 
-export class LogEntryFormatter {
+class LogEntryFormatter {
     constructor(formatFunctions = {}) {
         this._formatFunctions = formatFunctions;
     }
 
-    format(logEntry, gameState, version) {
+    format(logEntry, gameState) {
         const formatFunction = this._formatFunctions[logEntry.type];
         if(!formatFunction) {
             logger.warn({ msg: `Missing formatter for ${logEntry.type}`, logEntry });
             return `Log entry type ${logEntry.type} is not supported`;
         }
 
-        return formatFunction(logEntry.rawLogEntry, new FormatingHelpers(gameState, version, logEntry));
+        return formatFunction(logEntry.rawLogEntry, new FormatingHelpers(gameState, logEntry));
     }
 }
 
@@ -23,9 +22,8 @@ class FormatingHelpers {
     static FLOOR_ONLY = { unit: false, floor: true }
     static UNIT_AND_FLOOR = { unit: true, floor: true }
 
-    constructor(gameState, version, logEntry) {
+    constructor(gameState, logEntry) {
         this._gameState = gameState;
-        this._version = version;
         this._logEntry = logEntry;
     }
 
@@ -79,3 +77,39 @@ class FormatingHelpers {
         return `${prefix}${roll.map(dieSide => dieSide.display).join(", ")}${suffix}`;
     }
 }
+
+
+// Common log entries
+function shoot(entry, formatter) {
+    const verb = entry.hit || entry.hit === undefined ? "shot" : "missed";
+    const target = formatter.describeLocation();
+
+    let damageInfo = "";
+    if(entry.damage !== undefined) {
+        damageInfo = ` dealing ${entry.damage} damage`;
+    }
+
+    return `${entry.subject} ${verb}${damageInfo} ${target}${formatter.dieRoll("hit_roll", { prefix: " [", suffix: "]" })}`
+}
+
+const commonLogEntryFormatters = {
+    shoot,
+    start_of_day: entry => `Start of day ${entry.day}`,
+    buy_action: entry => `${entry.subject} traded ${entry.gold} gold for actions`,
+    donate: entry => `${entry.subject} donated ${entry.donation} pre-tax gold to ${entry.target_player}`,
+    upgrade_range: entry => `${entry.subject} upgraded their range`,
+    bounty: entry => `${entry.subject} placed a ${entry.bounty} gold bounty on ${entry.target_player}`,
+    stimulus: entry => `${entry.subject} granted a stimulus of 1 action to ${entry.target_player}`,
+    grant_life: entry => `${entry.subject} granted 1 life to ${entry.target_player}`,
+    spawn_wall: entry => `${entry.subject} spawned a wall at ${entry.target_position}`,
+    spawn_lava: entry => `${entry.subject} spawned a lava at ${entry.target_position}`,
+    smite: entry => `${entry.subject} smote ${entry.target_player}`,
+    heal: entry => `${entry.subject} healed ${entry.target_player}`,
+    slow: entry => `${entry.subject} slowed ${entry.target_player}`,
+    hasten: entry => `${entry.subject} hastened ${entry.target_player}`,
+    move: (entry, formatter) =>`${entry.subject} moved to ${formatter.describeLocation(LogEntryFormatter.FLOOR_ONLY)}`,
+    loot: (entry, formatter) => `${entry.subject} looted ${formatter.describeLocation(LogEntryFormatter.UNIT_ONLY)}`,
+};
+
+
+export const defaultFormatter = new LogEntryFormatter(commonLogEntryFormatters);

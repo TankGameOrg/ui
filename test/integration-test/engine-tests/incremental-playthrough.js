@@ -4,7 +4,6 @@ import { LogBook } from "../../../src/game/state/log-book/log-book.js";
 import { load } from "../../../src/drivers/game-file.js";
 import { logger } from "#platform/logging.js";
 import { OpenHours } from "../../../src/game/open-hours/index.js";
-import { getGameVersion } from "../../../src/versions/index.js";
 import { LogEntry } from "../../../src/game/state/log-book/log-entry.js";
 import { PossibleActionSourceSet } from "../../../src/game/possible-actions/index.js";
 
@@ -18,7 +17,6 @@ export async function incrementalPlaythrough(engineFactory, testGamePath) {
 
     LogEntry.enableTestModeTimeStamps();
 
-    const versionConfig = getGameVersion(gameVersion);
     let emptyLogBook = new LogBook([]);
 
     let fullEngine = engineFactory.createEngine(gameVersion);
@@ -30,7 +28,6 @@ export async function incrementalPlaythrough(engineFactory, testGamePath) {
         // This triggers a set version, set state, and a series of process actions
         logger.debug("[integration-test] Process actions as a group");
         let fullInteractor = new GameInteractor({
-            logEntryFormatter: versionConfig,
             engine: fullEngine,
             actionFactories: fullFactories,
             gameData: {
@@ -45,7 +42,6 @@ export async function incrementalPlaythrough(engineFactory, testGamePath) {
         // This triggers a set version and then a set state and process action for each entry
         logger.debug("[integration-test] Process individual actions");
         let incrementalInteractor = new GameInteractor({
-            logEntryFormatter: versionConfig,
             engine: incrementalEngine,
             actionFactories: incrementalFactories,
             gameData: {

@@ -5,7 +5,7 @@ import { useRef } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
 import { getCell } from "../../interface-adapters/board/state.js";
 
-export function GameBoard({ gameState, config, dispatch, animationState, dispatchAnimation, boardState }) {
+export function GameBoard({ gameState, dispatch, animationState, dispatchAnimation, boardState }) {
     if(!boardState) {
         return <p>No board data supplied</p>;
     }
@@ -32,7 +32,6 @@ export function GameBoard({ gameState, config, dispatch, animationState, dispatc
                     dispatch={dispatch}
                     dispatchAnimation={dispatchAnimation}
                     animationState={animationState}
-                    config={config}
                     gameState={gameState}></Space>
             );
         }
@@ -55,13 +54,12 @@ function Coordiate({ children }) {
     );
 }
 
-function Space({ cell, config, dispatch, x, y, gameState, animationState, dispatchAnimation }) {
+function Space({ cell, dispatch, x, y, gameState, animationState, dispatchAnimation }) {
     return (
         <Tile cell={cell} x={x} y={y} dispatch={dispatch}>
             <UnitTile
                 cell={cell}
                 dispatchAnimation={dispatchAnimation}
-                config={config}
                 gameState={gameState}
                 animationState={animationState}></UnitTile>
         </Tile>

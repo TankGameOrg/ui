@@ -117,7 +117,7 @@ function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
     );
 }
 
-export function UnitTile({ cell, config, gameState, animationState, dispatchAnimation }) {
+export function UnitTile({ cell, gameState, animationState, dispatchAnimation }) {
     const wrapperRef = useRef();
 
     // const animationInfo = useMemo(() => getAnimationInfo(animationState, position), [animationState, position]);

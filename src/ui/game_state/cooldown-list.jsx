@@ -1,19 +1,37 @@
 import { useEffect, useState } from "preact/hooks";
+import { unixNow } from "../../utils";
 
-export function CooldownList({ gameState, versionConfig }) {
+
+function findGlobalCooldowns(gameState) {
+    const now = unixNow();
+
+    return gameState.players
+        .filter(player => player.globalCooldownEndTime >= now)
+        .map(player => {
+            const playerName = player.name;
+            const timeRemaining = player.globalCooldownEndTime - now;
+
+            return {
+                playerName,
+                timeRemaining,
+            };
+        });
+}
+
+export function CooldownList({ gameState }) {
     const [cooldowns, setCooldowns] = useState([]);
 
     useEffect(() => {
         // No state nothing to search
         if(!gameState) return;
 
-        const updateCooldowns = () => setCooldowns(versionConfig.findCooldowns(gameState));
+        const updateCooldowns = () => setCooldowns(findGlobalCooldowns(gameState));
 
         updateCooldowns();
 
         const handle = setInterval(updateCooldowns, 500);
         return () => clearInterval(handle);
-    }, [versionConfig, gameState, setCooldowns]);
+    }, [gameState, setCooldowns]);
 
     if(cooldowns.length === 0) return;
 
