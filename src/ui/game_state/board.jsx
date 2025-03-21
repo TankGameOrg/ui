@@ -1,11 +1,11 @@
 import "./board.css";
 import { Position } from "../../game/state/board/position.js";
 import { UnitTile } from "./unit-tile.jsx";
-import { useRef } from "preact/hooks";
+import { useMemo, useRef } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
 import { getCell } from "../../interface-adapters/board/state.js";
 
-export function GameBoard({ gameState, dispatch, animationState, dispatchAnimation, boardState }) {
+export function GameBoard({ dispatch, boardState }) {
     if(!boardState) {
         return <p>No board data supplied</p>;
     }
@@ -29,10 +29,7 @@ export function GameBoard({ gameState, dispatch, animationState, dispatchAnimati
                     x={x}
                     y={y}
                     cell={cell}
-                    dispatch={dispatch}
-                    dispatchAnimation={dispatchAnimation}
-                    animationState={animationState}
-                    gameState={gameState}></Space>
+                    dispatch={dispatch}></Space>
             );
         }
 
@@ -54,14 +51,12 @@ function Coordiate({ children }) {
     );
 }
 
-function Space({ cell, dispatch, x, y, gameState, animationState, dispatchAnimation }) {
+function Space({ cell, dispatch, x, y }) {
+    const position = useMemo(() => new Position(x, y), [x, y]);
+
     return (
         <Tile cell={cell} x={x} y={y} dispatch={dispatch}>
-            <UnitTile
-                cell={cell}
-                dispatchAnimation={dispatchAnimation}
-                gameState={gameState}
-                animationState={animationState}></UnitTile>
+            <UnitTile cell={cell} position={position} dispatch={dispatch}></UnitTile>
         </Tile>
     );
 }

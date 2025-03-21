@@ -13,7 +13,7 @@ import { setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
 import { useStateAndAnimationData } from "../interface-adapters/animation-manager.js";
-import { boardReducer } from "../interface-adapters/board/game-play-reducer.js";
+import { boardReducer, useBoardReducer } from "../interface-adapters/board/game-play-reducer.js";
 
 
 export function Game({ game, navigate, debug }) {
@@ -23,16 +23,7 @@ export function Game({ game, navigate, debug }) {
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
-    const [animationState, dispatchAnimation, stateError] = useStateAndAnimationData(game, currentTurnMgrState, gameInfo?.logBook);
-    const {currentState: gameState} = animationState;
-
-    const [newState, dispatchBoard] = useReducer(boardReducer);
-    useEffect(() => {
-        dispatchBoard({
-            type: "import-board",
-            gameState,
-        });
-    }, [gameState, dispatchBoard]);
+    const [newState, dispatchBoard, stateError] = useBoardReducer(game, currentTurnMgrState, gameInfo?.logBook);
 
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";
@@ -99,19 +90,16 @@ export function Game({ game, navigate, debug }) {
                         {gameMessage !== undefined ? <div>{gameMessage}</div> : undefined}
                         <GameBoard
                             boardState={newState?.board}
-                            gameState={gameState}
-                            animationState={animationState}
-                            dispatchAnimation={dispatchAnimation}
                             locationSelector={builtTurnState.locationSelector}
                             dispatch={dispatchBoard}></GameBoard>
                     </div>
                     <div>
-                        <Council
+                        {/* <Council
                             gameState={gameState}
                             setSelectedUser={setSelectedUser}
-                            canSubmitAction={canSubmitAction}></Council>
+                            canSubmitAction={canSubmitAction}></Council> */}
                         <OpenHours openHours={gameInfo?.openHours} debug={debug}></OpenHours>
-                        <CooldownList gameState={gameState}></CooldownList>
+                        {/* <CooldownList gameState={gameState}></CooldownList> */}
                         <GameManual gameVersion={gameInfo?.game?.gameVersion}></GameManual>
                     </div>
                 </div>

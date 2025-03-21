@@ -103,6 +103,8 @@ export function currentLogGameStateReducer(state, action) {
     // Create the default state
     state = state ? Object.assign({}, state) : {};
 
+    state.previousStateId = state.entryId;
+
     if(action.type == "go-to-entry") {
         state.entryId = action.entryId;
     }

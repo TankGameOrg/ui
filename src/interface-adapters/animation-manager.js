@@ -1,6 +1,7 @@
-import { useEffect, useReducer } from "preact/hooks";
-import { useGameClient } from "../drivers/rest/game-client.js";
 import { findAnimationsBetweenStates } from "../game/state/animations.js";
+import { getCell, modifyCell } from "./board/state.js";
+import { deepClone } from "../utils.js";
+import { makeBoardCell } from "./board/game-play-reducer.js";
 
 let now = () => Date.now();
 
@@ -81,62 +82,63 @@ function getAnimationsForState(isForwardAnimation, previousState, currentState) 
 }
 
 
-function groupAnimations(animations, currentGameState) {
-    let animationsByPosition = {};
+function applyAnimationsToBoard(boardState, animations, previousGameState) {
     let nextId = 0;
 
     for(const animation of animations) {
-        if(animationsByPosition[animation.position.humanReadable] === undefined) {
-            animationsByPosition[animation.position.humanReadable] = {
+        let {animations} = getCell(boardState, animation.position);
+
+        if(animations === undefined) {
+            animations = {
                 id: `${now()}-${++nextId}`,
                 popups: {
                     list: [],
                 },
             };
         }
-
-        let animationsForTile =  animationsByPosition[animation.position.humanReadable];
+        else {
+            animations = deepClone(animations);
+        }
 
         if(animation.key === "position") {
-            animationsForTile.move = {
+            animations.move = {
                 from: animation.from,
                 to: animation.to,
             };
-            continue;
         }
-
-        if(animation.type == "update-attribute" && animation.difference !== undefined) {
-            const unit = currentGameState.board.getUnitAt(animation.position);
-
-            animationsForTile.popups.list.push({
-                id: animationsForTile.popups.list.length + "",
+        else if(animation.type == "update-attribute" && animation.difference !== undefined) {
+            animations.popups.list.push({
+                id: animations.popups.list.length + "",
                 attribute: animation.key,
                 difference: `${animation.difference > 0 ? "+" : ""}${animation.difference}`,
                 style: ANIMATION_STYLES[animation.key],
             });
-
-            continue;
         }
-
-        if(animation.type == "spawn") {
-            animationsForTile[animation.type] = {};
-            continue;
+        else if(animation.type == "spawn") {
+            animations[animation.type] = {};
         }
-
-        if(animation.type == "destroy") {
-            animationsForTile[animation.type] = {
-                element: animation.element,
+        else if(animation.type == "destroy") {
+            animations[animation.type] = {
+                postDestroyCell: getCell(boardState, animation.position),
             };
 
+            boardState = modifyCell(boardState, animation.position, () => ({
+                ...makeBoardCell(previousGameState, animation.element.position.x, animation.element.position.y),
+                animations,
+            }));
+
+            // Deleted actions recreate the previous cell to play the destroy animation
             continue;
         }
+
+        boardState = modifyCell(boardState, animation.position, cell => ({ ...cell, animations }));
     }
 
-    return animationsByPosition;
+    return boardState;
 }
 
 
-function buildAnimationData(entryId, previousEntryId, previousGameState, currentGameState, logBook) {
+export function buildAnimationData(boardState, entryId, previousEntryId, previousGameState, currentGameState, logBook) {
     let animations = [];
     // Show animations for entries that span 0 or 1 days
     const shouldDisplayAnimation = Math.abs(logBook.getDayOfEntryId(entryId) - logBook.getDayOfEntryId(previousEntryId)) < 2;
@@ -146,114 +148,60 @@ function buildAnimationData(entryId, previousEntryId, previousGameState, current
         animations = getAnimationsForState(isForwardAnimation, previousGameState, currentGameState);
     }
 
-    return groupAnimations(animations, currentGameState);
+    return applyAnimationsToBoard(boardState, animations, previousGameState);
 }
 
 
-function applyFinishAnimation(state, action) {
-    const animationsForTile = state.animationData[action.position.humanReadable];
-    if(!animationsForTile) return state;
-
-    // This action was meant for an old animation discard it
-    if(animationsForTile.id !== action.targetId) {
-        return state;
+export function applyFinishAnimation(boardState, action) {
+    const {animations} = getCell(boardState, action.position);
+    if(animations === undefined) {
+        return boardState;
     }
 
-    return {
-        ...state,
-        animationData: {
-            ...state.animationData,
-            [action.position.humanReadable]: {
-                ...animationsForTile,
+    // This action was meant for an old animation discard it
+    if(animations.id !== action.targetId) {
+        return boardState;
+    }
+
+    return modifyCell(boardState, action.position, cell => {
+        if(action.animationKey == "destroy") {
+            cell = animations.destroy.postDestroyCell;
+        }
+
+        return {
+            ...cell,
+            animations: {
+                ...animations,
                 [action.animationKey]: undefined,
-            },
-        }
-    }
+            }
+        };
+    });
 }
 
 
-function applyStartAnimation(state, action) {
-    const animationsForTile = state.animationData[action.position.humanReadable];
-    if(!animationsForTile) {
-        return state;
+export function applyStartAnimation(boardState, action) {
+    const {animations} = getCell(boardState, action.position);
+    if(animations === undefined) {
+        return boardState;
     }
 
     // This action was meant for an old animation discard it
-    if(animationsForTile.id !== action.targetId || animationsForTile[action.animationKey] === undefined) {
-        return state;
+    if(animations.id !== action.targetId || animations[action.animationKey] === undefined) {
+        return boardState;
     }
 
-    return {
-        ...state,
-        animationData: {
-            ...state.animationData,
-            [action.position.humanReadable]: {
-                ...animationsForTile,
-                [action.animationKey]: {
-                    ...animationsForTile[action.animationKey],
-                    startTime: action.startTime,
-                },
+    return modifyCell(boardState, action.position, cell => ({
+        ...cell,
+        animations: {
+            ...animations,
+            [action.animationKey]: {
+                ...animations[action.animationKey],
+                startTime: action.startTime,
             },
         }
-    }
-}
-
-
-export function animationsReducer(state, action) {
-    if(action.type == "set-log-book") {
-        return {
-            ...state,
-            _logBook: action.logBook,
-        };
-    }
-
-    if(action.type == "set-current-state") {
-        const previousEntryId = state._entryId;
-        const previousState = state.currentState;
-
-        return {
-            ...state,
-            currentState: action.state,
-            _entryId: action.entryId,
-            animationData: previousEntryId === action.entryId ?
-                state.animationData :
-                buildAnimationData(action.entryId, previousEntryId, previousState, action.state, state._logBook),
-        };
-    }
-
-    if(action.type == "finish-animation") {
-        return applyFinishAnimation(state, action);
-    }
-
-    if(action.type == "start-animation") {
-        return applyStartAnimation(state, action);
-    }
-
-    return state;
+    }));
 }
 
 
 export const startAnimation = (position, animationKey, targetId, startTime) => ({ type: "start-animation", position, animationKey, targetId, startTime });
 export const finishAnimation = (position, animationKey, targetId) => ({ type: "finish-animation", position, animationKey, targetId });
-
-
-export function useStateAndAnimationData(game, currentTurnMgrState, logBook) {
-    const [animationsState, dispatch] = useReducer(animationsReducer, {});
-
-    useEffect(() => {
-        dispatch({ type: "set-log-book", logBook });
-    }, [logBook, dispatch]);
-
-    const [_, stateError] = useGameClient(game, async client => {
-        if(currentTurnMgrState.entryId !== undefined) {
-            const gameState = await client.getGameState(currentTurnMgrState.entryId);
-            dispatch({
-                type: "set-current-state",
-                entryId: currentTurnMgrState.entryId,
-                state: gameState,
-            });
-        }
-    }, [currentTurnMgrState.entryId]);
-
-    return [animationsState, dispatch, stateError];
-}

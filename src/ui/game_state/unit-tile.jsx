@@ -33,14 +33,6 @@ function getBadgesForUnit(cell) {
 const TILE_WIDTH = 68;
 const TILE_HEIGHT = 68;
 
-function getAnimationInfo(animationState, position) {
-    const {animationData} = animationState;
-    const animationInfo = animationData[position?.humanReadable];
-    if(animationInfo === undefined) return [];
-
-    return animationInfo;
-}
-
 function getMoveStyles(animationInfo) {
     if(animationInfo.move !== undefined) {
         let startX = (animationInfo.move.from.x - animationInfo.move.to.x) * TILE_WIDTH;
@@ -53,7 +45,7 @@ function getMoveStyles(animationInfo) {
     }
 }
 
-function useAnimation(animationInfo, animationRef, dispatchAnimation, position, name, animationStartClosure) {
+function useAnimation(animationInfo, animationRef, dispatch, position, name, animationStartClosure) {
     const animationId = animationInfo?.id;
     const animationSpecificInfo = animationInfo?.[name];
 
@@ -66,7 +58,7 @@ function useAnimation(animationInfo, animationRef, dispatchAnimation, position, 
             if(animationSpecificInfo?.startTime === undefined) {
                 // On the first iteration save the start time so if the react
                 // state updates we can resume the animation
-                dispatchAnimation(startAnimation(position, name, animationId, Date.now()));
+                dispatch(startAnimation(position, name, animationId, Date.now()));
             }
             else {
                 // The animation has already started by the react state has been modified
@@ -75,7 +67,7 @@ function useAnimation(animationInfo, animationRef, dispatchAnimation, position, 
             }
 
             animation.finished.then(() => {
-                dispatchAnimation(finishAnimation(position, name, animationId));
+                dispatch(finishAnimation(position, name, animationId));
             }).catch(() => {
                 // Animation.cancel() causes animation.finished the throw a rejection
                 // to avoid annoying errors during development we eat the error
@@ -84,12 +76,12 @@ function useAnimation(animationInfo, animationRef, dispatchAnimation, position, 
 
             return () => animation.cancel();
         }
-    }, [animationSpecificInfo, animationId, animationRef, dispatchAnimation, position, name, animationStartClosure]);
+    }, [animationSpecificInfo, animationId, animationRef, dispatch, position, name, animationStartClosure]);
 }
 
-function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
+function AnimatedPopups({ animationInfo, dispatch, position }) {
     const popupRef = useRef();
-    useAnimation(animationInfo, popupRef, dispatchAnimation, position, "popups", (popupElement) => {
+    useAnimation(animationInfo, popupRef, dispatch, position, "popups", (popupElement) => {
         return popupElement.animate([
             { offset: 0,   opacity: 0, transform: "translateY(10px)" },
             { offset: 0.1, opacity: 1, transform: "translateY(  0px)" },
@@ -117,47 +109,41 @@ function AnimatedPopups({ animationInfo, dispatchAnimation, position }) {
     );
 }
 
-export function UnitTile({ cell, gameState, animationState, dispatchAnimation }) {
+export function UnitTile({ cell, position, dispatch }) {
     const wrapperRef = useRef();
 
-    // const animationInfo = useMemo(() => getAnimationInfo(animationState, position), [animationState, position]);
+    const animationInfo = cell.animations || [];
 
-    // When we destory an element it is immediately removed from the state but we need something to fade out
-    // so we add it back in here until the animation completes
-    // if(animationInfo.destroy !== undefined) {
-    //     unit = animationInfo.destroy.element;
-    // }
+    useAnimation(animationInfo, wrapperRef, dispatch, position, "move", (cardElement, animationInfo) => {
+        const moveStyles = getMoveStyles({ move: animationInfo });
 
-    // useAnimation(animationInfo, wrapperRef, dispatchAnimation, position, "move", (cardElement, animationInfo) => {
-    //     const moveStyles = getMoveStyles({ move: animationInfo });
+        return cardElement.animate([
+            { transform: moveStyles.transform },
+            { transform: "translate(0, 0)" },
+        ], {
+            duration: 500,
+        });
+    });
 
-    //     return cardElement.animate([
-    //         { transform: moveStyles.transform },
-    //         { transform: "translate(0, 0)" },
-    //     ], {
-    //         duration: 500,
-    //     });
-    // });
+    useAnimation(animationInfo, wrapperRef, dispatch, position, "spawn", (cardElement) => {
+        return cardElement.animate([
+            { opacity: 0, transform: "scale(80%)", },
+            { opacity: 0.5, transform: "scale(100%)", },
+            { opacity: 1, transform: "scale(100%)", },
+        ], {
+            duration: 300,
+        });
+    });
 
-    // useAnimation(animationInfo, wrapperRef, dispatchAnimation, position, "spawn", (cardElement) => {
-    //     return cardElement.animate([
-    //         { opacity: 0, transform: "scale(80%)", },
-    //         { opacity: 0.5, transform: "scale(100%)", },
-    //         { opacity: 1, transform: "scale(100%)", },
-    //     ], {
-    //         duration: 300,
-    //     });
-    // });
-
-    // useAnimation(animationInfo, wrapperRef, dispatchAnimation, position, "destroy", (cardElement) => {
-    //     return cardElement.animate([
-    //         { opacity: 1, transform: "scale(100%)", },
-    //         { opacity: 0.5, transform: "scale(100%)", },
-    //         { opacity: 0, transform: "scale(80%)", },
-    //     ], {
-    //         duration: 300,
-    //     });
-    // });
+    useAnimation(animationInfo, wrapperRef, dispatch, position, "destroy", (cardElement) => {
+        return cardElement.animate([
+            { opacity: 1, transform: "scale(100%)", },
+            { opacity: 0.5, transform: "scale(100%)", },
+            { opacity: 0, transform: "scale(80%)", },
+        ], {
+            duration: 300,
+        });
+    });
 
     const tileStyles = {
         background: cell.icon || "",
@@ -175,15 +161,15 @@ export function UnitTile({ cell, gameState, animationState, dispatchAnimation })
     );
 
     let animationStyles;
-    // if(animationInfo.spawn !== undefined) {
-    //     animationStyles = {
-    //         opacity: 0,
-    //         transform: "scale(80%)",
-    //     };
-    // }
-    // else if(animationInfo.move !== undefined) {
-    //     animationStyles = getMoveStyles(animationInfo);
-    // }
+    if(animationInfo.spawn !== undefined) {
+        animationStyles = {
+            opacity: 0,
+            transform: "scale(80%)",
+        };
+    }
+    else if(animationInfo.move !== undefined) {
+        animationStyles = getMoveStyles(animationInfo);
+    }
 
     if(!cell.showUnitTile) {
         return;
@@ -197,10 +183,10 @@ export function UnitTile({ cell, gameState, animationState, dispatchAnimation })
                     {cell.text}
                 </div>
                 {badges}
-                {/* <AnimatedPopups
+                <AnimatedPopups
                     animationInfo={animationInfo}
-                    dispatchAnimation={dispatchAnimation}
-                    position={position}></AnimatedPopups> */}
+                    dispatch={dispatch}
+                    position={position}></AnimatedPopups>
             </div>
         </div>
     );

@@ -1,6 +1,9 @@
+import { useReducer } from "preact/hooks";
+import { useGameClient } from "../../drivers/rest/game-client.js";
 import { Position } from "../../game/state/board/position.js";
 import { imageBackground } from "../../versions/base/descriptors.js";
 import { createBoard, modifyAllCells, modifyCell, modifyCellsFromList } from "./state.js";
+import { applyFinishAnimation, applyStartAnimation, buildAnimationData, finishAnimation, startAnimation } from "../animation-manager.js";
 
 const TANK_TEAMS_WITH_ICONS = new Set([
     "abrams",
@@ -131,51 +134,80 @@ const unitFactories = {
     },
 }
 
+export function makeBoardCell(gameState, x, y) {
+    const {board} = gameState;
+    const position = new Position(x, y);
+    const unit = board.getUnitAt(position);
+    const floor = board.getFloorTileAt(position);
+
+    let unitProps = {
+        showUnitTile: false,
+        showPopup: false,
+        indicators: [],
+    };
+
+    const unitFactory = unitFactories[unit.type];
+    if(unitFactory) {
+        unitProps = {
+            ...unitProps,
+            showUnitTile: true,
+            ...unitFactory(unit, gameState),
+        };
+    }
+    else if(floor.type != "empty") {
+        unitProps.popup = {
+            title: floor.type,
+            sections: [],
+        };
+    }
+
+    return {
+        background: floor.type == "GoldMine" ? "#fd0" : "",
+        ...unitProps,
+    };
+}
+
 export function boardFromBoard(gameState) {
     const {board} = gameState;
-    return createBoard(board.width, board.height, (x, y) => {
-        const position = new Position(x, y);
-        const unit = board.getUnitAt(position);
-        const floor = board.getFloorTileAt(position);
-
-        let unitProps = {
-            showUnitTile: false,
-            showPopup: false,
-            indicators: [],
-        };
-
-        const unitFactory = unitFactories[unit.type];
-        if(unitFactory) {
-            unitProps = {
-                ...unitProps,
-                showUnitTile: true,
-                ...unitFactory(unit, gameState),
-            };
-        }
-        else if(floor.type != "empty") {
-            unitProps.popup = {
-                title: floor.type,
-                sections: [],
-            };
-        }
-
-        return {
-            background: floor.type == "GoldMine" ? "#fd0" : "",
-            ...unitProps,
-        };
-    });
+    return createBoard(board.width, board.height, (x, y) => makeBoardCell(gameState, x, y));
 }
 
 export function boardReducer(state, action) {
     if(action.type == "import-board") {
-        if(action.gameState) {
+        if(action.currentState !== undefined) {
+            let board = boardFromBoard(action.currentState);
+
+            if(action.previousState !== undefined) {
+                board = buildAnimationData(
+                    board,
+                    action.entryId,
+                    action.previousStateId,
+                    action.previousState,
+                    action.currentState,
+                    action.logBook);
+            }
+
             return {
                 ...state,
-                board: boardFromBoard(action.gameState),
+                board,
             };
         }
 
         return undefined;
+    }
+
+    if(action.type == "start-animation") {
+        return {
+            ...state,
+            board: applyStartAnimation(state.board, action),
+        };
+    }
+
+    if(action.type == "finish-animation") {
+        return {
+            ...state,
+            board: applyFinishAnimation(state.board, action),
+        };
     }
 
     if(action.type == "start-selecting") {
@@ -240,7 +272,31 @@ export function boardReducer(state, action) {
         };
     }
 
-    console.log(action);
-
     return state;
+}
+
+export function useBoardReducer(game, currentTurnMgrState, logBook) {
+    const [state, dispatch] = useReducer(boardReducer);
+
+    const [_, stateError] = useGameClient(game, async client => {
+        if(currentTurnMgrState.entryId !== undefined) {
+            const [previousState, currentState] = await Promise.all([
+                currentTurnMgrState.previousStateId !== undefined ?
+                    client.getGameState(currentTurnMgrState.previousStateId) : undefined,
+                currentTurnMgrState.entryId !== undefined ?
+                    client.getGameState(currentTurnMgrState.entryId) : undefined,
+            ]);
+
+            dispatch({
+                type: "import-board",
+                logBook,
+                entryId: currentTurnMgrState.entryId,
+                previousStateId: currentTurnMgrState.previousStateId,
+                previousState,
+                currentState,
+            });
+        }
+    }, [currentTurnMgrState.entryId, currentTurnMgrState.previousStateId]);
+
+    return [state, dispatch, stateError];
 }
