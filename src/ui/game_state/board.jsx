@@ -3,7 +3,7 @@ import { Position } from "../../game/state/board/position.js";
 import { UnitTile } from "./unit-tile.jsx";
 import { useMemo, useRef } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
-import { getCell } from "../../interface-adapters/board/state.js";
+import { getCell } from "../../interface-adapters/game/board/state.js";
 
 export function GameBoard({ dispatch, boardState }) {
     if(!boardState) {
@@ -55,13 +55,13 @@ function Space({ cell, dispatch, x, y }) {
     const position = useMemo(() => new Position(x, y), [x, y]);
 
     return (
-        <Tile cell={cell} x={x} y={y} dispatch={dispatch}>
-            <UnitTile cell={cell} position={position} dispatch={dispatch}></UnitTile>
+        <Tile cell={cell} position={position} dispatch={dispatch}>
+            <UnitTile cell={cell} position={position}></UnitTile>
         </Tile>
     );
 }
 
-function Tile({ dispatch, children, cell, x, y } = {}) {
+function Tile({ dispatch, children, cell, position } = {}) {
     const anchorRef = useRef();
     let className = "";
     let overlayClassName = "";
@@ -88,14 +88,14 @@ function Tile({ dispatch, children, cell, x, y } = {}) {
 
     const onClick = cell.isDisabled ? undefined : e => dispatch({
         type: "board.tile.click",
-        position: new Position(x, y),
+        position,
         ctrlKey: e.ctrlKey,
         shiftKey: e.shiftKey,
     });
 
     const onClose = () => dispatch({
         type: "board.tile.popup.close",
-        position: new Position(x, y),
+        position,
     });
 
     return (

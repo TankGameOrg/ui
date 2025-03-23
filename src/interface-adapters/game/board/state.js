@@ -1,4 +1,4 @@
-import { Position } from "../../game/state/board/position.js";
+import { Position } from "../../../game/state/board/position.js";
 
 export function createBoard(width, height, cellInitilizer) {
     let cells = [];

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 import "./unit-tile.css";
 import { prettyifyName } from "../../utils.js";
-import { finishAnimation, startAnimation } from "../../interface-adapters/animation-manager.js";
+import { finishAnimation, startAnimation } from "../../interface-adapters/game/board/reducer.js";
+import { useDispatch } from "react-redux";
 
 
 function makeBadgeStyle(badge) {
@@ -45,9 +46,11 @@ function getMoveStyles(animationInfo) {
     }
 }
 
-function useAnimation(animationInfo, animationRef, dispatch, position, name, animationStartClosure) {
+function useAnimation(animationInfo, animationRef, position, name, animationStartClosure) {
     const animationId = animationInfo?.id;
     const animationSpecificInfo = animationInfo?.[name];
+
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const element = animationRef.current;
@@ -58,7 +61,12 @@ function useAnimation(animationInfo, animationRef, dispatch, position, name, ani
             if(animationSpecificInfo?.startTime === undefined) {
                 // On the first iteration save the start time so if the react
                 // state updates we can resume the animation
-                dispatch(startAnimation(position, name, animationId, Date.now()));
+                dispatch(startAnimation({
+                    position,
+                    animationKey: name,
+                    targetId: animationId,
+                    startTime: Date.now(),
+                }));
             }
             else {
                 // The animation has already started by the react state has been modified
@@ -67,7 +75,11 @@ function useAnimation(animationInfo, animationRef, dispatch, position, name, ani
             }
 
             animation.finished.then(() => {
-                dispatch(finishAnimation(position, name, animationId));
+                dispatch(finishAnimation({
+                    position,
+                    animationKey: name,
+                    targetId: animationId,
+                }));
             }).catch(() => {
                 // Animation.cancel() causes animation.finished the throw a rejection
                 // to avoid annoying errors during development we eat the error
@@ -79,9 +91,9 @@ function useAnimation(animationInfo, animationRef, dispatch, position, name, ani
     }, [animationSpecificInfo, animationId, animationRef, dispatch, position, name, animationStartClosure]);
 }
 
-function AnimatedPopups({ animationInfo, dispatch, position }) {
+function AnimatedPopups({ animationInfo, position }) {
     const popupRef = useRef();
-    useAnimation(animationInfo, popupRef, dispatch, position, "popups", (popupElement) => {
+    useAnimation(animationInfo, popupRef, position, "popups", (popupElement) => {
         return popupElement.animate([
             { offset: 0,   opacity: 0, transform: "translateY(10px)" },
             { offset: 0.1, opacity: 1, transform: "translateY(  0px)" },
@@ -109,12 +121,12 @@ function AnimatedPopups({ animationInfo, dispatch, position }) {
     );
 }
 
-export function UnitTile({ cell, position, dispatch }) {
+export function UnitTile({ cell, position }) {
     const wrapperRef = useRef();
 
     const animationInfo = cell.animations || [];
 
-    useAnimation(animationInfo, wrapperRef, dispatch, position, "move", (cardElement, animationInfo) => {
+    useAnimation(animationInfo, wrapperRef, position, "move", (cardElement, animationInfo) => {
         const moveStyles = getMoveStyles({ move: animationInfo });
 
         return cardElement.animate([
@@ -125,7 +137,7 @@ export function UnitTile({ cell, position, dispatch }) {
         });
     });
 
-    useAnimation(animationInfo, wrapperRef, dispatch, position, "spawn", (cardElement) => {
+    useAnimation(animationInfo, wrapperRef, position, "spawn", (cardElement) => {
         return cardElement.animate([
             { opacity: 0, transform: "scale(80%)", },
             { opacity: 0.5, transform: "scale(100%)", },
@@ -135,7 +147,7 @@ export function UnitTile({ cell, position, dispatch }) {
         });
     });
 
-    useAnimation(animationInfo, wrapperRef, dispatch, position, "destroy", (cardElement) => {
+    useAnimation(animationInfo, wrapperRef, position, "destroy", (cardElement) => {
         return cardElement.animate([
             { opacity: 1, transform: "scale(100%)", },
             { opacity: 0.5, transform: "scale(100%)", },
@@ -185,7 +197,6 @@ export function UnitTile({ cell, position, dispatch }) {
                 {badges}
                 <AnimatedPopups
                     animationInfo={animationInfo}
-                    dispatch={dispatch}
                     position={position}></AnimatedPopups>
             </div>
         </div>

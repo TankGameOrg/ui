@@ -1,7 +1,7 @@
 import { findAnimationsBetweenStates } from "../game/state/animations.js";
-import { getCell, modifyCell } from "./board/state.js";
+import { getCell, modifyCell } from "./game/board/state.js";
 import { deepClone } from "../utils.js";
-import { makeBoardCell } from "./board/game-play-reducer.js";
+import { makeBoardCell } from "./game/board/game-state-adapter.js";
 
 let now = () => Date.now();
 
@@ -14,10 +14,12 @@ const ANIMATION_STYLES = {
         background: "#f00",
         color: "#fff",
     },
+
     range: {
         background: "#050",
         color: "#fff",
     },
+
     speed: {
         background: "#f0f",
         color: "#fff",
@@ -31,6 +33,11 @@ const ANIMATION_STYLES = {
     bounty: {
         background: "orange",
         color: "#000",
+    },
+
+    actions: {
+        background: "blue",
+        color: "#fff",
     },
 };
 
@@ -202,6 +209,3 @@ export function applyStartAnimation(boardState, action) {
     }));
 }
 
-
-export const startAnimation = (position, animationKey, targetId, startTime) => ({ type: "start-animation", position, animationKey, targetId, startTime });
-export const finishAnimation = (position, animationKey, targetId) => ({ type: "finish-animation", position, animationKey, targetId });

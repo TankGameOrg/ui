@@ -1,8 +1,6 @@
 import { GameBoard } from "./game_state/board.jsx";
-import { useEffect, useReducer } from "preact/hooks";
 import { LogEntrySelector } from "./game_state/log_entry_selector.jsx"
 import { SubmitTurn } from "./game_state/submit-turn/submit-turn.jsx";
-import { Council } from "./game_state/council.jsx";
 import { LogBook } from "./game_state/log_book.jsx";
 import { ErrorMessage } from "./error_message.jsx";
 import { OpenHours } from "./open-hours.jsx";
@@ -10,20 +8,21 @@ import { AppContent } from "./app-content.jsx";
 import { GameManual } from "./game-manual.jsx";
 import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface-adapters/current-turn-manager.js";
 import { setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
-import { CooldownList } from "./game_state/cooldown-list.jsx";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
-import { useStateAndAnimationData } from "../interface-adapters/animation-manager.js";
-import { boardReducer, useBoardReducer } from "../interface-adapters/board/game-play-reducer.js";
+import { useGameClientBoardHook } from "../interface-adapters/game/board/reducer.js";
+import { useDispatch, useSelector } from "react-redux";
 
 
 export function Game({ game, navigate, debug }) {
-    usePollingFor(game, 2 /* refresh every 2 seconds */);
+    // usePollingFor(game, 2 /* refresh every 2 seconds */);
     const [gameInfo, infoError] = useGameClient(game, client => client.getGameInfo());
 
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
-    const [newState, dispatchBoard, stateError] = useBoardReducer(game, currentTurnMgrState, gameInfo?.logBook);
+    const stateError = useGameClientBoardHook(game, currentTurnMgrState, gameInfo?.logBook);
+    const newState = useSelector(state => state.board);
+    const dispatchBoard = useDispatch();
 
     const error = infoError || stateError;
     const canSubmitAction = gameInfo?.game?.state == "running";

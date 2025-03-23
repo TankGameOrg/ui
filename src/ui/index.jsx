@@ -1,34 +1,33 @@
-/* global document */
+/* global document, module */
 import "./index.css";
 import { render } from "preact";
-import { GameSelector } from "./game_selector.jsx";
-import { Game } from "./game.jsx";
-import { useDebugMode } from "./debug_mode.jsx";
-import { useRouter } from "./urls.js";
-import { Backstage } from "./backstage.jsx";
+import { App } from "./App.jsx";
+import { configureStore } from "@reduxjs/toolkit";
+import { Provider } from "react-redux";
+import { reducers } from "../interface-adapters/game/index.js";
 
-const ROUTES = [
-    { name: "home", matcher: /^\/$/g, matchNames: [], makeUrl: () => "/" },
-    { name: "play-game", matcher: /^\/game\/([^/]+)$/g, matchNames: ["gameName"], makeUrl: ({gameName}) => `/game/${gameName}` },
-    { name: "backstage", matcher: /^\/backstage\/$/g, matches: [], makeUrl: () => "/backstage/" },
-];
 
-function App() {
-    const [currentPage, navigate] = useRouter(ROUTES);
-    const debug = useDebugMode();
+let store = configureStore({
+    reducer: reducers,
+    middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+        serializableCheck: false,
+    }),
+});
 
-    if(currentPage?.name == "play-game") {
-        return <Game game={currentPage.params.gameName} navigate={navigate} debug={debug}></Game>;
-    }
-    else if(currentPage?.name == "home") {
-        return <GameSelector navigate={navigate} debug={debug}></GameSelector>;
-    }
-    else if(currentPage?.name == "backstage") {
-        return <Backstage debug={debug}></Backstage>
-    }
-    else {
-        return <p>404 page not found. <a href="/">Go Home</a></p>;
-    }
+function renderApp() {
+    render((
+        <Provider store={store}>
+            <App></App>
+        </Provider>
+    ), document.body);
 }
 
-render(<App></App>, document.body);
+renderApp();
+
+if(module.hot) {
+    module.hot.accept(["./App.jsx", "../interface-adapters/game/index.js"], () => {
+        store.replaceReducer(reducers);
+        renderApp();
+    });
+}
