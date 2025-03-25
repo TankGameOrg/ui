@@ -7,10 +7,13 @@ import { OpenHours } from "./open-hours.jsx";
 import { AppContent } from "./app-content.jsx";
 import { GameManual } from "./game-manual.jsx";
 import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface-adapters/current-turn-manager.js";
-import { setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
+import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
-import { useGameClientBoardHook } from "../interface-adapters/game/board/reducer.js";
+import { closeAllPopups, selectCell, showPopup, startSelecting, stopSelecting, useGameClientBoardHook } from "../interface-adapters/game/board/reducer.js";
 import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useMemo } from "preact/hooks";
+import { Position } from "../game/state/board/position.js";
+import { getSelected } from "../interface-adapters/game/board/state.js";
 
 
 export function Game({ game, navigate, debug }) {
@@ -20,17 +23,50 @@ export function Game({ game, navigate, debug }) {
     const [currentTurnMgrState, distachLogEntryMgr] = useCurrentTurnManager(gameInfo?.logBook);
     const [builtTurnState, buildTurnDispatch] = useBuildTurn();
 
-    const stateError = useGameClientBoardHook(game, currentTurnMgrState, gameInfo?.logBook);
+    const canSubmitAction = gameInfo?.game?.state == "running";
+
+    const stateError = useGameClientBoardHook(game, currentTurnMgrState, gameInfo?.logBook, canSubmitAction);
     const newState = useSelector(state => state.board);
     const dispatchBoard = useDispatch();
 
     const error = infoError || stateError;
-    const canSubmitAction = gameInfo?.game?.state == "running";
 
     const setSelectedUser = user => {
         buildTurnDispatch(setSubject(user));
         distachLogEntryMgr(goToLatestTurn());
     };
+
+
+    // Bind the board state to the turn builder
+    const hasBoard = newState?.board !== undefined;
+    useEffect(() => {
+        if(!hasBoard) return;
+
+        if(builtTurnState.locationSelector.isSelecting) {
+            dispatchBoard(startSelecting({
+                selectable: builtTurnState.locationSelector.selectableLocations
+                    .map(positionStr => new Position(positionStr)),
+            }));
+        }
+        else {
+            dispatchBoard(stopSelecting());
+        }
+    }, [builtTurnState.locationSelector.isSelecting, builtTurnState.locationSelector.selectableLocations, dispatchBoard, hasBoard]);
+
+    const boardCellClick = useCallback(e => {
+        if(newState.isSelecting) {
+            dispatchBoard(selectCell(e.position));
+        }
+        else {
+            dispatchBoard(showPopup({ position: e.position }));
+        }
+    }, [dispatchBoard, newState.isSelecting]);
+
+    const currentSelection = useMemo(() => newState.isSelecting ? getSelected(newState.board)[0]?.humanReadable : undefined, [newState]);
+    useEffect(() => {
+        buildTurnDispatch(selectLocation(currentSelection));
+    }, [currentSelection, buildTurnDispatch]);
+
 
     const debugButtons = (
         <>
@@ -90,7 +126,9 @@ export function Game({ game, navigate, debug }) {
                         <GameBoard
                             boardState={newState?.board}
                             locationSelector={builtTurnState.locationSelector}
-                            dispatch={dispatchBoard}></GameBoard>
+                            onClickCell={boardCellClick}
+                            onPopupClose={e => dispatchBoard(closeAllPopups({ position: e.position }))}
+                            onButtonClick={e => setSelectedUser(e.button.subject)}></GameBoard>
                     </div>
                     <div>
                         {/* <Council

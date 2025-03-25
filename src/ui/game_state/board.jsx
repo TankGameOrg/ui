@@ -5,7 +5,7 @@ import { useMemo, useRef } from "preact/hooks";
 import { Popup } from "../generic/popup.jsx";
 import { getCell } from "../../interface-adapters/game/board/state.js";
 
-export function GameBoard({ dispatch, boardState }) {
+export function GameBoard({ boardState, onClickCell, onPopupClose, onButtonClick }) {
     if(!boardState) {
         return <p>No board data supplied</p>;
     }
@@ -29,7 +29,9 @@ export function GameBoard({ dispatch, boardState }) {
                     x={x}
                     y={y}
                     cell={cell}
-                    dispatch={dispatch}></Space>
+                    onClickCell={onClickCell}
+                    onPopupClose={onPopupClose}
+                    onButtonClick={onButtonClick}></Space>
             );
         }
 
@@ -51,17 +53,22 @@ function Coordiate({ children }) {
     );
 }
 
-function Space({ cell, dispatch, x, y }) {
+function Space({ cell, x, y, onClickCell, onPopupClose, onButtonClick }) {
     const position = useMemo(() => new Position(x, y), [x, y]);
 
     return (
-        <Tile cell={cell} position={position} dispatch={dispatch}>
-            <UnitTile cell={cell} position={position}></UnitTile>
+        <Tile
+            cell={cell}
+            position={position}
+            onClickCell={onClickCell}
+            onPopupClose={onPopupClose}
+            onButtonClick={onButtonClick}>
+                <UnitTile cell={cell} position={position}></UnitTile>
         </Tile>
     );
 }
 
-function Tile({ dispatch, children, cell, position } = {}) {
+function Tile({ children, cell, position, onClickCell, onPopupClose, onButtonClick } = {}) {
     const anchorRef = useRef();
     let className = "";
     let overlayClassName = "";
@@ -86,16 +93,10 @@ function Tile({ dispatch, children, cell, position } = {}) {
         background: cell.background,
     };
 
-    const onClick = cell.isDisabled ? undefined : e => dispatch({
-        type: "board.tile.click",
+    const onClick = cell.isDisabled ? undefined : event => onClickCell({
+        event,
         position,
-        ctrlKey: e.ctrlKey,
-        shiftKey: e.shiftKey,
-    });
-
-    const onClose = () => dispatch({
-        type: "board.tile.popup.close",
-        position,
+        cell,
     });
 
     return (
@@ -109,15 +110,15 @@ function Tile({ dispatch, children, cell, position } = {}) {
                         {children}
                     </div>
             </div>
-            <Popup opened={cell.popup && cell.showPopup} anchorRef={anchorRef} onClose={onClose}>
+            <Popup opened={cell.popup && cell.showPopup} anchorRef={anchorRef} onClose={onPopupClose}>
                 {cell?.popup ?
-                    <PopupContents popup={cell.popup} dispatch={dispatch}></PopupContents> : undefined}
+                    <PopupContents popup={cell.popup} onButtonClick={onButtonClick}></PopupContents> : undefined}
             </Popup>
         </>
     );
 }
 
-function PopupContents({ popup, dispatch }) {
+function PopupContents({ popup, onButtonClick }) {
     return (
         <>
             <div className="unit-details-title-wrapper">
@@ -137,21 +138,21 @@ function PopupContents({ popup, dispatch }) {
                 </>
             ))}
             {popup.buttons ?
-                <PopupButtons buttons={popup.buttons} dispatch={dispatch}></PopupButtons> : undefined}
+                <PopupButtons buttons={popup.buttons} onButtonClick={onButtonClick}></PopupButtons> : undefined}
         </>
     );
 }
 
-function PopupButtons({ buttons, dispatch }) {
+function PopupButtons({ buttons, onButtonClick }) {
     return (
         <div className="unit-details-take-action centered">
-            {buttons.map((button, i) => {
-                const click = () => dispatch(button.dispatch);
-
-                return (
-                    <button key={i} onClick={click} disabled={!button.dispatch === undefined}>{button.text}</button>
-                );
-            })}
+            {buttons.map((button, i) => (
+                <button
+                    key={i}
+                    onClick={event => onButtonClick({ button, event })}>
+                        {button.text}
+                </button>
+            ))}
         </div>
     );
 }

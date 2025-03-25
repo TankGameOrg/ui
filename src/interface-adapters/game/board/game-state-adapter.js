@@ -12,7 +12,7 @@ const TANK_TEAMS_WITH_ICONS = new Set([
 const NUM_WALL_STAGES = 6;
 
 const unitFactories = {
-    "Tank": (unit, gameState) => {
+    "Tank": (unit, gameState, canSubmitAction) => {
         let player;
         if(unit.playerRef) {
             player = unit.playerRef.getPlayer(gameState);
@@ -41,6 +41,15 @@ const unitFactories = {
 
         if(actions?.value !== undefined) {
             actions = actions.value;
+        }
+
+        let buttons = [];
+        if(canSubmitAction) {
+            buttons.push({
+                text: "Submit Action",
+                subject: player?.name,
+                isDisabled: !canSubmitAction,
+            });
         }
 
         return {
@@ -93,15 +102,7 @@ const unitFactories = {
                         ],
                     },
                 ],
-                buttons: [
-                    {
-                        text: "Submit Action",
-                        dispatch: {
-                            type: "start-selecting",
-                            selectable: [new Position("A1")]
-                        },
-                    },
-                ]
+                buttons,
             },
         };
     },
@@ -131,7 +132,7 @@ const unitFactories = {
     },
 }
 
-export function makeBoardCell(gameState, x, y) {
+export function makeBoardCell(gameState, x, y, canSubmitAction = false) {
     const {board} = gameState;
     const position = new Position(x, y);
     const unit = board.getUnitAt(position);
@@ -148,7 +149,7 @@ export function makeBoardCell(gameState, x, y) {
         unitProps = {
             ...unitProps,
             showUnitTile: true,
-            ...unitFactory(unit, gameState),
+            ...unitFactory(unit, gameState, canSubmitAction),
         };
     }
     else if(floor.type != "empty") {
@@ -164,7 +165,7 @@ export function makeBoardCell(gameState, x, y) {
     };
 }
 
-export function boardFromBoard(gameState) {
+export function boardFromBoard(gameState, canSubmitAction) {
     const {board} = gameState;
-    return createBoard(board.width, board.height, (x, y) => makeBoardCell(gameState, x, y));
+    return createBoard(board.width, board.height, (x, y) => makeBoardCell(gameState, x, y, canSubmitAction));
 }
