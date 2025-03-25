@@ -9,7 +9,7 @@ import { GameManual } from "./game-manual.jsx";
 import { goToEntryId, goToLatestTurn, useCurrentTurnManager } from "../interface-adapters/current-turn-manager.js";
 import { selectLocation, setSubject, useBuildTurn } from "../interface-adapters/build-turn.js";
 import { getGameClient, useGameClient, usePollingFor } from "../drivers/rest/game-client.js";
-import { closeAllPopups, selectCell, showPopup, startSelecting, stopSelecting, useGameClientBoardHook } from "../interface-adapters/game/board/reducer.js";
+import { closeAllPopups, importBoard, selectCell, showPopup, startSelecting, stopSelecting } from "../interface-adapters/game/board/reducer.js";
 import { useDispatch, useSelector } from "react-redux";
 import { useCallback, useEffect, useMemo } from "preact/hooks";
 import { Position } from "../game/state/board/position.js";
@@ -25,11 +25,12 @@ export function Game({ game, navigate, debug }) {
 
     const canSubmitAction = gameInfo?.game?.state == "running";
 
-    const stateError = useGameClientBoardHook(game, currentTurnMgrState, gameInfo?.logBook, canSubmitAction);
     const newState = useSelector(state => state.board);
     const dispatchBoard = useDispatch();
+    useEffect(() => dispatchBoard(importBoard(game, currentTurnMgrState, gameInfo?.logBook, canSubmitAction)),
+        [game, currentTurnMgrState, gameInfo?.logBook, canSubmitAction, dispatchBoard]);
 
-    const error = infoError || stateError;
+    const error = infoError;
 
     const setSelectedUser = user => {
         buildTurnDispatch(setSubject(user));

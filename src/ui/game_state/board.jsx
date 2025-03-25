@@ -54,7 +54,7 @@ function Coordiate({ children }) {
 }
 
 function Space({ cell, x, y, onClickCell, onPopupClose, onButtonClick }) {
-    const position = useMemo(() => new Position(x, y), [x, y]);
+    const position = useMemo(() => ({ x, y }), [x, y]);
 
     return (
         <Tile

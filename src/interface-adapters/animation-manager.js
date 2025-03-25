@@ -109,8 +109,14 @@ function applyAnimationsToBoard(boardState, animations, previousGameState) {
 
         if(animation.key === "position") {
             animations.move = {
-                from: animation.from,
-                to: animation.to,
+                from: {
+                    x: animation.from.x,
+                    y: animation.from.y,
+                },
+                to: {
+                    x: animation.to.x,
+                    y: animation.to.y,
+                },
             };
         }
         else if(animation.type == "update-attribute" && animation.difference !== undefined) {

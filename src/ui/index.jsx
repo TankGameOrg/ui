@@ -9,10 +9,6 @@ import { reducers } from "../interface-adapters/game/index.js";
 
 let store = configureStore({
     reducer: reducers,
-    middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-        serializableCheck: false,
-    }),
 });
 
 function renderApp() {

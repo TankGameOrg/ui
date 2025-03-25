@@ -3,33 +3,17 @@ import { boardFromBoard } from "./game-state-adapter.js";
 import { applyFinishAnimation, applyStartAnimation, buildAnimationData } from "../../animation-manager.js";
 import { getCell, modifyAllCells, modifyCellsFromList } from "./state.js";
 import { useDispatch } from "react-redux";
-import { useGameClient } from "../../../drivers/rest/game-client.js";
+import { getGameClient, useGameClient } from "../../../drivers/rest/game-client.js";
 
 const boardSlice = createSlice({
     name: "board",
     initialState: {},
     reducers: {
-        importBoard: (state, action) => {
-            if(action.payload.currentState !== undefined) {
-                let board = boardFromBoard(action.payload.currentState, action.payload.canSubmitAction);
-    
-                if(action.payload.previousState !== undefined) {
-                    board = buildAnimationData(
-                        board,
-                        action.payload.entryId,
-                        action.payload.previousStateId,
-                        action.payload.previousState,
-                        action.payload.currentState,
-                        action.payload.logBook);
-                }
-    
-                return {
-                    ...state,
-                    board,
-                };
-            }
-    
-            return null;
+        setBoard: (state, action) => {
+            return {
+                ...state,
+                board: action.payload,
+            };
         },
 
         startAnimation: (state, action) => {
@@ -108,31 +92,37 @@ const boardSlice = createSlice({
 });
 
 export default boardSlice.reducer;
-export const {importBoard, startAnimation, finishAnimation, startSelecting, stopSelecting, showPopup, closeAllPopups, selectCell} = boardSlice.actions;
+export const {startAnimation, finishAnimation, startSelecting, stopSelecting, showPopup, closeAllPopups, selectCell} = boardSlice.actions;
 
 
-export function useGameClientBoardHook(game, currentTurnMgrState, logBook, canSubmitAction) {
-    const dispatch = useDispatch();
+export function importBoard(game, currentTurnMgrState, logBook, canSubmitAction) {
+    return async (dispatch) => {
+        if(!game && currentTurnMgrState.entryId === undefined) return;
 
-    const [_, stateError] = useGameClient(game, async client => {
-        if(currentTurnMgrState.entryId !== undefined) {
-            const [previousState, currentState] = await Promise.all([
-                currentTurnMgrState.previousStateId !== undefined ?
-                    client.getGameState(currentTurnMgrState.previousStateId) : undefined,
-                currentTurnMgrState.entryId !== undefined ?
-                    client.getGameState(currentTurnMgrState.entryId) : undefined,
-            ]);
+        const client = getGameClient(game);
 
-            dispatch(importBoard({
-                logBook,
-                canSubmitAction,
-                entryId: currentTurnMgrState.entryId,
-                previousStateId: currentTurnMgrState.previousStateId,
-                previousState,
-                currentState,
-            }));
+        // TODO: Handle exceptions
+        const [previousState, currentState] = await Promise.all([
+            currentTurnMgrState.previousStateId !== undefined ?
+                client.getGameState(currentTurnMgrState.previousStateId) : undefined,
+            currentTurnMgrState.entryId !== undefined ?
+                client.getGameState(currentTurnMgrState.entryId) : undefined,
+        ]);
+
+        if(currentState !== undefined) {
+            let board = boardFromBoard(currentState, canSubmitAction);
+
+            if(previousState !== undefined) {
+                board = buildAnimationData(
+                    board,
+                    currentTurnMgrState.entryId,
+                    currentTurnMgrState.previousStateId,
+                    previousState,
+                    currentState,
+                    logBook);
+            }
+
+            dispatch(boardSlice.actions.setBoard(board));
         }
-    }, [currentTurnMgrState.entryId, currentTurnMgrState.previousStateId, dispatch]);
-
-    return stateError;
+    };
 }
